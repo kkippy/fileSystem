@@ -1,26 +1,6 @@
 <template>
-<!--  <el-button :icon="Refresh" circle @click="handleRefresh"/>-->
   <el-button :icon="FullScreen" circle @click="handleFullscreen"/>
-  <el-popover
-      placement="bottom"
-      title="主题设置"
-      :width="230"
-      trigger="hover"
-  >
-    <el-form>
-      <el-form-item label="主题颜色">
-          <el-color-picker @change="setColor" :teleported="false" :predefine="['#409EFF','#fff','#000']" v-model="color" show-alpha/>
-      </el-form-item>
-      <el-form-item label="暗黑模式">
-        <el-switch v-model="dark" inline-prompt :active-icon="Moon" :inactive-icon="Sunny" @change="handleChangeModel"  />
-      </el-form-item>
-    </el-form>
-    <template #reference>
-      <el-button :icon="Setting" circle />
-    </template>
-  </el-popover>
-  <div class="avatar" style="background-color: #6b57fe"></div>
-<!--  <img :src="userStore.avatar" class="avatar" alt="">-->
+  <div class="avatar" style="background-color: #1e80ff"></div>
   <el-dropdown style="margin-left: 12px" @command="handleCommand">
       <span class="el-dropdown-link">
         admin
@@ -39,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import {FullScreen, Refresh, Setting, ArrowDown, Sunny, Moon} from "@element-plus/icons-vue";
+import {FullScreen, ArrowDown} from "@element-plus/icons-vue";
 // import {useSettingStore} from "@/store/modules/setting.ts"
 // import {useUserStore} from "@/store/modules/user.ts";
 import {useRouter,useRoute} from "vue-router";
@@ -50,8 +30,6 @@ import {ref} from "vue";
 // const settingStore = useSettingStore()
 let router = useRouter()
 let route = useRoute()
-let dark = ref<boolean>(false)
-const color = ref<string>('#409EFF')
 
 
 // const handleRefresh = () => {
@@ -81,20 +59,6 @@ const handleCommand = async (command: string | number | object) => {
   }
 }
 
-const handleChangeModel = () => {
-  //获取根节点
-  let root = document.documentElement
-  if(dark.value){
-    root.className = 'dark'
-  }else{
-    root.className = ''
-  }
-}
-
-const setColor = () => {
-  let root = document.documentElement
-  root.style.setProperty('--el-color-primary', color.value)
-}
 </script>
 
 <script  lang="ts">

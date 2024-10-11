@@ -13,7 +13,7 @@ NProgress.configure({
   speed: 700
 })
 
-router.beforeEach(async(to:any, from:any, next:any) =>{
+router.beforeEach((to:any, from:any, next:any) =>{
   NProgress.start()
 
   // 用户登录
@@ -44,10 +44,10 @@ router.beforeEach(async(to:any, from:any, next:any) =>{
   //
   // } else { //用户未登录
   // }
-  if (to.path == '/login' ){
-    next({path:'/',query:{
-                    redirect:to.path
-                  }})
+  if (to.path === '/') {
+    next('/login'); // 重定向到登录页面
+  } else {
+    next();
   }
 })
 

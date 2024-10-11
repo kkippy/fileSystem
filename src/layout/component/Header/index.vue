@@ -29,7 +29,8 @@ import HeadRight from "./component/headRight/index.vue"
   justify-content: space-between;
   align-items: center;
   transition: all .5s;
-  background: rgb(30, 128, 255,.2);
+
+  box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.12);
 
   .header-left,.header-right {
     display: flex;

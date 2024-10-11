@@ -1,5 +1,14 @@
 export const constantRoute = [
   {
+    path: '/login',
+    name: 'login',
+    component:  ()=> import('@/views/login/index.vue'),
+    meta: {
+      title: '登录',
+      hidden: true,//路由的标题在菜单中隐藏
+    }
+  },
+  {
     path: '/',
     name: 'Department',
     redirect: '/section1',
@@ -62,15 +71,7 @@ export const constantRoute = [
       },
     ]
   },
-  {
-    path: '/login',
-    name: 'login',
-    component:  ()=> import('@/views/login/index.vue'),
-    meta: {
-      title: '登录',
-      hidden: true,//路由的标题在菜单中隐藏
-    }
-  },
+
   {
     path:'/auth',
     name: 'auth',
@@ -104,6 +105,15 @@ export const constantRoute = [
       },
     ]
   },
+  {
+    path:'/404',
+    name: '404',
+    component:  ()=> import('@/views/404/index.vue'),
+    meta: {
+      title: '404',
+      hidden: true,//路由的标题在菜单中隐藏
+    }
+  }
 ]
 
 

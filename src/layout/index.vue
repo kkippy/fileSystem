@@ -42,11 +42,7 @@ import {constantRoute,anyRoute} from "@/router/routers.ts";
 
 
 const menuRoutes = [...constantRoute,anyRoute]
-// const defaultActive = '/section1,section2,/support,/basic,/manage'
-const defaultActive = '/'
 
-// const settingStore = useSettingStore()
-// const userStore = useUserStore();
 let route = useRoute();
 
 </script>

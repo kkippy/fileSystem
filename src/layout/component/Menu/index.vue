@@ -7,10 +7,6 @@
             v-if="!item.meta.hidden"
             :index="item.path"
             @click="toView">
-          <SvgIcon
-              :width="30"
-              :height="20"
-              :name="item.meta.icon"/>
           <template #title>
               {{item.meta.title}}
           </template>
@@ -36,11 +32,7 @@
           :index="item.path"
           v-if="item.children && item.children.length > 1">
         <template #title>
-          <SvgIcon
-              :width="30"
-              :height="20"
-              :name="item.meta.icon"/>
-              <span>{{item.meta.title}}</span>
+          <span>{{item.meta.title}}</span>
           </template>
         <MenuComponent :menuList="item.children"></MenuComponent>
       </el-sub-menu>

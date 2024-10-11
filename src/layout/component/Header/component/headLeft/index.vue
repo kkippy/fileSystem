@@ -6,7 +6,6 @@
         v-show="item.meta.title"
         :to="item.path"
     >
-        <SvgIcon style="margin-right: 5px" :width="20" :height="20" :name="item.meta.icon"/>
         <span>{{ item.meta.title }}</span>
     </el-breadcrumb-item>
 

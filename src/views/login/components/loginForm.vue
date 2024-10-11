@@ -6,8 +6,7 @@
           <el-input placeholder="admin" v-model="loginFormReactive.username" :prefix-icon="User" />
         </el-form-item>
         <el-form-item label="密码" prop="password">
-          <el-input placeholder="111111" v-model="loginFormReactive.password" type="password" :prefix-icon="Lock" />
-
+          <el-input show-password type="password" placeholder="111111" v-model="loginFormReactive.password" :prefix-icon="Lock" />
         </el-form-item>
       </el-form>
     </div>
