@@ -13,7 +13,7 @@
 
     <div class="login-btn">
       <el-button :icon="CircleClose" round size="large"  @click="resetForm(loginFormRef)"> 重置 </el-button>
-      <el-button :icon="UserFilled" round size="large" type="primary"  @click="login">
+      <el-button :icon="UserFilled" round size="large" type="primary"  @click="login(loginFormRef)">
         登录
       </el-button>
     </div>
@@ -26,14 +26,14 @@ import type { ElForm } from "element-plus";
 import { CircleClose, UserFilled,User, Lock } from "@element-plus/icons-vue";
 import { ElMessage } from 'element-plus'
 import {useRouter,useRoute} from "vue-router";
-// import {LoginForm} from "@/api/user/type.ts";
-// import {useUserStore} from "@/store/modules/user.ts"
-// import {getTime} from "@/utils/time.ts"
+import {useUserStore} from "@/stores/user.ts"
 
 export interface LoginForm {
   username:string,
   password:string
 }
+
+const userStore = useUserStore()
 
 
 type FormInstance = InstanceType<typeof ElForm>;
@@ -45,11 +45,10 @@ const loginRules = reactive({
   password: [{ required: true, message: "请输入密码", trigger: "blur" }]
 });
 
-// const userStore = useUserStore();
 
 const loginFormReactive = reactive<LoginForm>({
-  username:'admin',
-  password:'111111'
+  username:'',
+  password:''
 })
 
 const resetForm = (formEl: FormInstance | undefined)=> {
@@ -58,12 +57,23 @@ const resetForm = (formEl: FormInstance | undefined)=> {
 }
 
 
-const login = async ()=> {
-  let redirect:any = route.query.redirect
-  await router.push({path: redirect|| '/' })
-  ElMessage({
-    message: '登录成功',
-    type: 'success'
+const login = async (formEl: FormInstance | undefined)=> {
+  if (!formEl) return
+  formEl.validate((valid) => {
+    if (valid) {
+      userStore.userLogin()
+      let redirect: any = route.query.redirect
+       router.push({ path: redirect || '/' })
+      ElMessage({
+        message: '登录成功',
+        type: 'success'
+      })
+    } else {
+      ElMessage({
+        message: '请输入用户名或密码',
+        type: 'warning'
+      })
+    }
   })
 }
 </script>
@@ -73,7 +83,7 @@ const login = async ()=> {
 .loginForm {
   width: 420px;
   padding: 50px 40px 45px;
-  background-color: var(--el-bg-color);
+  background-color:rgb(255, 255, 255,.4);
   border-radius: 10px;
   box-shadow: rgb(0 0 0 / 10%) 0 2px 10px 2px;
   .login-logo {

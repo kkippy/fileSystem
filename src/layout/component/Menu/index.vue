@@ -1,6 +1,6 @@
 <template>
 
-    <template v-for="item in menuList" :key="item.path" >
+    <template v-for="item in filterMenuList" :key="item.path" >
 <!--      无子路由-->
       <template v-if="!item.children">
         <el-menu-item
@@ -43,9 +43,23 @@
 
 <script setup lang="ts">
 import {useRouter} from "vue-router";
+import {useUserStore} from "@/stores/user.ts"
+import { ref,computed,watch } from 'vue'
 let router = useRouter();
+const userStore = useUserStore()
 const props = defineProps(['menuList'])
-console.log(props.menuList.path,'menuList.path')
+const menuList = ref(props.menuList)
+const filterMenuList = computed(()=>{
+  if(userStore.userName === 'adminUser') {
+    return menuList.value.filter(item => item.path !== '/auth')
+  }
+  return menuList.value
+})
+
+watch(()=>props.menuList,()=>{
+  menuList.value = props.menuList
+})
+console.log(filterMenuList,'filterMenuList')
 const toView = (vc) => {
   router.push(vc.index)
 }

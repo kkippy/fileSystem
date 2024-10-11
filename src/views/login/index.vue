@@ -1,7 +1,7 @@
 <template>
   <div class="loginMain">
     <div class="login-box">
-      <h1>登录页面</h1>
+      <div class="title">文件管理系统</div>
       <login-form />
     </div>
   </div>
@@ -22,27 +22,31 @@ import  LoginForm  from "./components/loginForm.vue";
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #6b57fe;
-  background-image: linear-gradient(61deg, #6b57fe 30%, #ffba00 100%);
-
-
+  background-color: #0093E9;
+  background-image: linear-gradient(135deg, #0093E9 0%, #80D0C7 100%);
 
   .login-box {
     position: relative;
     box-sizing: border-box;
     display: flex;
     align-items: center;
-    justify-content: space-around;
+    flex-direction: column;
+    margin: auto;
+
+    justify-content: center;
     width: 96.5%;
     height: 94%;
     padding: 0 50px;
-    //margin: 0 auto;
-    //background: url(@/assets/images/login.jpg) ;
     background-size: cover;
 
     background-color: rgb(255 255 255 / 30%);
     border-radius: 10px;
-    //filter: alpha(opacity=80);
+    .title{
+      font-size: 30px;
+      font-weight: 550;
+      letter-spacing: 5px;
+      margin-bottom: 10px;
+    }
   }
 }
 

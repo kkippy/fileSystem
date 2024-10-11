@@ -1,19 +1,20 @@
 <template>
   <div>
-    <div class="header" >
-      <el-form>
-        <el-form-item label="用户名" style="margin-top: 18px;margin-left: 20px">
-          <el-input v-model="searchUserName" placeholder="请输入用户名" />
-        </el-form-item>
-      </el-form>
+<!--    <div class="header" >-->
+<!--      <el-form>-->
+<!--        <el-form-item label="用户名" style="margin-top: 18px;margin-left: 20px">-->
+<!--          <el-input v-model="searchUserName" placeholder="请输入用户名" />-->
+<!--        </el-form-item>-->
+<!--      </el-form>-->
 
-      <div style="margin-right: 40px">
-        <el-button type="primary" :icon="Search" @click="onSearch" :disabled="!searchUserName">搜索</el-button>
-        <el-button @click="reset">重置</el-button>
-      </div>
-    </div>
+<!--      <div style="margin-right: 40px">-->
+<!--        <el-button type="primary" :icon="Search" @click="onSearch" :disabled="!searchUserName">搜索</el-button>-->
+<!--        <el-button @click="reset">重置</el-button>-->
+<!--      </div>-->
+<!--    </div>-->
 
-    <el-card style="margin-top: 20px;border-radius: 10px">
+<!--    <el-card style="margin-top: 20px;border-radius: 10px">-->
+    <el-card style="border-radius: 10px">
       <el-button type="primary" style="margin-right: 10px" :icon="Plus" @click="handleAddUser">
         <span style="margin-left: 5px;">添加用户</span>
       </el-button>
@@ -22,7 +23,7 @@
         <span style="margin-left: 5px;">批量删除</span>
       </el-button>
 
-      <el-table @selection-change="selectChange" :data="userData" border height="60vh" style="width: 100%;margin-top: 20px">
+      <el-table @selection-change="selectChange" :data="userData" border height="67vh" style="width: 100%;margin-top: 20px">
         <el-table-column align="center" type="selection" ></el-table-column>
         <el-table-column align="center" type="index" label="序号" width="80" />
         <el-table-column align="center" prop="id" label="id" width="80" />
@@ -213,11 +214,9 @@ const handleDelete = async () => {
 
 const handleEditUser = (row:any) => {
   currentUserName.value = row.username
-  nextTick(() => {
-    console.log(userFromRef.value,'userFromRef.value')
-
-    userFromRef.value.resetFields()
-  })
+  // nextTick(() => {
+  //   userFromRef.value.resetFields()
+  // })
   Object.assign(userFrom,row)
   drawer.value = true
 }

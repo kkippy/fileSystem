@@ -21,12 +21,12 @@
 <script setup lang="ts">
 import {FullScreen, ArrowDown} from "@element-plus/icons-vue";
 // import {useSettingStore} from "@/store/modules/setting.ts"
-// import {useUserStore} from "@/store/modules/user.ts";
+import {useUserStore} from "@/stores/user.ts";
 import {useRouter,useRoute} from "vue-router";
 import {ElMessage} from "element-plus";
 import {ref} from "vue";
 
-// const userStore = useUserStore()
+const userStore = useUserStore()
 // const settingStore = useSettingStore()
 let router = useRouter()
 let route = useRoute()
@@ -48,7 +48,7 @@ const handleFullscreen = () => {
 
 const handleCommand = async (command: string | number | object) => {
   if (command === 'logout'){
-    // await userStore.userLogout()
+    userStore.userLogout()
     await router.push({
       path: '/login',
       query: {

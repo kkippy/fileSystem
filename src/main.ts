@@ -11,7 +11,7 @@ import App from './App.vue'
 import router from './router'
 
 // 引入鉴权文件
-// import './permission'
+import './permission'
 
 const app = createApp(App)
 

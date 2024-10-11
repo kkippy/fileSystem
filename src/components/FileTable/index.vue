@@ -8,6 +8,7 @@
       <span style="margin-left: 5px;">批量下载</span>
     </el-button>
 
+
     <el-button
       type="success"
       :icon="Upload"
@@ -15,10 +16,11 @@
       <span style="margin-left: 5px;">上传文件</span>
     </el-button>
 
+
     <el-table
       :data="menuData"
       border
-      height="72vh"
+      height="67vh"
       style="width: 100%;
         margin-top: 20px"
       row-key="id"
@@ -49,12 +51,16 @@
       </el-table-column>
 
     </el-table>
+
+    <slot name="footer" />
   </el-card>
 </template>
 
 <script setup lang="ts">
 import {Upload,Download} from "@element-plus/icons-vue";
 import { ref, watch } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import type { UploadProps, UploadUserFile } from 'element-plus'
 
 const props = defineProps({
   menuData: {
@@ -95,7 +101,7 @@ const handleBatchDownload = () => {
 }
 
 const handleUpload = () => {
-  emit('upload-file')
+  emit('upload-file', true)
 }
 
 const handleDelete =  (id:number) => {
@@ -105,6 +111,42 @@ const handleDelete =  (id:number) => {
 const selectChange = (value:any) => {
   emit('selection-change', value)
   downloadList.value = value
+}
+
+const fileList = ref<UploadUserFile[]>([
+  {
+    name: 'element-plus-logo.svg',
+    url: 'https://element-plus.org/images/element-plus-logo.svg',
+  },
+  {
+    name: 'element-plus-logo2.svg',
+    url: 'https://element-plus.org/images/element-plus-logo.svg',
+  },
+])
+
+const handleRemove: UploadProps['onRemove'] = (file, uploadFiles) => {
+  console.log(file, uploadFiles)
+}
+
+const handlePreview: UploadProps['onPreview'] = (uploadFile) => {
+  console.log(uploadFile)
+}
+
+const handleExceed: UploadProps['onExceed'] = (files, uploadFiles) => {
+  ElMessage.warning(
+    `The limit is 3, you selected ${files.length} files this time, add up to ${
+      files.length + uploadFiles.length
+    } totally`
+  )
+}
+
+const beforeRemove: UploadProps['beforeRemove'] = (uploadFile, uploadFiles) => {
+  return ElMessageBox.confirm(
+    `Cancel the transfer of ${uploadFile.name} ?`
+  ).then(
+    () => true,
+    () => false
+  )
 }
 
 
