@@ -4,6 +4,7 @@ import router from '@/router'
 import NProgress from 'nprogress'
 import pinia from "./stores";
 import  {useUserStore} from "./stores/user.ts";
+import { getUserInfo} from '@/api/user'
 // 引入对应css样式
 import 'nprogress/nprogress.css'
 import { ElMessage } from 'element-plus'
@@ -15,27 +16,42 @@ NProgress.configure({
   speed: 700
 })
 
-router.beforeEach((to:any, from:any, next:any) =>{
+router.beforeEach(async (to:any, from:any, next:any) => {
   NProgress.start()
   const userStore = useUserStore(pinia)
   const token = userStore.token
-  const userName = userStore.userName
+  const username = userStore.userName
+  const sessionTime = userStore.sessionTime
+  const userId = userStore.userId
+  console.log(sessionTime,'sessionTime')
+
+  // if (token && to.path === '/login') {
+  //   // 如果已经有 token 并且试图访问登录页，则重定向到主页或其他页面
+  //   next('/');
+  // } else if (!token && to.path !== '/login') {
+  //   // 如果没有 token 并且试图访问非登录页，则重定向到登录页
+  //   next('/login');
+  // } else {
+  //   // 其他情况直接放行
+  //   next();
+  // }
+
 
   if(token){
     if (to.path == '/login' ){
       next({path:'/'})
     } else {
-      if(userName){
+      if(username){
         next()
       } else {
         //如果没有用户信息则在此发请求获取到用户信息,以实现用户信息的变相持久化
         try {
-          userStore.getUserInfo()
+          await userStore.getInfo()
           next({...to,replace:true})
         } catch (e){
           //token过期
           ElMessage.error('登录过期，请重新登录')
-           userStore.userLogout()
+          await userStore.userLogout()
           next({
             path:'/login',
             query:{
@@ -58,7 +74,9 @@ router.beforeEach((to:any, from:any, next:any) =>{
       })
     }
   }
+
 })
+
 
 router.afterEach(() =>{
   NProgress.done()

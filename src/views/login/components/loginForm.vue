@@ -13,7 +13,7 @@
 
     <div class="login-btn">
       <el-button :icon="CircleClose" round size="large"  @click="resetForm(loginFormRef)"> 重置 </el-button>
-      <el-button :icon="UserFilled" round size="large" type="primary"  @click="login(loginFormRef)">
+      <el-button :icon="UserFilled" round size="large" type="primary"  @click="login">
         登录
       </el-button>
     </div>
@@ -26,7 +26,8 @@ import type { ElForm } from "element-plus";
 import { CircleClose, UserFilled,User, Lock } from "@element-plus/icons-vue";
 import { ElMessage } from 'element-plus'
 import {useRouter,useRoute} from "vue-router";
-import {useUserStore} from "@/stores/user.ts"
+import {useUserStore} from "@/stores/user"
+import { getUserInfo } from '@/api/user'
 
 export interface LoginForm {
   username:string,
@@ -47,8 +48,8 @@ const loginRules = reactive({
 
 
 const loginFormReactive = reactive<LoginForm>({
-  username:'',
-  password:''
+  username:'ops_liwenbo',
+  password:'123456'
 })
 
 const resetForm = (formEl: FormInstance | undefined)=> {
@@ -56,26 +57,28 @@ const resetForm = (formEl: FormInstance | undefined)=> {
   formEl.resetFields();
 }
 
-
-const login = async (formEl: FormInstance | undefined)=> {
-  if (!formEl) return
-  formEl.validate((valid) => {
-    if (valid) {
-      userStore.userLogin()
-      let redirect: any = route.query.redirect
-       router.push({ path: redirect || '/' })
-      ElMessage({
-        message: '登录成功',
-        type: 'success'
-      })
-    } else {
-      ElMessage({
-        message: '请输入用户名或密码',
-        type: 'warning'
-      })
-    }
-  })
+const login = async ()=> {
+  try{
+    //借助仓库中方法返回的promise状态进行成功或失败的判断
+    const { data } = await userStore.userLogin(loginFormReactive)
+    console.log(data,'data')
+    userStore.sessionTime = data.sessionTimeout
+    userStore.userId = parseInt(data.loginId)
+    // const res = await getUserInfo(parseInt(data.loginId))
+    // userStore.userName = res.data.username
+    // console.log(res.data,'用户名')
+    // 判断是否有query参数，要是有就跳转到从定向页面，否则直接跳转到首页
+    let redirect:any = route.query.redirect
+    await router.push({path: redirect || '/'})
+    ElMessage({
+      message: '登录成功',
+      type: 'success'
+    })
+  } catch (e ){
+    ElMessage.error((e as  Error).message )
+  }
 }
+
 </script>
 
 

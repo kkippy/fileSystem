@@ -1,20 +1,20 @@
 <template>
   <div>
-<!--    <div class="header" >-->
-<!--      <el-form>-->
-<!--        <el-form-item label="用户名" style="margin-top: 18px;margin-left: 20px">-->
-<!--          <el-input v-model="searchUserName" placeholder="请输入用户名" />-->
-<!--        </el-form-item>-->
-<!--      </el-form>-->
+    <div class="header" >
+      <el-form>
+        <el-form-item label="用户名" style="margin-top: 18px;margin-left: 20px">
+          <el-input v-model="searchUserName" placeholder="请输入用户名" />
+        </el-form-item>
+      </el-form>
 
-<!--      <div style="margin-right: 40px">-->
-<!--        <el-button type="primary" :icon="Search" @click="onSearch" :disabled="!searchUserName">搜索</el-button>-->
-<!--        <el-button @click="reset">重置</el-button>-->
-<!--      </div>-->
-<!--    </div>-->
+      <div style="margin-right: 40px">
+        <el-button type="primary" :icon="Search" @click="onSearch" :disabled="!searchUserName">搜索</el-button>
+        <el-button @click="reset">重置</el-button>
+      </div>
+    </div>
 
-<!--    <el-card style="margin-top: 20px;border-radius: 10px">-->
-    <el-card style="border-radius: 10px">
+    <el-card style="margin-top: 20px;border-radius: 10px">
+<!--    <el-card style="border-radius: 10px">-->
       <el-button type="primary" style="margin-right: 10px" :icon="Plus" @click="handleAddUser">
         <span style="margin-left: 5px;">添加用户</span>
       </el-button>

@@ -1,10 +1,9 @@
 //对axios进行2次封装
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
-// import {useUserStore} from "../store/modules/user.ts";
-
+import {useUserStore} from '@/stores/user';
 const request = axios.create({
-    // baseURL:import.meta.env.VITE_APP_BASE_API, //基础路径上会携带/api
+    baseURL:import.meta.env.VITE_APP_BASE_API, //基础路径上会携带/api
     timeout:5000
 })
 
@@ -41,12 +40,15 @@ request.interceptors.response.use(res=>{
             break
         case 403:
             break
+
+        default:
+            message = '未知错误'
     }
 
-    ElMessage({
-        type: 'error',
-        message: message,
-    })
+    // ElMessage({
+    //     type: 'error',
+    //     message: message,
+    // })
 
     return Promise.reject(new Error(`响应失败:${error}`))
 

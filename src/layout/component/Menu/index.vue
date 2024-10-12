@@ -45,21 +45,26 @@
 import {useRouter} from "vue-router";
 import {useUserStore} from "@/stores/user.ts"
 import { ref,computed,watch } from 'vue'
+import {GET_USER} from "@/utils/token"
+
 let router = useRouter();
 const userStore = useUserStore()
 const props = defineProps(['menuList'])
 const menuList = ref(props.menuList)
+// const userName = computed(()=>GET_USER())
+
 const filterMenuList = computed(()=>{
-  if(userStore.userName === 'adminUser') {
+  if(userStore.userRole !== 'manager') {
     return menuList.value.filter(item => item.path !== '/auth')
+  } else {
+    return menuList.value
   }
-  return menuList.value
 })
 
 watch(()=>props.menuList,()=>{
   menuList.value = props.menuList
 })
-console.log(filterMenuList,'filterMenuList')
+// console.log(filterMenuList,'filterMenuList')
 const toView = (vc) => {
   router.push(vc.index)
 }

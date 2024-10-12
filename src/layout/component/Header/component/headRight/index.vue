@@ -3,7 +3,7 @@
   <div class="avatar" style="background-color: #1e80ff"></div>
   <el-dropdown style="margin-left: 12px" @command="handleCommand">
       <span class="el-dropdown-link">
-        admin
+        {{ userStore.userName }}
         <el-icon class="el-icon--right">
           <arrow-down />
         </el-icon>
@@ -21,7 +21,7 @@
 <script setup lang="ts">
 import {FullScreen, ArrowDown} from "@element-plus/icons-vue";
 // import {useSettingStore} from "@/store/modules/setting.ts"
-import {useUserStore} from "@/stores/user.ts";
+import {useUserStore} from "@/stores/user";
 import {useRouter,useRoute} from "vue-router";
 import {ElMessage} from "element-plus";
 import {ref} from "vue";
@@ -30,6 +30,8 @@ const userStore = useUserStore()
 // const settingStore = useSettingStore()
 let router = useRouter()
 let route = useRoute()
+
+
 
 
 // const handleRefresh = () => {
@@ -48,7 +50,7 @@ const handleFullscreen = () => {
 
 const handleCommand = async (command: string | number | object) => {
   if (command === 'logout'){
-    userStore.userLogout()
+    await userStore.userLogout()
     await router.push({
       path: '/login',
       query: {
