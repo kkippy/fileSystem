@@ -29,8 +29,9 @@
       <el-upload
         class="upload-demo"
         drag
-        action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
+        action="https://6896dbc3.r17.cpolar.top/api/file/uploadfile"
         multiple
+        :before-upload="handleBeforeUpload"
       >
         <el-icon class="el-icon--upload"><upload-filled /></el-icon>
         <div class="el-upload__text">
@@ -52,7 +53,7 @@ import {ElMessage } from 'element-plus'
 import type {ComponentSize} from 'element-plus'
 import { ref,onMounted } from 'vue'
 import { UploadFilled } from '@element-plus/icons-vue'
-import {getFileList} from '@/api/file'
+import {getFileList,downloadFile,deleteFile,uploadFile} from '@/api/file'
 
 
 let size = ref<ComponentSize>('default')
@@ -69,11 +70,9 @@ onMounted(() => {
   getLists()
 })
 
-const downloadSingleFile = (row:any) => {
-  ElMessage({
-    message: '下载功能暂未开放',
-    type: 'warning'
-  })
+const downloadSingleFile = async (row:any) => {
+  const result = await downloadFile('section1',row.fileName)
+  console.log(result,'文件下载')
 }
 
 const handleBatchDownload = () => {
@@ -92,6 +91,7 @@ const getLists = async () => {
   try {
     const result = await getFileList('section1')
     fileData.value = result.data
+    console.log(result,'文件列表')
   } catch (error) {
     console.log(error)
   }
@@ -102,16 +102,27 @@ const handleSizeChange = () => {
   getLists()
 }
 
-const handleRemoveFile =  (id:number) => {
-  console.log(id)
-  ElMessage({
-    message: '删除功能暂未开放',
-    type: 'warning'
-  })
+const handleRemoveFile =  async (file:any) => {
+  console.log(typeof file.fileName,'file')
+  const result = await deleteFile('section1',file.fileName)
+  if(result.code === 200){
+    ElMessage({
+      message: '删除成功',
+      type: 'success'
+    })
+    await getLists()
+  }
+  console.log(result,'删除文件')
 }
 
 const updateSelectedFiles = (value:any) => {
   downloadList.value = value
+}
+
+const handleBeforeUpload = async(file:any) =>{
+  console.log(file.name,'file')
+  const result = await uploadFile('section1',file.name)
+  console.log(result,'上传文件')
 }
 
 

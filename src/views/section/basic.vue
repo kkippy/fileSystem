@@ -54,7 +54,7 @@ import {ElMessage } from 'element-plus'
 import type {ComponentSize} from 'element-plus'
 import { ref,onMounted } from 'vue'
 import { UploadFilled } from '@element-plus/icons-vue'
-import { getFileList } from '@/api/file'
+import { downloadFile, getFileList } from '@/api/file'
 
 let size = ref<ComponentSize>('default')
 let currentPage = ref<number>(1)
@@ -70,11 +70,9 @@ onMounted(()=>{
   getLists()
 })
 
-const downloadSingleFile = (row:any) => {
-  ElMessage({
-    message: '下载功能暂未开放',
-    type: 'warning'
-  })
+const downloadSingleFile = async (row:any) => {
+  const result = await downloadFile('section1',row.fileName)
+  console.log(result,'文件下载')
 }
 
 const handleBatchDownload = () => {

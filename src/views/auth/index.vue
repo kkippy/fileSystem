@@ -26,13 +26,13 @@
       <el-table @selection-change="selectChange" :data="userData" border height="67vh" style="width: 100%;margin-top: 20px">
         <el-table-column align="center" type="selection" ></el-table-column>
         <el-table-column align="center" type="index" label="序号" width="80" />
-        <el-table-column align="center" prop="id" label="id" width="80" />
         <el-table-column align="center" show-overflow-tooltip prop="username" label="登录名" />
-        <el-table-column align="center" show-overflow-tooltip prop="name" label="用户昵称" />
-        <el-table-column align="center" show-overflow-tooltip prop="roleName" label="用户角色" width="120" />
+        <el-table-column align="center" show-overflow-tooltip prop="name" label="姓名" />
+        <el-table-column align="center" show-overflow-tooltip prop="number" label="工号" />
+        <el-table-column align="center" show-overflow-tooltip prop="roleName" label="用户角色" width="100" />
         <el-table-column align="center" show-overflow-tooltip prop="createTime" label="创建时间" width="180" />
         <el-table-column align="center" show-overflow-tooltip prop="updateTime" label="更新时间" width="180" />
-        <el-table-column align="center" label="操作" width="350">
+        <el-table-column align="center" label="操作" width="250">
           <template #default="{row}">
             <el-button :icon="Edit" type="primary" @click="handleEditUser(row)">
               编辑
@@ -74,15 +74,15 @@
       <template #default>
         <div>
           <el-form ref="userFromRef" :model="userFrom" :rules="rules">
+            <el-form-item label="姓名" prop="name" label-width="90px">
+              <el-input placeholder="请输入姓名" v-model="userFrom.name" />
+            </el-form-item>
+
             <el-form-item label="登录名" prop="username" label-width="90px">
               <el-input placeholder="请输入登录名" v-model="userFrom.username" />
             </el-form-item>
 
-            <el-form-item label="用户昵称" prop="name" label-width="90px">
-              <el-input placeholder="请输入用户昵称" v-model="userFrom.name" />
-            </el-form-item>
-
-            <el-form-item v-if="!userFrom.id" label="用户密码" prop="password" label-width="90px">
+            <el-form-item label="用户密码" prop="password" label-width="90px">
               <el-input placeholder="请输入用户密码" v-model="userFrom.password" />
             </el-form-item>
           </el-form>
@@ -104,7 +104,8 @@ import {ref, onMounted, reactive,nextTick} from "vue";
 import {Delete, Edit, Plus, Search} from "@element-plus/icons-vue";
 import {ElMessage} from "element-plus";
 import type {ComponentSize} from "element-plus";
-
+import {searchUser,addUser} from '@/api/user'
+import {useUserStore} from "@/stores/user"
 
 
 let size = ref<ComponentSize>('default')
@@ -116,28 +117,11 @@ let userFromRef = ref()
 let currentUserName = ref<string>('')
 let searchUserName = ref<string>('')
 const removeUserIdList = ref([])
-const userData = [
-  {
-    id:1,
-    username:"admin",
-    name:"管理员",
-    roleName:"管理员",
-    createTime:"2022-01-01",
-    updateTime:"2022-01-01"
-  },
-  {
-    id:2,
-    username:"user",
-    name:"普通用户",
-    roleName:"普通用户",
-    createTime:"2022-01-01",
-    updateTime:"2022-01-01"
-  }
-]
-
+const userData = ref([])
+const userStore = useUserStore()
 const validatorUserName = (rule: any, value: any, callback: any) => {
-  if(value.trim().length < 5){
-    callback(new Error("字符长度不能小于5位"))
+  if(value.trim().length < 1){
+    callback(new Error("字符长度不能小于1位"))
   }else{
     callback()
   }
@@ -165,7 +149,7 @@ const rules = reactive({
 
 //存储新增或修改用户的表单
 const userFrom = reactive({
-  id:0,
+  // id:0,
   username:"",
   name:"",
   password:""
@@ -185,12 +169,8 @@ const reset = () => {
 }
 
 const handleAddUser = () => {
-  Object.assign(userFrom,{
-    id:0,
-    username:"",
-    name:"",
-    password:""
-  }) //清空userFrom的数据
+//清空userFrom的数据
+  console.log(userFrom,'ss')
 
   // nextTick(() => {
   //   console.log(userFromRef.value,'userFromRef.value')
@@ -213,6 +193,7 @@ const handleDelete = async () => {
 }
 
 const handleEditUser = (row:any) => {
+  console.log(row,'用户信息')
   currentUserName.value = row.username
   // nextTick(() => {
   //   userFromRef.value.resetFields()
@@ -234,7 +215,10 @@ const handleSizeChange = () => {
 }
 
 const getUser = async (pager = 1) => {
-
+  const result = await searchUser(pager,pageSize.value)
+  userData.value = result.items
+  total.value = result.counts
+  console.log(result,'用户')
 }
 
 const cancelClick = () => {
@@ -243,11 +227,23 @@ const cancelClick = () => {
 
 const confirmClick = async () => {
   await userFromRef.value.validate()
-  ElMessage({
-    message: '添加成功',
-    type: 'success'
-  })
-  drawer.value = false
+  console.log(userFrom, 'userFrom')
+  const result = await addUser(userFrom)
+  console.log(result, 'result')
+
+  if(result.code === 200){
+    ElMessage({
+      message: !userFrom.id ? '添加成功' : '修改成功',
+      type: "success"
+    })
+    drawer.value = false
+    await getUser(userFrom.id ? currentPage.value : 1)
+      if(userStore.userName === currentUserName.value) {
+        //若修改的是当前登录的用户，则浏览器自动更新，引发重新登录
+        window.location.reload()
+      }
+  }
+
 
 
   // if(result.code === 200){

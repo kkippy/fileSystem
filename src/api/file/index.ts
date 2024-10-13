@@ -13,11 +13,11 @@ export const getAllBuckets = ()=>request.get<any>(FILE_API.GET_ALL_BUCKET_URL)
 
 export const deleteBucket = (bucketName:string)=>request.get<any>(FILE_API.DELETE_BUCKET_URL+`?bucketName=${bucketName}`)
 
-export const uploadFile = (data:any)=>request.post<any>(FILE_API.UPLOAD_FILE_URL,data)
+export const uploadFile = (bucket:string,uploadfile:string)=>request.post<any>(FILE_API.UPLOAD_FILE_URL+`?bucket=${bucket}&uploadfile=${uploadfile}`)
 
-export const downloadFile = (data:any)=>request.post<any>(FILE_API.DOWNLOAD_FILE_URL,data)
+export const downloadFile = (bucket:string,objectName:string)=>request.get<any>(FILE_API.DOWNLOAD_FILE_URL+`?bucket=${bucket}&objectName=${objectName}`)
 
-export const deleteFile = (data:any)=>request.post<any>(FILE_API.DELETE_FILE_URL,data)
+export const deleteFile = (bucket:string,objectName:string)=>request.get<any>(FILE_API.DELETE_FILE_URL+`?bucket=${bucket}&objectName=${objectName}`)
 
 export const getFileList = (bucketName:string)=>request.get<any>(FILE_API.GET_FILE_URL+`?bucket=${bucketName}`)
 

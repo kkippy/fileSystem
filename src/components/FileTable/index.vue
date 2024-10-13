@@ -38,9 +38,9 @@
             下载
           </el-button>
           <el-popconfirm
-            :title="`确认删除${row.name}?`"
+            :title="`确认删除${row.fileName}?`"
             width="200px"
-            @confirm="handleDelete(row.id)"
+            @confirm="handleDelete(row)"
           >
             <template #reference>
               <el-button type="danger" >
@@ -101,7 +101,6 @@ const downloadList = ref(props.downloadList)
 
 const handleDownload = (row:any) => {
   emit('download-file', row)
-  console.log(row)
 }
 
 const handleBatchDownload = () => {
@@ -113,8 +112,8 @@ const handleUpload = () => {
   emit('upload-file', true)
 }
 
-const handleDelete =  (id:number) => {
-  emit('delete-file', id)
+const handleDelete =  (file:any) => {
+  emit('delete-file', file)
 }
 
 const selectChange = (value:any) => {
