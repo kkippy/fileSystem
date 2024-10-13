@@ -1,6 +1,12 @@
 import {defineStore} from 'pinia'
-import {SET_TOKEN,GET_TOKEN,REMOVE_TOKEN,SET_USER,GET_USER,REMOVE_USER} from "@/utils/token"
+import {SET_TOKEN,GET_TOKEN,
+  REMOVE_TOKEN,SET_USER,
+  GET_USER,REMOVE_USER,
+  GET_USERNAME,SET_USERNAME,
+  REMOVE_USER_NAME
+} from "@/utils/token"
 import { getUserInfo, userLogin, userLogout } from '@/api/user'
+import {getAllBuckets} from '@/api/file'
 import type {LoginForm} from "@/api/user/type.ts";
 
 export interface storeState {
@@ -16,7 +22,7 @@ export const useUserStore = defineStore('user', {
     return {
       token:GET_TOKEN() ||'',// 用户的token
       userRole:GET_USER() || '',
-      userName:'',
+      userName:GET_USERNAME() || '',
       sessionTime:'',
       userId:''
     }
@@ -24,22 +30,30 @@ export const useUserStore = defineStore('user', {
   actions: {
     async userLogin(userData:LoginForm){
       const result:any = await userLogin(userData)
-      console.log(result,'登录接口相应')
-      this.token = result.data.tokenValue as string
-      this.userRole = result.data.roleList[0]
-      this.sessionTime = result.data.sessionTime
-      SET_USER(result.data.roleList[0] as string)
-      console.log(this.userRole,'the')
-      SET_TOKEN(result.data.tokenValue as string)
-      return result
+      if(result.code == 200){
+        console.log(result,'登录接口相应')
+        this.token = (result.data.tokenValue as string)
+        this.userRole = result.data.roleList[0]
+        this.userId = parseInt(result.data.loginId)
+        SET_USER(this.userRole as string)
+        SET_TOKEN(this.token as string)
+        await getAllBuckets()
+        return 'ok'
+
+      }else {
+        return Promise.reject(new Error(result.data))
+      }
+
     },
 
      async getInfo(){
+      //存储用户信息
      const {code,data,message} = await  getUserInfo( (this.userId as number))
        if(code === 200){
          this.userName = data.username
-         return Promise.resolve(data)
-
+         SET_USERNAME(data.username as string)
+         console.log(this.userName)
+          return 'ok'
        } else {
          return Promise.reject(new Error(message))
        }
@@ -50,8 +64,10 @@ export const useUserStore = defineStore('user', {
       if(code == 200){
         this.token = ''
         this.userName = ''
+        this.userRole = ''
         REMOVE_TOKEN()
         REMOVE_USER()
+        REMOVE_USER_NAME()
         return 'ok'
       } else {
         return Promise.reject(new Error('退出失败'))

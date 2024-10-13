@@ -31,9 +31,6 @@ const userStore = useUserStore()
 let router = useRouter()
 let route = useRoute()
 
-
-
-
 // const handleRefresh = () => {
 //   settingStore.refresh =  !settingStore.refresh
 // }

@@ -21,7 +21,7 @@
             layout="prev,pager,next,jumper,->,sizes,total"
             :total="total"
             @size-change="handleSizeChange"
-            @current-change="getList"
+            @current-change="getLists"
           />
         </template>
 
@@ -39,7 +39,7 @@
         </div>
         <template #tip>
           <div class="el-upload__tip">
-            文件大小不得超过100M
+            文件大小不得超过1000M
           </div>
         </template>
       </el-upload>
@@ -52,8 +52,9 @@
 import FileTable from '@/components/FileTable/index.vue'
 import {ElMessage } from 'element-plus'
 import type {ComponentSize} from 'element-plus'
-import { ref } from 'vue'
+import { ref,onMounted } from 'vue'
 import { UploadFilled } from '@element-plus/icons-vue'
+import { getFileList } from '@/api/file'
 
 let size = ref<ComponentSize>('default')
 let currentPage = ref<number>(1)
@@ -63,23 +64,11 @@ const downloadList = ref<any[]>([])
 const uploadVisible = ref(false)
 
 const selectedFiles = ref([]); // 被选中的文件列表
-const fileData = [
-  {
-    id: 1,
-    name: '基础架构室.docx',
-    uploadTime: '2023-06-06 12:00:00'
-  },
-  {
-    id: 2,
-    name: 'test2.docx',
-    uploadTime: '2023-06-06 12:00:00'
-  },
-  {
-    id: 3,
-    name: 'test3.docx',
-    uploadTime: '2023-06-06 12:00:00'
-  }
-]
+const fileData = ref([])
+
+onMounted(()=>{
+  getLists()
+})
 
 const downloadSingleFile = (row:any) => {
   ElMessage({
@@ -100,13 +89,19 @@ const handleUpload = (val:boolean) => {
   uploadVisible.value = val
 }
 
-const getList = () => {
-
+const getLists = async () => {
+  try {
+    const result = await getFileList('basic')
+    fileData.value = result.data
+    console.log(result,'基础架构')
+  } catch (error) {
+    console.log(error)
+  }
 }
 
 const handleSizeChange = () => {
   currentPage.value = 1
-  getList()
+  getLists()
 }
 
 const handleRemoveFile =  (id:number) => {

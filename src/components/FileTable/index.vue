@@ -19,6 +19,7 @@
 
     <el-table
       :data="menuData"
+      v-loading="loading"
       border
       height="67vh"
       style="width: 100%;
@@ -28,8 +29,9 @@
     >
       <el-table-column align="center" type="selection" ></el-table-column>
       <el-table-column align="center" type="index" label="序号" width="100" />
-      <el-table-column align="center" prop="name" label="文件名称"  />
-      <el-table-column align="center" prop="uploadTime" label="上传时间"  />
+      <el-table-column align="center" prop="fileName" label="文件名称"  />
+      <el-table-column align="center" prop="uploadTime" label="修改时间"  />
+      <el-table-column align="center" prop="size" label="文件大小"  />
       <el-table-column align="center" label="操作"  >
         <template #default="{row}">
           <el-button type="primary"   @click="handleDownload(row)">
@@ -58,9 +60,11 @@
 
 <script setup lang="ts">
 import {Upload,Download} from "@element-plus/icons-vue";
-import { ref, watch } from 'vue'
+import { ref, watch,watchEffect } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { UploadProps, UploadUserFile } from 'element-plus'
+
+const loading = ref(true)
 
 const props = defineProps({
   menuData: {
@@ -73,6 +77,16 @@ const props = defineProps({
   },
 });
 
+watchEffect(() => {
+  if (props.menuData.length > 0) {
+    loading.value = false;
+  }
+})
+
+watch(()=>props.downloadList, ()=>{
+  downloadList.value = props.downloadList
+})
+
 const emit = defineEmits([
   'selection-change',
   'download-file',
@@ -84,11 +98,6 @@ const emit = defineEmits([
 ])
 
 const downloadList = ref(props.downloadList)
-
-watch(()=>props.downloadList, ()=>{
-  downloadList.value = props.downloadList
-})
-
 
 const handleDownload = (row:any) => {
   emit('download-file', row)
