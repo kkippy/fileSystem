@@ -47,7 +47,7 @@ const handleFullscreen = () => {
 
 const handleCommand = async (command: string | number | object) => {
   if (command === 'logout'){
-    await userStore.userLogout()
+    await userStore.userLogouts()
     await router.push({
       path: '/login',
       query: {

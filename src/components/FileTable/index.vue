@@ -32,7 +32,7 @@
       <el-table-column align="center" prop="fileName" label="文件名称"  />
       <el-table-column align="center" prop="uploadTime" label="修改时间"  />
       <el-table-column align="center" prop="size" label="文件大小"  />
-      <el-table-column align="center" label="操作"  >
+      <el-table-column align="center" label="操作" >
         <template #default="{row}">
           <el-button type="primary"   @click="handleDownload(row)">
             下载
@@ -61,8 +61,6 @@
 <script setup lang="ts">
 import {Upload,Download} from "@element-plus/icons-vue";
 import { ref, watch,watchEffect } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import type { UploadProps, UploadUserFile } from 'element-plus'
 
 const loading = ref(true)
 
@@ -78,7 +76,7 @@ const props = defineProps({
 });
 
 watchEffect(() => {
-  if (props.menuData.length > 0) {
+  if (props.menuData.length > 0 || props.menuData.length === 0) {
     loading.value = false;
   }
 })
@@ -119,42 +117,6 @@ const handleDelete =  (file:any) => {
 const selectChange = (value:any) => {
   emit('selection-change', value)
   downloadList.value = value
-}
-
-const fileList = ref<UploadUserFile[]>([
-  {
-    name: 'element-plus-logo.svg',
-    url: 'https://element-plus.org/images/element-plus-logo.svg',
-  },
-  {
-    name: 'element-plus-logo2.svg',
-    url: 'https://element-plus.org/images/element-plus-logo.svg',
-  },
-])
-
-const handleRemove: UploadProps['onRemove'] = (file, uploadFiles) => {
-  console.log(file, uploadFiles)
-}
-
-const handlePreview: UploadProps['onPreview'] = (uploadFile) => {
-  console.log(uploadFile)
-}
-
-const handleExceed: UploadProps['onExceed'] = (files, uploadFiles) => {
-  ElMessage.warning(
-    `The limit is 3, you selected ${files.length} files this time, add up to ${
-      files.length + uploadFiles.length
-    } totally`
-  )
-}
-
-const beforeRemove: UploadProps['beforeRemove'] = (uploadFile, uploadFiles) => {
-  return ElMessageBox.confirm(
-    `Cancel the transfer of ${uploadFile.name} ?`
-  ).then(
-    () => true,
-    () => false
-  )
 }
 
 

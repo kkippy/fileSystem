@@ -2,8 +2,8 @@
   <div>
     <div class="header" >
       <el-form>
-        <el-form-item label="用户名" style="margin-top: 18px;margin-left: 20px">
-          <el-input v-model="searchUserName" placeholder="请输入用户名" />
+        <el-form-item label="姓名" style="margin-top: 18px;margin-left: 20px">
+          <el-input v-model="searchUserName" @keyup.enter="onSearch" placeholder="请输入姓名" />
         </el-form-item>
       </el-form>
 
@@ -23,7 +23,7 @@
         <span style="margin-left: 5px;">批量删除</span>
       </el-button>
 
-      <el-table @selection-change="selectChange" :data="userData" border height="67vh" style="width: 100%;margin-top: 20px">
+      <el-table  v-loading="loading" @selection-change="selectChange" :data="userData" border height="67vh" style="width: 100%;margin-top: 20px">
         <el-table-column align="center" type="selection" ></el-table-column>
         <el-table-column align="center" type="index" label="序号" width="80" />
         <el-table-column align="center" show-overflow-tooltip prop="username" label="登录名" />
@@ -78,11 +78,15 @@
               <el-input placeholder="请输入姓名" v-model="userFrom.name" />
             </el-form-item>
 
-            <el-form-item label="登录名" prop="username" label-width="90px">
-              <el-input placeholder="请输入登录名" v-model="userFrom.username" />
+            <el-form-item label="账号" prop="username" label-width="90px">
+              <el-input placeholder="请输入账号" v-model="userFrom.username" />
             </el-form-item>
 
-            <el-form-item label="用户密码" prop="password" label-width="90px">
+            <el-form-item label="工号" prop="number" label-width="90px">
+              <el-input placeholder="请输入工号" v-model="userFrom.number" />
+            </el-form-item>
+
+            <el-form-item v-if="!userFrom.id" label="用户密码" prop="password" label-width="90px">
               <el-input placeholder="请输入用户密码" v-model="userFrom.password" />
             </el-form-item>
           </el-form>
@@ -104,7 +108,7 @@ import {ref, onMounted, reactive,nextTick} from "vue";
 import {Delete, Edit, Plus, Search} from "@element-plus/icons-vue";
 import {ElMessage} from "element-plus";
 import type {ComponentSize} from "element-plus";
-import {searchUser,addUser} from '@/api/user'
+import {searchUser,addOrUpdateUser,deleteUser} from '@/api/user'
 import {useUserStore} from "@/stores/user"
 
 
@@ -119,9 +123,11 @@ let searchUserName = ref<string>('')
 const removeUserIdList = ref([])
 const userData = ref([])
 const userStore = useUserStore()
+const loading = ref<boolean>(true)
+
 const validatorUserName = (rule: any, value: any, callback: any) => {
   if(value.trim().length < 1){
-    callback(new Error("字符长度不能小于1位"))
+    callback(new Error("账号不能小于1位"))
   }else{
     callback()
   }
@@ -129,7 +135,15 @@ const validatorUserName = (rule: any, value: any, callback: any) => {
 
 const validatorPassword = (rule:any,value:any,callBack:any)=>{
   if(value.trim().length < 6){
-    callBack(new Error('密码长度不能少于6位'))
+    callBack(new Error('密码不能少于6位'))
+  }else{
+    callBack()
+  }
+}
+
+const validatorNumber = (rule:any,value:any,callBack:any)=>{
+  if(value.trim().length < 6){
+    callBack(new Error('工号不能少于6位'))
   }else{
     callBack()
   }
@@ -142,6 +156,9 @@ const rules = reactive({
   name:[
     {required:true,trigger:"blur",validator:validatorUserName}
   ],
+  number:[
+    {required:true,trigger:"blur",validator:validatorNumber}
+  ],
   password:[
     {required:true,trigger:"blur",validator:validatorPassword}
   ]
@@ -152,16 +169,24 @@ const userFrom = reactive({
   // id:0,
   username:"",
   name:"",
-  password:""
+  password:"",
+  number:""
 })
 
 onMounted(()=>{
   getUser()
 })
 
-const onSearch = () => {
-  getUser()
-  searchUserName.value = ''
+const onSearch = async () => {
+  const searchParams = {
+    currentPage:currentPage.value,
+    pageSize:pageSize.value,
+    name:searchUserName.value
+  }
+  const result = await searchUser(searchParams )
+    userData.value = result.items
+    total.value = result.counts
+    searchUserName.value = ''
 }
 
 const reset = () => {
@@ -170,7 +195,15 @@ const reset = () => {
 
 const handleAddUser = () => {
 //清空userFrom的数据
+  Object.assign(userFrom,{
+    username:"",
+    name:"",
+    password:"",
+    number:"",
+    roleCode:'user'
+  })
   console.log(userFrom,'ss')
+
 
   // nextTick(() => {
   //   console.log(userFromRef.value,'userFromRef.value')
@@ -203,10 +236,15 @@ const handleEditUser = (row:any) => {
 }
 
 const handleDelUser = async (id:number) => {
-    ElMessage({
-      message: '删除成功',
-      type: 'success'
-    })
+    const result = await deleteUser(id)
+    if(result.code === 200){
+      ElMessage({
+        message: '删除成功',
+        type: 'success'
+      })
+    await getUser(currentPage.value)
+  }
+
 }
 
 const handleSizeChange = () => {
@@ -215,10 +253,14 @@ const handleSizeChange = () => {
 }
 
 const getUser = async (pager = 1) => {
-  const result = await searchUser(pager,pageSize.value)
+  const getParams = {
+    currentPage:pager,
+    pageSize:pageSize.value
+  }
+  const result = await searchUser(getParams)
+  loading.value = false
   userData.value = result.items
   total.value = result.counts
-  console.log(result,'用户')
 }
 
 const cancelClick = () => {
@@ -227,9 +269,8 @@ const cancelClick = () => {
 
 const confirmClick = async () => {
   await userFromRef.value.validate()
+  const result = await addOrUpdateUser(userFrom)
   console.log(userFrom, 'userFrom')
-  const result = await addUser(userFrom)
-  console.log(result, 'result')
 
   if(result.code === 200){
     ElMessage({
@@ -242,28 +283,13 @@ const confirmClick = async () => {
         //若修改的是当前登录的用户，则浏览器自动更新，引发重新登录
         window.location.reload()
       }
+  } else {
+    ElMessage({
+      message: '填写的用户信息有误，请检查',
+      type: "error"
+    })
+    drawer.value = true
   }
-
-
-
-  // if(result.code === 200){
-  //   ElMessage({
-  //     message: !userFrom.id ? '添加成功' : '修改成功',
-  //     type: "success"
-  //   })
-  //   drawer.value = false
-  //   await getUser(userFrom.id ? currentPage.value : 1)
-  //   if(userStore.userName === currentUserName.value) {
-  //     //若修改的是当前登录的用户，则浏览器自动更新，引发重新登录
-  //     window.location.reload()
-  //   }
-  // } else {
-  //   ElMessage({
-  //     message: !userFrom.id ? '添加失败' : '修改失败',
-  //     type: "error"
-  //   })
-  //   drawer.value = false
-  // }
 }
 
 </script>

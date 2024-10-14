@@ -49,8 +49,9 @@ request.interceptors.response.use(res=>{
     //     type: 'error',
     //     message: message,
     // })
+    // if(message === '未能读取到有效 token')
 
-    return Promise.reject(new Error(`响应失败:${error}`))
+    return Promise.reject(new Error(`响应失败:${message}`))
 
 })
 

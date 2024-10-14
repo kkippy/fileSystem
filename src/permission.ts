@@ -7,6 +7,7 @@ import  {useUserStore} from "./stores/user";
 // 引入对应css样式
 import 'nprogress/nprogress.css'
 import { ElMessage } from 'element-plus'
+import { REMOVE_TOKEN, REMOVE_USER, REMOVE_USER_NAME } from '@/utils/token'
 
 // 修改进度条插件的配置
 NProgress.configure({
@@ -20,6 +21,9 @@ router.beforeEach(async (to:any, from:any, next:any) => {
   const userStore = useUserStore(pinia)
   const token = userStore.token
   const username = userStore.userName
+  console.log(username,'username')
+
+
 
 // 登录后访问login的话直接跳到首页
   if(token){
@@ -36,13 +40,16 @@ router.beforeEach(async (to:any, from:any, next:any) => {
         } catch (e){
           //token过期或手动修改token
           ElMessage.error('登录过期，请重新登录')
-          await userStore.userLogout()
-          next({
-            path:'/login',
-            query:{
-              redirect:to.path
-            }
-          })
+          // await userStore.userLogouts()
+          // REMOVE_TOKEN()
+          // REMOVE_USER()
+          // REMOVE_USER_NAME()
+          // next({
+          //   path:'/login',
+          //   query:{
+          //     redirect:to.path
+          //   }
+          // })
         }
       }
     }
@@ -50,12 +57,13 @@ router.beforeEach(async (to:any, from:any, next:any) => {
   } else { //用户未登录
     if(to.path == '/login'){ //如果要去登录页面，放行
       next()
+      console.log('deng')
     } else { //想去其余的页面，拒绝
       next({
         path:'/login',
-        query:{
-          redirect:to.path
-        }
+        // query:{
+        //   redirect:to.path
+        // }
       })
     }
   }

@@ -65,6 +65,7 @@ const uploadVisible = ref(false)
 const selectedFiles = ref([]); // 被选中的文件列表
 
 const fileData = ref([])
+let myLoading = ref(true)
 
 onMounted(() => {
   getLists()
@@ -121,7 +122,7 @@ const updateSelectedFiles = (value:any) => {
 
 const handleBeforeUpload = async(file:any) =>{
   console.log(file.name,'file')
-  const result = await uploadFile('section1',file.name)
+  // const result = await uploadFile('section1',file.name)
   console.log(result,'上传文件')
 }
 

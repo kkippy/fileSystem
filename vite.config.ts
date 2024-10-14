@@ -24,6 +24,8 @@ return {
     }
   },
   server:{
+    host:true,
+    open:true,
     proxy:{
       [env.VITE_APP_BASE_API]:{
         target:env.VITE_SERVE,
