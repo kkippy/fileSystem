@@ -23,8 +23,6 @@ router.beforeEach(async (to:any, from:any, next:any) => {
   const username = userStore.userName
   console.log(username,'username')
 
-
-
 // 登录后访问login的话直接跳到首页
   if(token){
     if (to.path == '/login' ){
@@ -40,16 +38,16 @@ router.beforeEach(async (to:any, from:any, next:any) => {
         } catch (e){
           //token过期或手动修改token
           ElMessage.error('登录过期，请重新登录')
-          // await userStore.userLogouts()
+          await userStore.userLogouts()
           // REMOVE_TOKEN()
           // REMOVE_USER()
           // REMOVE_USER_NAME()
-          // next({
-          //   path:'/login',
-          //   query:{
-          //     redirect:to.path
-          //   }
-          // })
+          next({
+            path:'/login',
+            query:{
+              redirect:to.path
+            }
+          })
         }
       }
     }

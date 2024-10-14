@@ -1,5 +1,9 @@
 <template>
-  <div>
+  <div
+    v-loading.fullscreen.lock="fullscreenLoading"
+    element-loading-text="正在下载..."
+    element-loading-background="rgba(122, 122, 122, 0.8)"
+  >
     <FileTable
       :menuData="fileData"
       :downloadList="selectedFiles"
@@ -23,21 +27,22 @@
           @current-change="getLists"
         />
       </template>
+
     </FileTable>
     <el-dialog v-model="uploadVisible" title="上传文件" width="600">
       <el-upload
-        class="upload-demo"
+        action=""
         drag
-        action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
-        multiple
+        :auto-upload="false"
+        :on-change="handleChangeUpload"
       >
         <el-icon class="el-icon--upload"><upload-filled /></el-icon>
         <div class="el-upload__text">
-          拖拽上传或者 <em>点击上传</em>
+          <em>点击上传</em>
         </div>
         <template #tip>
           <div class="el-upload__tip">
-            文件大小不得超过100M
+            文件大小不得超过1000M
           </div>
         </template>
       </el-upload>
@@ -52,14 +57,15 @@ import {ElMessage } from 'element-plus'
 import type {ComponentSize} from 'element-plus'
 import { ref,onMounted } from 'vue'
 import { UploadFilled } from '@element-plus/icons-vue'
-import { getFileList } from '@/api/file'
-
+import { downloadFile, getFileList,uploadFile,deleteFile } from '@/api/file'
+import {downloadFileUtil} from '@/utils/fileTools'
 let size = ref<ComponentSize>('default')
 let currentPage = ref<number>(1)
 let pageSize = ref<number>(10)
 let total = ref<number>(0)
 const downloadList = ref<any[]>([])
 const uploadVisible = ref(false)
+const fullscreenLoading = ref(false)
 const selectedFiles = ref([]); // 被选中的文件列表
 const fileData = ref([])
 
@@ -67,15 +73,13 @@ onMounted(()=>{
   getLists()
 })
 
-const downloadSingleFile = (row:any) => {
-  ElMessage({
-    message: '下载功能暂未开放',
-    type: 'warning'
-  })
+const downloadSingleFile = async (row:any) => {
+  fullscreenLoading.value = true
+  await downloadFileUtil('support',row.showName,row.fileName)
+  fullscreenLoading.value = false
 }
 
 const handleBatchDownload = () => {
-  console.log(downloadList.value)
   ElMessage({
     message: '批量下载功能暂未开放',
     type: 'warning'
@@ -88,8 +92,18 @@ const handleUpload = (val:boolean) => {
 
 const getLists = async () => {
   try {
-    const result = await getFileList('support')
-    fileData.value = result.data
+    const result:any = await getFileList('support')
+    fileData.value = result.items.map(item => {
+      let newItem = { ...item };
+      let [name, extension] = newItem.fileName.split(/\.(?=[^.]+$)/); // 分割出文件名和扩展名
+      let parts = name.split("_");
+      if (parts.length > 1) {
+        parts.splice(1, 1);
+      }
+      newItem.fileName = parts.join("") + "." + extension; // 保留扩展名
+      return newItem;
+    });
+    total.value = result.counts
   } catch (error) {
     console.log(error)
   }
@@ -100,12 +114,35 @@ const handleSizeChange = () => {
   getLists()
 }
 
-const handleRemoveFile =  (id:number) => {
-  console.log(id)
-  ElMessage({
-    message: '删除功能暂未开放',
-    type: 'warning'
-  })
+const handleRemoveFile =  async (row:any) => {
+  console.log(row)
+  const result:any =await deleteFile('support',row.showName)
+  if(result.code === 200){
+    ElMessage({
+      message: '删除成功',
+      type: 'success'
+    })
+    await getLists()
+  }
+}
+
+const handleChangeUpload = async(file:File) =>{
+  if (!file) return;
+  const formData = new FormData();
+  formData.append('uploadfile',file);
+  try {
+    const result:any = await uploadFile({ bucket: 'support', uploadfile: file.raw })
+    if(result.code === 200){
+      ElMessage({
+        message: '上传成功',
+        type: 'success'
+      })
+      uploadVisible.value = false
+      await getLists()
+    }
+  } catch (error){
+    console.log(error)
+  }
 }
 
 const updateSelectedFiles = (value:any) => {

@@ -1,5 +1,9 @@
 <template>
-  <div>
+  <div
+    v-loading.fullscreen.lock="fullscreenLoading"
+    element-loading-text="正在下载..."
+    element-loading-background="rgba(122, 122, 122, 0.8)"
+  >
     <FileTable
       :menuData="fileData"
       :downloadList="selectedFiles"
@@ -27,47 +31,19 @@
 
     </FileTable>
     <el-dialog v-model="uploadVisible" title="上传文件" width="600">
-<!--      <el-upload-->
-<!--        class="upload-demo"-->
-<!--        drag-->
-<!--        action="http://192.168.195.205:8080/api/file/uploadfile"-->
-<!--        multiple-->
-<!--        :before-upload="handleBeforeUpload"-->
-<!--        :on-change="handleChangeUpload"-->
-<!--      >-->
-<!--        <el-icon class="el-icon&#45;&#45;upload"><upload-filled /></el-icon>-->
-<!--        <div class="el-upload__text">-->
-<!--          拖拽上传或者 <em>点击上传</em>-->
-<!--        </div>-->
-<!--        <template #tip>-->
-<!--          <div class="el-upload__tip">-->
-<!--            文件大小不得超过1000M-->
-<!--          </div>-->
-<!--        </template>-->
-<!--      </el-upload>-->
-<!--      <template #footer>-->
-<!--        <el-button @click="uploadVisible = false">取消</el-button>-->
-<!--        <el-button type="primary" @click="handleUploadFile">确定</el-button>-->
-<!--      </template>-->
       <el-upload
-        ref="uploadRef"
-        class="upload-demo"
-        :file-list="file"
-        action="http://192.168.195.205:8080/api/file/uploadfile"
-        :on-success="hsucess"
+        action=""
+        drag
         :auto-upload="false"
+        :on-change="handleChangeUpload"
       >
-        <template #trigger>
-          <el-button type="primary">select file</el-button>
-        </template>
-
-        <el-button class="ml-3" type="success" @click="submitUpload">
-          upload to server
-        </el-button>
-
+        <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+        <div class="el-upload__text">
+          <em>点击上传</em>
+        </div>
         <template #tip>
           <div class="el-upload__tip">
-            jpg/png files with a size less than 500kb
+            文件大小不得超过1000M
           </div>
         </template>
       </el-upload>
@@ -82,38 +58,29 @@ import {ElMessage } from 'element-plus'
 import type {ComponentSize} from 'element-plus'
 import { ref,onMounted } from 'vue'
 import { UploadFilled } from '@element-plus/icons-vue'
-import { downloadFile, getFileList,uploadFile } from '@/api/file'
-import type { UploadProps } from 'element-plus'
+import { getFileList,uploadFile,deleteFile } from '@/api/file'
+import {downloadFileUtil} from '@/utils/fileTools'
 let size = ref<ComponentSize>('default')
 let currentPage = ref<number>(1)
 let pageSize = ref<number>(10)
 let total = ref<number>(0)
 const downloadList = ref<any[]>([])
 const uploadVisible = ref(false)
-
+const fullscreenLoading = ref(false)
 const selectedFiles = ref([]); // 被选中的文件列表
 const fileData = ref([])
-const file = ref([])
 
 onMounted(()=>{
   getLists()
 })
 
 const downloadSingleFile = async (row:any) => {
-  console.log(row,'row')
-  const result = await downloadFile('basic',row.showName)
-  console.log(result,'文件下载')
-  const url = window.URL.createObjectURL(new Blob([result]));
-  const link = document.createElement('a');
-  link.href = url;
-  link.setAttribute('download', row.showName); // 设置下载的文件名
-  document.body.appendChild(link);
-  link.click(); // 触发下载
-  link.remove(); // 下载完后移除链接
+  fullscreenLoading.value = true
+  await downloadFileUtil('basic',row.showName,row.fileName)
+  fullscreenLoading.value = false
 }
 
 const handleBatchDownload = () => {
-  console.log(downloadList.value)
   ElMessage({
     message: '批量下载功能暂未开放',
     type: 'warning'
@@ -126,24 +93,17 @@ const handleUpload = (val:boolean) => {
 
 const getLists = async () => {
   try {
-    const result = await getFileList('basic')
+    const result:any = await getFileList('basic')
     fileData.value = result.items.map(item => {
       let newItem = { ...item };
-
       let [name, extension] = newItem.fileName.split(/\.(?=[^.]+$)/); // 分割出文件名和扩展名
-
-      // 处理文件名，去掉下划线后的部分
       let parts = name.split("_");
       if (parts.length > 1) {
-        parts.splice(1, 1); // 移除不必要的部分
+        parts.splice(1, 1);
       }
-
-      // 重新组合文件名
       newItem.fileName = parts.join("") + "." + extension; // 保留扩展名
-
-      return newItem; // 返回处理后的文件项
+      return newItem;
     });
-
     total.value = result.counts
   } catch (error) {
     console.log(error)
@@ -155,57 +115,38 @@ const handleSizeChange = () => {
   getLists()
 }
 
-const handleRemoveFile =  (id:number) => {
-  console.log(id)
-  ElMessage({
-    message: '删除功能暂未开放',
-    type: 'warning'
-  })
-}
-
-const handleBeforeUpload = async(file:any) =>{
-  console.log(file.name,'file')
-  const uploadParams = {
-    bucket: 'basic',
+const handleRemoveFile =  async (row:any) => {
+  console.log(row)
+  const result:any =await deleteFile('basic',row.showName)
+  if(result.code === 200){
+    ElMessage({
+      message: '删除成功',
+      type: 'success'
+    })
+    await getLists()
   }
-  const result = await uploadFile(uploadParams)
-  console.log(result,'上传文件')
 }
-// const handleChangeUpload = async(file:any) =>{
-//   file.value = file
-//   console.log(file,'上传成功')
-// }
 
-const handleUploadFile = async() =>{
-  const uploadParams = {
-    bucket: 'basic',
-    uploadfile: file
+const handleChangeUpload = async(file:File) =>{
+  if (!file) return;
+  const formData = new FormData();
+  formData.append('uploadfile',file);
+  try {
+    const result:any = await uploadFile({ bucket: 'basic', uploadfile: file.raw })
+    if(result.code === 200){
+      ElMessage({
+        message: '上传成功',
+        type: 'success'
+      })
+      uploadVisible.value = false
+      await getLists()
+    }
+  } catch (error){
+    console.log(error)
   }
-  const result = await uploadFile(uploadParams)
-  console.log(result,'上传文件')
-  uploadVisible.value = false
-
-}
-
-
-
-import type { UploadInstance } from 'element-plus'
-
-const uploadRef = ref<UploadInstance>()
-
-const submitUpload = () => {
-  uploadRef.value!.submit()
-}
-
-const hsucess :UploadProps['onSuccess'] = (
-  response,
-  uploadFile
-) => {
-  imageUrl.value = URL.createObjectURL(uploadFile.raw!)
 }
 
 const updateSelectedFiles = (value:any) => {
-  console.log(file.value,'wenjain')
   downloadList.value = value
 }
 

@@ -21,8 +21,29 @@ request.interceptors.request.use(config =>{
     }
 )
 
+let showMessage = true;
 //响应拦截器
 request.interceptors.response.use(res=>{
+  const message = res.data.message
+  const userStore = useUserStore()
+
+  if(message === '未能读取到有效 token') {
+    if(showMessage) {
+      showMessage = false
+      ElMessage({
+        type: 'error',
+        message: "登录过期，请重新登录",
+      });
+      setTimeout(() => {
+        showMessage = true;
+      }, 3600);//一个小时过期
+    }
+    userStore.userLogouts().then(()=>{
+
+    })
+    return
+  }
+
     return res.data
 },error=>{
     //失败的回调
@@ -49,7 +70,9 @@ request.interceptors.response.use(res=>{
     //     type: 'error',
     //     message: message,
     // })
-    // if(message === '未能读取到有效 token')
+    if(message === '未能读取到有效 token'){
+        console.log('token过期')
+    }
 
     return Promise.reject(new Error(`响应失败:${message}`))
 

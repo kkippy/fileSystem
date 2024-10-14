@@ -75,27 +75,33 @@ export const useUserStore = defineStore('user', {
        }
     },
 
-    async userLogouts(){
-      const result = await userLogout()
-      console.log(result,'退出接口响应')
-      if(result.code == 200){
-        this.token = ''
-        this.userName = ''
-        this.userRole = ''
-        REMOVE_TOKEN()
-        REMOVE_USER()
-        // REMOVE_USER_NAME()
-        return 'ok'
-      } else {
-        // await router.push({
-        //   path: '/login',
-        //   query: {
-        //     redirect: route.path
-        //   }
-        // })
+     userLogouts(){
+      return new Promise((resolve, reject) => {
+        userLogout().then(res => {
+          console.log(res,'退出接口响应')
+            this.token = ''
+            this.userName = ''
+            this.userRole = ''
+            REMOVE_TOKEN()
+            REMOVE_USER()
+            REMOVE_USER_NAME()
+            resolve('ok')
+        }).catch((err)=>{
+          reject(err)
+        })
+      })
 
-        return Promise.reject(new Error('退出失败'))
-      }
+      // if(result.code == 200){
+      //   this.token = ''
+      //   this.userName = ''
+      //   this.userRole = ''
+      //   REMOVE_TOKEN()
+      //   REMOVE_USER()
+      //   REMOVE_USER_NAME()
+      //   return 'ok'
+      // } else {
+      //   return Promise.reject(new Error('退出失败'))
+      // }
 
     }
 

@@ -1,5 +1,9 @@
 <template>
-  <div>
+  <div
+    v-loading.fullscreen.lock="fullscreenLoading"
+    element-loading-text="正在下载..."
+    element-loading-background="rgba(122, 122, 122, 0.8)"
+  >
     <FileTable
       :menuData="fileData"
       :downloadList="selectedFiles"
@@ -27,23 +31,23 @@
     </FileTable>
     <el-dialog v-model="uploadVisible" title="上传文件" width="600">
       <el-upload
-        class="upload-demo"
+        action=""
         drag
-        action="https://6896dbc3.r17.cpolar.top/api/file/uploadfile"
-        multiple
-        :before-upload="handleBeforeUpload"
+        :auto-upload="false"
+        :on-change="handleChangeUpload"
       >
         <el-icon class="el-icon--upload"><upload-filled /></el-icon>
         <div class="el-upload__text">
-          拖拽上传或者 <em>点击上传</em>
+          <em>点击上传</em>
         </div>
         <template #tip>
           <div class="el-upload__tip">
-            文件大小不得超过100M
+            文件大小不得超过1000M
           </div>
         </template>
       </el-upload>
     </el-dialog>
+
   </div>
 </template>
 
@@ -53,31 +57,29 @@ import {ElMessage } from 'element-plus'
 import type {ComponentSize} from 'element-plus'
 import { ref,onMounted } from 'vue'
 import { UploadFilled } from '@element-plus/icons-vue'
-import {getFileList,downloadFile,deleteFile,uploadFile} from '@/api/file'
-
-
+import {downloadFileUtil} from '@/utils/fileTools'
+import { downloadFile, getFileList,uploadFile,deleteFile } from '@/api/file'
 let size = ref<ComponentSize>('default')
 let currentPage = ref<number>(1)
 let pageSize = ref<number>(10)
 let total = ref<number>(0)
 const downloadList = ref<any[]>([])
 const uploadVisible = ref(false)
+const fullscreenLoading = ref(false)
 const selectedFiles = ref([]); // 被选中的文件列表
-
 const fileData = ref([])
-let myLoading = ref(true)
 
-onMounted(() => {
+onMounted(()=>{
   getLists()
 })
 
 const downloadSingleFile = async (row:any) => {
-  const result = await downloadFile('section1',row.fileName)
-  console.log(result,'文件下载')
+  fullscreenLoading.value = true
+  await downloadFileUtil('section1',row.showName,row.fileName)
+  fullscreenLoading.value = false
 }
 
 const handleBatchDownload = () => {
-  console.log(downloadList.value)
   ElMessage({
     message: '批量下载功能暂未开放',
     type: 'warning'
@@ -90,9 +92,18 @@ const handleUpload = (val:boolean) => {
 
 const getLists = async () => {
   try {
-    const result = await getFileList('section1')
-    fileData.value = result.data
-    console.log(result,'文件列表')
+    const result:any = await getFileList('section1')
+    fileData.value = result.items.map(item => {
+      let newItem = { ...item };
+      let [name, extension] = newItem.fileName.split(/\.(?=[^.]+$)/); // 分割出文件名和扩展名
+      let parts = name.split("_");
+      if (parts.length > 1) {
+        parts.splice(1, 1);
+      }
+      newItem.fileName = parts.join("") + "." + extension; // 保留扩展名
+      return newItem;
+    });
+    total.value = result.counts
   } catch (error) {
     console.log(error)
   }
@@ -103,9 +114,9 @@ const handleSizeChange = () => {
   getLists()
 }
 
-const handleRemoveFile =  async (file:any) => {
-  console.log(typeof file.fileName,'file')
-  const result = await deleteFile('section1',file.fileName)
+const handleRemoveFile =  async (row:any) => {
+  console.log(row)
+  const result:any =await deleteFile('section1',row.showName)
   if(result.code === 200){
     ElMessage({
       message: '删除成功',
@@ -113,17 +124,29 @@ const handleRemoveFile =  async (file:any) => {
     })
     await getLists()
   }
-  console.log(result,'删除文件')
+}
+
+const handleChangeUpload = async(file:File) =>{
+  if (!file) return;
+  const formData = new FormData();
+  formData.append('uploadfile',file);
+  try {
+    const result:any = await uploadFile({ bucket: 'section1', uploadfile: file.raw })
+    if(result.code === 200){
+      ElMessage({
+        message: '上传成功',
+        type: 'success'
+      })
+      uploadVisible.value = false
+      await getLists()
+    }
+  } catch (error){
+    console.log(error)
+  }
 }
 
 const updateSelectedFiles = (value:any) => {
   downloadList.value = value
-}
-
-const handleBeforeUpload = async(file:any) =>{
-  console.log(file.name,'file')
-  // const result = await uploadFile('section1',file.name)
-  console.log(result,'上传文件')
 }
 
 

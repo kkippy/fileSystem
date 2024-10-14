@@ -13,7 +13,13 @@ export const getAllBuckets = ()=>request.get<any>(FILE_API.GET_ALL_BUCKET_URL)
 
 export const deleteBucket = (bucketName:string)=>request.get<any>(FILE_API.DELETE_BUCKET_URL+`?bucketName=${bucketName}`)
 
-export const uploadFile = (data:any)=>request.post<any>(FILE_API.UPLOAD_FILE_URL,data)
+export const uploadFile = (data:any)=>{
+  return request.post<any>(FILE_API.UPLOAD_FILE_URL,data,{
+    headers:{
+      'Content-Type':'multipart/form-data'
+    },
+  })
+}
 
 export const downloadFile = (bucket:string,objectName:string)=>request.get<any>(FILE_API.DOWNLOAD_FILE_URL+`?bucket=${bucket}&objectName=${objectName}`,{responseType:'blob'})
 

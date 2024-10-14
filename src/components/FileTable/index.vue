@@ -28,18 +28,18 @@
       @selection-change="selectChange"
     >
       <el-table-column align="center" type="selection" ></el-table-column>
-      <el-table-column align="center" type="index" label="序号" width="100" />
-      <el-table-column align="center" prop="fileName" label="文件名称"  />
-      <el-table-column align="center" prop="uploadTime" label="修改时间"  />
-      <el-table-column align="center" prop="size" label="文件大小"  />
-      <el-table-column align="center" label="操作" >
+      <el-table-column align="center" type="index" label="序号" width="70" />
+      <el-table-column show-overflow-tooltip align="center" prop="fileName" label="文件名称"  />
+      <el-table-column align="center" prop="uploadTime" label="修改时间" width="180" />
+      <el-table-column align="center" prop="size" label="文件大小" width="100"  />
+      <el-table-column align="center" label="操作" width="180">
         <template #default="{row}">
           <el-button type="primary"   @click="handleDownload(row)">
             下载
           </el-button>
           <el-popconfirm
             :title="`确认删除${row.fileName}?`"
-            width="200px"
+            width="250px"
             @confirm="handleDelete(row)"
           >
             <template #reference>
@@ -61,7 +61,6 @@
 <script setup lang="ts">
 import {Upload,Download} from "@element-plus/icons-vue";
 import { ref, watch,watchEffect } from 'vue'
-
 const loading = ref(true)
 
 const props = defineProps({
