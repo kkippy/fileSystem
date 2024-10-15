@@ -47,6 +47,7 @@ import type {ComponentSize} from 'element-plus'
 import { ref,onMounted } from 'vue'
 import { getFileList,uploadFile,deleteFile } from '@/api/file'
 import {downloadFileUtil} from '@/utils/fileTools'
+import { useRoute,useRouter } from 'vue-router'
 let size = ref<ComponentSize>('default')
 let currentPage = ref<number>(1)
 let pageSize = ref<number>(10)
@@ -57,13 +58,17 @@ const fullscreenLoading = ref(false)
 const selectedFiles = ref([]); // 被选中的文件列表
 const fileData = ref([])
 
+const route = useRoute()
+let bucket = route.meta.bucket || 'default'
+
 onMounted(()=>{
   getLists()
 })
 
 const downloadSingleFile = async (row:any) => {
   fullscreenLoading.value = true
-  await downloadFileUtil('basic',row.showName,row.fileName)
+  // console.log(typeof bucket,'bucket')
+  await downloadFileUtil(bucket,row.showName,row.fileName)
   fullscreenLoading.value = false
 }
 
