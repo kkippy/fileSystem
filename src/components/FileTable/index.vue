@@ -54,14 +54,34 @@
 
     </el-table>
 
+    <el-dialog v-model="uploadVisible" title="上传文件" width="600">
+      <el-upload
+        action=""
+        drag
+        :auto-upload="false"
+        :on-change="handleChangeUpload"
+      >
+        <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+        <div class="el-upload__text">
+          <em>点击上传</em>
+        </div>
+        <template #tip>
+          <div class="el-upload__tip">
+            文件大小不得超过1000M
+          </div>
+        </template>
+      </el-upload>
+    </el-dialog>
+
     <slot name="footer" />
   </el-card>
 </template>
 
 <script setup lang="ts">
-import {Upload,Download} from "@element-plus/icons-vue";
+import { Upload, Download, UploadFilled } from '@element-plus/icons-vue'
 import { ref, watch,watchEffect } from 'vue'
 const loading = ref(true)
+const uploadVisible = ref(false)
 
 const props = defineProps({
   menuData: {
@@ -91,7 +111,8 @@ const emit = defineEmits([
   'upload-file',
   'delete-file',
   'size-change',
-  'page-change'
+  'page-change',
+  'upload-change'
 ])
 
 const downloadList = ref(props.downloadList)
@@ -102,7 +123,6 @@ const handleDownload = (row:any) => {
 
 const handleBatchDownload = () => {
   emit('batch-download', props.downloadList)
-  console.log( props.downloadList)
 }
 
 const handleUpload = () => {
@@ -116,6 +136,10 @@ const handleDelete =  (file:any) => {
 const selectChange = (value:any) => {
   emit('selection-change', value)
   downloadList.value = value
+}
+
+const handleChangeUpload = (file:any) => {
+  emit('upload-change', file)
 }
 
 

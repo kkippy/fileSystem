@@ -17,7 +17,6 @@
 import {ArrowRight} from "@element-plus/icons-vue";
 import {useRoute} from "vue-router";
 let route = useRoute()
-console.log(route.matched,'route.matched')
 
 
 </script>

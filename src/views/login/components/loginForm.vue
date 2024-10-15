@@ -59,11 +59,9 @@ const resetForm = (formEl: FormInstance | undefined)=> {
 
 const login = async ()=> {
   try{
-    //借助仓库中方法返回的promise状态进行成功或失败的判断
     await userStore.userLogin(loginFormReactive)
-    // 判断是否有query参数，要是有就跳转到从定向页面，否则直接跳转到首页
-    let redirect:any = route.query.redirect
-    await router.push({path: redirect || '/'})
+    // let redirect:any = route.query.redirect
+    await router.push({path: '/'})
     ElMessage({
       message: '登录成功',
       type: 'success'

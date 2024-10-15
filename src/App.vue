@@ -3,31 +3,6 @@
 </template>
 
 <script setup lang="ts">
-import {onMounted} from 'vue'
-import {getUserInfo} from "@/api/user"
-import { useRoute, useRouter } from 'vue-router'
-import {useUserStore} from "@/stores/user"
-
-const userStore = useUserStore()
-const router = useRouter()
-
-
-onMounted(()=>{
-  // getL()
-})
-
-const getL =  async ()=>{
-  const res = await  getUserInfo()
-  console.log(res,'ceji')
-
-  if(res.code === 500) {
-    console.log(1)
-    await userStore.userLogouts()
-    await router.push({
-      path: '/login',
-    })
-  }
-}
 </script>
 
 <style scoped>

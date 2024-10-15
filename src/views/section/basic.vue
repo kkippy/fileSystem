@@ -116,7 +116,6 @@ const handleSizeChange = () => {
 }
 
 const handleRemoveFile =  async (row:any) => {
-  console.log(row)
   const result:any =await deleteFile('basic',row.showName)
   if(result.code === 200){
     ElMessage({

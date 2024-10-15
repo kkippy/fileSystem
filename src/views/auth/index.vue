@@ -68,12 +68,21 @@
     </el-card>
     <el-drawer
       v-model="drawer"
-      :title="userFrom.id ? '修改用户' : '添加用户'"
+      :title="formShow? '修改用户' : '添加用户'"
       size="500"
+      :before-close="handleClose"
     >
       <template #default>
         <div>
-          <el-form ref="userFromRef" :model="userFrom" :rules="rules">
+          <el-form ref="userFromRef" :model="userFrom" :rules="!formShow ? addRules : updateRules">
+<!--            <el-form-item v-show="formShow" label="id" prop="id" label-width="90px">-->
+<!--              <el-input placeholder="请输入id" v-model="userFrom.id" />-->
+<!--            </el-form-item>-->
+
+            <el-form-item  label="mail" prop="mail" label-width="90px">
+              <el-input placeholder="请输入邮箱" v-model="userFrom.mail" />
+            </el-form-item>
+
             <el-form-item label="姓名" prop="name" label-width="90px">
               <el-input placeholder="请输入姓名" v-model="userFrom.name" />
             </el-form-item>
@@ -86,8 +95,12 @@
               <el-input placeholder="请输入工号" v-model="userFrom.number" />
             </el-form-item>
 
-            <el-form-item v-if="!userFrom.id" label="用户密码" prop="password" label-width="90px">
+            <el-form-item  label="用户密码" prop="password" label-width="90px">
               <el-input placeholder="请输入用户密码" v-model="userFrom.password" />
+            </el-form-item>
+
+            <el-form-item label="手机号" prop="phone" label-width="90px">
+              <el-input placeholder="请输入手机号" v-model="userFrom.phone" />
             </el-form-item>
           </el-form>
         </div>
@@ -107,23 +120,23 @@
 import {ref, onMounted, reactive,nextTick} from "vue";
 import {Delete, Edit, Plus, Search} from "@element-plus/icons-vue";
 import {ElMessage} from "element-plus";
-import type {ComponentSize} from "element-plus";
+import type {ComponentSize,FormInstance} from "element-plus";
 import {searchUser,addOrUpdateUser,deleteUser} from '@/api/user'
 import {useUserStore} from "@/stores/user"
-
 
 let size = ref<ComponentSize>('default')
 let currentPage = ref<number>(1)
 let pageSize = ref<number>(10)
 let total = ref<number>(0)
 let drawer = ref<boolean>(false)
-let userFromRef = ref()
+let userFromRef = ref<FormInstance>()
 let currentUserName = ref<string>('')
 let searchUserName = ref<string>('')
 const removeUserIdList = ref([])
 const userData = ref([])
 const userStore = useUserStore()
 const loading = ref<boolean>(true)
+const formShow = ref(false)
 
 const validatorUserName = (rule: any, value: any, callback: any) => {
   if(value.trim().length < 1){
@@ -149,7 +162,7 @@ const validatorNumber = (rule:any,value:any,callBack:any)=>{
   }
 }
 
-const rules = reactive({
+const addRules = reactive({
   username:[
     {required:true,trigger:"blur",validator:validatorUserName}
   ],
@@ -164,9 +177,11 @@ const rules = reactive({
   ]
 })
 
+const updateRules = reactive({})
+
 //存储新增或修改用户的表单
 const userFrom = reactive({
-  // id:0,
+  id:0,
   username:"",
   name:"",
   password:"",
@@ -194,7 +209,10 @@ const reset = () => {
 }
 
 const handleAddUser = () => {
-//清空userFrom的数据
+  nextTick(() => {
+    userFromRef.value.resetFields()
+  })
+  //清空userFrom的数据
   Object.assign(userFrom,{
     username:"",
     name:"",
@@ -202,15 +220,13 @@ const handleAddUser = () => {
     number:"",
     roleCode:'user'
   })
-  console.log(userFrom,'ss')
-
-
-  // nextTick(() => {
-  //   console.log(userFromRef.value,'userFromRef.value')
-  //
-  //   userFromRef.value.resetFields()
-  // })
   drawer.value = true
+}
+
+const handleClose = (done: () => void) => {
+  userFromRef.value.resetFields()
+  formShow.value = false
+  done()
 }
 
 const selectChange = (value:any) => {
@@ -222,16 +238,14 @@ const handleDelete = async () => {
       message: '批量删除成功',
       type: 'success'
     })
-
 }
 
 const handleEditUser = (row:any) => {
-  console.log(row,'用户信息')
-  currentUserName.value = row.username
-  // nextTick(() => {
-  //   userFromRef.value.resetFields()
-  // })
+  formShow.value = true
+  row.password = ''
   Object.assign(userFrom,row)
+  currentUserName.value = row.username
+  row.password = ''
   drawer.value = true
 }
 
@@ -244,7 +258,6 @@ const handleDelUser = async (id:number) => {
       })
     await getUser(currentPage.value)
   }
-
 }
 
 const handleSizeChange = () => {
@@ -270,11 +283,10 @@ const cancelClick = () => {
 const confirmClick = async () => {
   await userFromRef.value.validate()
   const result = await addOrUpdateUser(userFrom)
-  console.log(userFrom, 'userFrom')
 
   if(result.code === 200){
     ElMessage({
-      message: !userFrom.id ? '添加成功' : '修改成功',
+      message: !formShow.value ? '添加成功' : '修改成功',
       type: "success"
     })
     drawer.value = false

@@ -10,8 +10,8 @@ import {getAllBuckets} from '@/api/file'
 import type {LoginForm} from "@/api/user/type.ts";
 import { useRoute, useRouter } from 'vue-router'
 
-const router = useRouter()
-const route = useRoute()
+// const router = useRouter()
+// const route = useRoute()
 
 export interface storeState {
   token: string,
@@ -22,20 +22,19 @@ export interface storeState {
 }
 
 export const useUserStore = defineStore('user', {
-  state: ():storeState => {
+  state: (): storeState => {
     return {
-      token:GET_TOKEN() ||'',// 用户的token
-      userRole:GET_USER() || '',
-      userName:GET_USERNAME() || '',
-      sessionTime:'',
-      userId:''
+      token: GET_TOKEN() || '',// 用户的token
+      userRole: GET_USER() || '',
+      userName: GET_USERNAME() || '',
+      sessionTime: '',
+      userId: ''
     }
   },
   actions: {
-    async userLogin(userData:LoginForm){
-      const result:any = await userLogin(userData)
-      if(result.code == 200){
-        console.log(result,'登录接口相应')
+    async userLogin(userData: LoginForm) {
+      const result: any = await userLogin(userData)
+      if (result.code == 200) {
         this.token = (result.data.tokenValue as string)
         this.userRole = result.data.roleList[0]
         this.userId = parseInt(result.data.loginId)
@@ -43,67 +42,37 @@ export const useUserStore = defineStore('user', {
         SET_TOKEN(this.token as string)
         await getAllBuckets()
         return 'ok'
-
-      }else {
+      } else {
         return Promise.reject(new Error(result.data))
       }
 
     },
 
-     async getInfo(){
+    async getInfo() {
       //存储用户信息
-     const {code,data,message} = await  getUserInfo()
-       if(code === 200){
-         this.userName = data.username
-         // SET_USERNAME(data.username as string)
-         console.log(this.userName)
-          return 'ok'
-       } else {
-         // this.token = ''
-         // this.userName = ''
-         // this.userRole = ''
-         // REMOVE_TOKEN()
-         // REMOVE_USER()
-         // REMOVE_USER_NAME()
-         // await router.push({
-         //   path: '/login',
-         //   query: {
-         //     redirect: route.path
-         //   }
-         // })
-         return Promise.reject(new Error(message))
-       }
+      const { code, data, message } = await getUserInfo()
+      if (code === 200) {
+        this.userName = data.username
+        SET_USERNAME(data.username as string)
+        return 'ok'
+      } else {
+        return Promise.reject(new Error(message))
+      }
     },
 
-     userLogouts(){
-      return new Promise((resolve, reject) => {
-        userLogout().then(res => {
-          console.log(res,'退出接口响应')
-            this.token = ''
-            this.userName = ''
-            this.userRole = ''
-            REMOVE_TOKEN()
-            REMOVE_USER()
-            REMOVE_USER_NAME()
-            resolve('ok')
-        }).catch((err)=>{
-          reject(err)
-        })
-      })
-
-      // if(result.code == 200){
-      //   this.token = ''
-      //   this.userName = ''
-      //   this.userRole = ''
-      //   REMOVE_TOKEN()
-      //   REMOVE_USER()
-      //   REMOVE_USER_NAME()
-      //   return 'ok'
-      // } else {
-      //   return Promise.reject(new Error('退出失败'))
-      // }
-
+    async userLogouts() {
+      try {
+        const result: any = await userLogout()
+        this.token = ''
+        this.userName = ''
+        this.userRole = ''
+        REMOVE_TOKEN()
+        REMOVE_USER()
+        REMOVE_USER_NAME()
+        return 'ok'
+      } catch (err) {
+        return Promise.reject(new Error(err))
+      }
     }
-
   }
 })

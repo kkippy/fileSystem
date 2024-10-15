@@ -2,15 +2,15 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import {useUserStore} from '@/stores/user';
+import router from '@/router'
 const request = axios.create({
     baseURL:import.meta.env.VITE_APP_BASE_API, //基础路径上会携带/api
     timeout:50000
 })
 
+
 //请求拦截器
 request.interceptors.request.use(config =>{
-    //config对象，headers属性请求头
-    //获取用户仓库中的token信息
     const userStore = useUserStore()
     if (userStore.token) {
         config.headers.token = userStore.token
@@ -20,12 +20,11 @@ request.interceptors.request.use(config =>{
     return Promise.reject(new Error(`请求失败:${error}`))
     }
 )
+let showMessage = true
 
-let showMessage = true;
 //响应拦截器
-request.interceptors.response.use(res=>{
-  const message = res.data.message
-  const userStore = useUserStore()
+request.interceptors.response.use( res=>{
+  const message = res.data.msg
 
   if(message === '未能读取到有效 token') {
     if(showMessage) {
@@ -34,20 +33,17 @@ request.interceptors.response.use(res=>{
         type: 'error',
         message: "登录过期，请重新登录",
       });
-      setTimeout(() => {
-        showMessage = true;
-      }, 3600);//一个小时过期
+      showMessage = true;
     }
-    userStore.userLogouts().then(()=>{
-
-    })
-    return
+     router.push('/login');
   }
 
     return res.data
-},error=>{
+},async error=>{
+
     //失败的回调
    let message = ''
+  console.log(error)
     const status = error.response && error.response.status
     switch (status) {
         case 401:
@@ -64,14 +60,6 @@ request.interceptors.response.use(res=>{
 
         default:
             message = '未知错误'
-    }
-
-    // ElMessage({
-    //     type: 'error',
-    //     message: message,
-    // })
-    if(message === '未能读取到有效 token'){
-        console.log('token过期')
     }
 
     return Promise.reject(new Error(`响应失败:${message}`))
