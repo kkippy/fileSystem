@@ -32,9 +32,10 @@ import LogoComponent from "@/layout/component/Logo/index.vue"
 import MenuComponent from "@/layout/component/Menu/index.vue"
 import MainComponent from "./component/Main/index.vue"
 import HeaderComponent from "./component/Header/index.vue"
-import {constantRoute,anyRoute} from "@/router/routers.ts";
+import {constantRoute,anyRoute} from "@/router/routers";
+import {useRoute} from "vue-router";
 const menuRoutes = [...constantRoute,anyRoute]
-
+let route = useRoute();
 </script>
 
 

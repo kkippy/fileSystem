@@ -29,7 +29,7 @@
 
 <script setup lang="ts">
 import {useRouter} from "vue-router";
-import {useUserStore} from "@/stores/user.ts"
+import {useUserStore} from "@/stores/user"
 import { ref,computed,watch } from 'vue'
 
 let router = useRouter();
@@ -39,7 +39,7 @@ const menuList = ref(props.menuList)
 
 const filterMenuList = computed(()=>{
   if(userStore.userRole === 'user') {
-    return menuList.value.filter(item => item.path !== '/auth')
+    return menuList.value.filter((item) => item.path !== '/auth')
   } else {
     return menuList.value
   }
@@ -48,7 +48,7 @@ const filterMenuList = computed(()=>{
 watch(()=>props.menuList,()=>{
   menuList.value = props.menuList
 })
-const toView = (vc) => {
+const toView = (vc:any) => {
   router.push(vc.index)
 }
 </script>
