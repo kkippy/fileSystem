@@ -5,6 +5,7 @@
     element-loading-background="rgba(122, 122, 122, 0.8)"
   >
     <FileTable
+      v-loading="loading"
       :menuData="fileData"
       :downloadList="selectedFiles"
       @batch-download="handleBatchDownload"
@@ -13,7 +14,6 @@
       @download-file="downloadSingleFile"
       @delete-file="handleRemoveFile"
     >
-
         <template #footer>
           <el-pagination
             style="margin-top: 10px;"
@@ -28,10 +28,12 @@
             @current-change="getLists"
           />
         </template>
-
     </FileTable>
+
     <el-dialog v-model="uploadVisible" title="上传文件" width="600">
       <Upload
+        v-loading="loading"
+        element-loading-text="正在上传..."
         @upload-change="handleChangeUpload"
       />
     </el-dialog>
@@ -44,10 +46,10 @@ import FileTable from '@/components/FileTable/index.vue'
 import Upload from '@/components/Upload/index.vue'
 import {ElMessage } from 'element-plus'
 import type {ComponentSize} from 'element-plus'
-import { ref,onMounted } from 'vue'
+import { ref,onMounted,watchEffect } from 'vue'
 import { getFileList,uploadFile,deleteFile } from '@/api/file'
 import {downloadFileUtil} from '@/utils/fileTools'
-import { useRoute,useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 let size = ref<ComponentSize>('default')
 let currentPage = ref<number>(1)
 let pageSize = ref<number>(10)
@@ -59,10 +61,21 @@ const selectedFiles = ref([]); // 被选中的文件列表
 const fileData = ref([])
 
 const route = useRoute()
+const loading = ref(false)
 let bucket = route.meta.bucket || 'default'
 
 onMounted(()=>{
+  console.log(route,'route')
   getLists()
+})
+
+watchEffect(async ()=>{
+  if(bucket !== route.meta.bucket){
+    loading.value = true
+    bucket = route.meta.bucket
+    await getLists()
+    loading.value = false
+  }
 })
 
 const downloadSingleFile = async (row:any) => {
@@ -84,8 +97,9 @@ const handleUpload = (val:boolean) => {
 }
 
 const getLists = async () => {
+  loading.value = true
   try {
-    const result:any = await getFileList('basic',currentPage.value,pageSize.value)
+    const result:any = await getFileList(bucket,currentPage.value,pageSize.value)
     fileData.value = result.items.map(item => {
       let newItem = { ...item };
       let [name, extension] = newItem.fileName.split(/\.(?=[^.]+$)/); // 分割出文件名和扩展名
@@ -96,7 +110,9 @@ const getLists = async () => {
       newItem.fileName = parts.join("") + "." + extension; // 保留扩展名
       return newItem;
     });
+    console.log(fileData.value)
     total.value = result.counts
+    loading.value = false
   } catch (error) {
     console.log(error)
   }
@@ -108,7 +124,7 @@ const handleSizeChange = () => {
 }
 
 const handleRemoveFile =  async (row:any) => {
-  const result:any =await deleteFile('basic',row.showName)
+  const result:any =await deleteFile(bucket,row.showName)
   if(result.code === 200){
     ElMessage({
       message: '删除成功',
@@ -123,13 +139,15 @@ const handleChangeUpload = async(file:File) =>{
   const formData = new FormData();
   formData.append('uploadfile',file);
   try {
-    const result:any = await uploadFile({ bucket: 'basic', uploadfile: file.raw })
+    loading.value = true
+    const result:any = await uploadFile({ bucket: bucket, uploadfile: file.raw })
     if(result.code === 200){
       ElMessage({
         message: '上传成功',
         type: 'success'
       })
       uploadVisible.value = false
+      loading.value = false
       await getLists()
     }
   } catch (error){

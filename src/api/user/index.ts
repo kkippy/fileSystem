@@ -17,9 +17,9 @@ export const getUserInfo = ()=>request.get<ResponseData>(USER_API.GET_USER_INFO)
 
 export const userLogout = ()=>request.get<ResponseData>(USER_API.LOGOUT_URL)
 
-export const searchUser = (data:any)=>{
-   return request.post<any>(USER_API.SEARCH_USER_URL,data)
-
+export const searchUser = (pageNo:number, pageSize:number,data?:any)=>{
+  const url = `${USER_API.SEARCH_USER_URL}?pageNo=${pageNo}&pageSize=${pageSize}`
+   return request.post<any>(url,data)
 }
 
 export const addOrUpdateUser = (data :any)=>{

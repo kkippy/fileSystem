@@ -5,7 +5,6 @@ import {UserConfigExport,ConfigEnv,loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 
-
 // https://vitejs.dev/config/
 export default ({mode}:ConfigEnv):UserConfigExport=>{
   const env  = loadEnv(mode,process.cwd())//加载的模式为开发环境（默认为开发环境），文件所在位置为项目根目录

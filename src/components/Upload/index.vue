@@ -19,7 +19,6 @@
 
 <script setup lang="ts">
 import { UploadFilled } from '@element-plus/icons-vue'
-
 const emit = defineEmits(['upload-change', 'upload-exceed'])
 
 const handleChangeUpload = (file:any) => {

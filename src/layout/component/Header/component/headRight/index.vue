@@ -14,26 +14,18 @@
       </el-dropdown-menu>
     </template>
   </el-dropdown>
-
-
 </template>
 
 <script setup lang="ts">
 import {FullScreen, ArrowDown} from "@element-plus/icons-vue";
-// import {useSettingStore} from "@/store/modules/setting.ts"
 import {useUserStore} from "@/stores/user";
 import {useRouter,useRoute} from "vue-router";
 import {ElMessage} from "element-plus";
-import {ref} from "vue";
 
 const userStore = useUserStore()
-// const settingStore = useSettingStore()
 let router = useRouter()
 let route = useRoute()
 
-// const handleRefresh = () => {
-//   settingStore.refresh =  !settingStore.refresh
-// }
 
 const handleFullscreen = () => {
   let full = document.fullscreenElement

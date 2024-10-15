@@ -5,14 +5,6 @@
 </template>
 
 <script setup lang="ts">
-// import setting from "@/setting.ts"
-// import {useSettingStore} from "@/store/modules/setting.ts"
-// const settingStore = useSettingStore()
-
-// const title = setting.title
-// const logo = setting.logo
-// const isLogo = setting.isLogo
-
 </script>
 
 <script lang="ts">

@@ -2,13 +2,11 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import {useUserStore} from '@/stores/user';
-import router from '@/router'
 import { REMOVE_TOKEN, REMOVE_USER, REMOVE_USER_NAME } from '@/utils/token'
 const request = axios.create({
     baseURL:import.meta.env.VITE_APP_BASE_API, //基础路径上会携带/api
     timeout:50000
 })
-
 
 //请求拦截器
 request.interceptors.request.use(config =>{
@@ -43,10 +41,8 @@ request.interceptors.response.use( res=>{
       showMessage = true;
     }
   }
-
     return res.data
 },async error=>{
-
     //失败的回调
    let message = ''
   console.log(error)
@@ -67,9 +63,7 @@ request.interceptors.response.use( res=>{
         default:
             message = '未知错误'
     }
-
     return Promise.reject(new Error(`响应失败:${message}`))
-
 })
 
 export default request

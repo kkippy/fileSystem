@@ -19,56 +19,6 @@ export const constantRoute = [
       icon:''
     },
     children: [
-      // {
-      //   path: '/section1',
-      //   name: 'section1',
-      //   component: ()=>import('@/views/section/section1.vue'),
-      //   meta: {
-      //     title: '信息化一室',
-      //     hidden: false,
-      //     icon:'home'
-      //   },
-      // },
-      // {
-      //   path: '/section2',
-      //   name: 'section2',
-      //   component: ()=>import('@/views/section/section2.vue'),
-      //   meta: {
-      //     title: '信息化二室',
-      //     hidden: false,
-      //     icon:'home'
-      //   },
-      // },
-      // {
-      //   path: '/support',
-      //   name: 'support',
-      //   component: ()=>import('@/views/section/support.vue'),
-      //   meta: {
-      //     title: '开发支持室',
-      //     hidden: false,
-      //     icon:'home'
-      //   },
-      // },
-      // {
-      //   path: '/basic',
-      //   name: 'basic',
-      //   component: ()=>import('@/views/section/basic.vue'),
-      //   meta: {
-      //     title: '基础架构室',
-      //     hidden: false,
-      //     icon:'home'
-      //   },
-      // },
-      // {
-      //   path: '/manage',
-      //   name: 'manage',
-      //   component: ()=>import('@/views/section/manage.vue'),
-      //   meta: {
-      //     title: '综合管理室',
-      //     hidden: false,
-      //     icon:'home'
-      //   },
-      // },
       {
         path: '/section1',
         name: 'section1',

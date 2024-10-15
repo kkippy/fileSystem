@@ -27,7 +27,6 @@ import { CircleClose, UserFilled,User, Lock } from "@element-plus/icons-vue";
 import { ElMessage } from 'element-plus'
 import {useRouter,useRoute} from "vue-router";
 import {useUserStore} from "@/stores/user"
-import { getUserInfo } from '@/api/user'
 
 export interface LoginForm {
   username:string,
@@ -40,7 +39,6 @@ const userStore = useUserStore()
 type FormInstance = InstanceType<typeof ElForm>;
 const loginFormRef = ref<FormInstance>();
 const router = useRouter();
-const route = useRoute();
 const loginRules = reactive({
   username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
   password: [{ required: true, message: "请输入密码", trigger: "blur" }]
@@ -48,8 +46,8 @@ const loginRules = reactive({
 
 
 const loginFormReactive = reactive<LoginForm>({
-  username:'ops_liwenbo',
-  password:'123456'
+  username:'',
+  password:''
 })
 
 const resetForm = (formEl: FormInstance | undefined)=> {
@@ -60,7 +58,6 @@ const resetForm = (formEl: FormInstance | undefined)=> {
 const login = async ()=> {
   try{
     await userStore.userLogin(loginFormReactive)
-    // let redirect:any = route.query.redirect
     await router.push({path: '/'})
     ElMessage({
       message: '登录成功',

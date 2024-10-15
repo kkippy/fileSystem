@@ -9,10 +9,7 @@
 
 <script setup lang="ts">
 import  LoginForm  from "./components/loginForm.vue";
-
 </script>
-
-
 
 <style scoped lang="scss">
 

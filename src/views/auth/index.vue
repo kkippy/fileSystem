@@ -3,7 +3,7 @@
     <div class="header" >
       <el-form>
         <el-form-item label="姓名" style="margin-top: 18px;margin-left: 20px">
-          <el-input v-model="searchUserName" @keyup.enter="onSearch" placeholder="请输入姓名" />
+          <el-input id="inputField" v-model="searchUserName" @keyup.enter="onSearch" placeholder="请输入姓名" />
         </el-form-item>
       </el-form>
 
@@ -14,7 +14,6 @@
     </div>
 
     <el-card style="margin-top: 20px;border-radius: 10px">
-<!--    <el-card style="border-radius: 10px">-->
       <el-button type="primary" style="margin-right: 10px" :icon="Plus" @click="handleAddUser">
         <span style="margin-left: 5px;">添加用户</span>
       </el-button>
@@ -28,7 +27,6 @@
         @selection-change="selectChange"
         :data="userData"
         border
-        element-loading-text="正在加载..."
         height="67vh"
         style="width: 100%;margin-top: 20px">
         <el-table-column align="center" type="selection" ></el-table-column>
@@ -41,7 +39,11 @@
         <el-table-column align="center" show-overflow-tooltip prop="updateTime" label="更新时间" width="180" />
         <el-table-column align="center" label="操作" width="250">
           <template #default="{row}">
-            <el-button :disabled="currentUser !== 'admin' && row.roleName === '管理员'" :icon="Edit" type="primary" @click="handleEditUser(row)">
+            <el-button :disabled="currentUser !== 'admin' && row.roleName === '管理员'"
+                       :icon="Edit"
+                       type="primary"
+                       @click="handleEditUser(row)"
+            >
               编辑
             </el-button>
             <el-popconfirm
@@ -82,13 +84,6 @@
       <template #default>
         <div>
           <el-form ref="userFromRef" :model="userFrom" :rules="!userFrom.id ? addRules : updateRules">
-<!--            <el-form-item v-show="formShow" label="id" prop="id" label-width="90px">-->
-<!--              <el-input placeholder="请输入id" v-model="userFrom.id" />-->
-<!--            </el-form-item>-->
-
-            <el-form-item  label="mail" prop="mail" label-width="90px">
-              <el-input placeholder="请输入邮箱" v-model="userFrom.mail" />
-            </el-form-item>
 
             <el-form-item label="姓名" prop="name" label-width="90px">
               <el-input placeholder="请输入姓名" v-model="userFrom.name" />
@@ -122,6 +117,10 @@
 
             <el-form-item label="手机号" prop="phone" label-width="90px">
               <el-input placeholder="请输入手机号" v-model="userFrom.phone" />
+            </el-form-item>
+
+            <el-form-item  label="邮箱" prop="mail" label-width="90px">
+              <el-input placeholder="请输入邮箱" v-model="userFrom.mail" />
             </el-form-item>
           </el-form>
         </div>
@@ -158,7 +157,7 @@ const userData = ref([])
 const userStore = useUserStore()
 const loading = ref<boolean>(true)
 const formShow = ref(false)
-
+const currentPassword = ref('')
 export interface IUserForm {
   id?:number,
   username:string,
@@ -173,11 +172,6 @@ export interface IUserForm {
 const currentUser = computed(()=>{
   return userStore.userRole
 })
-
-const canEdit = (row:any) => {
-  // 只有当前用户是管理员，或者当前行的角色不是管理员时，才允许编辑
-  return userStore.userName === '管理员' || row.roleName !== '管理员';
-};
 
 const validatorUserName = (rule: any, value: any, callback: any) => {
   if(value.trim().length < 1){
@@ -231,7 +225,6 @@ const addRules = reactive({
 
 const updateRules = reactive({})
 
-//存储新增或修改用户的表单
 const userFrom = reactive<IUserForm>({
   username:"",
   name:"",
@@ -261,13 +254,16 @@ onMounted(()=>{
   getUser()
 })
 
-const onSearch = async () => {
-  const searchParams = {
-    currentPage:currentPage.value,
-    pageSize:pageSize.value,
-    name:searchUserName.value
+const inputField = document.getElementById('inputField');
+inputField?.addEventListener('keyup', function(event) {
+  if (event.key === 'Enter') {
+    onSearch()
   }
-  const result:any = await searchUser(searchParams )
+});
+
+const onSearch = async () => {
+  const result:any = await searchUser( currentPage.value,
+    pageSize.value,{name:searchUserName.value} )
     userData.value = result.items
     total.value = result.counts
     searchUserName.value = ''
@@ -309,7 +305,6 @@ const handleClose = (done: () => void) => {
       phone:''
     }
   )
-
   done()
 }
 
@@ -325,6 +320,7 @@ const handleDelete = async () => {
 }
 
 const handleEditUser = (row:any) => {
+  currentPassword.value = row.password
   row.password = ''
   Object.assign(userFrom,row)
   currentUserName.value = row.username
@@ -347,12 +343,9 @@ const handleSizeChange = () => {
   getUser()
 }
 
-const getUser = async (pager = 1) => {
-  const getParams = {
-    currentPage:pager,
-    pageSize:pageSize.value
-  }
-  const result:any = await searchUser(getParams)
+const getUser = async () => {
+  loading.value = true
+  const result:any = await searchUser(currentPage.value,pageSize.value)
   loading.value = false
   userData.value = result.items
   total.value = result.counts
@@ -364,8 +357,10 @@ const cancelClick = () => {
 
 const confirmClick = async () => {
   await userFromRef.value.validate()
+  if(userFromRef.value.fields[3].fieldValue === '') {
+    userFrom.password = currentPassword.value
+  }
   const result:any = await addOrUpdateUser(userFrom)
-
   if(result.code === 200){
     ElMessage({
       message: !userFrom.id ? '添加成功' : '修改成功',
@@ -385,10 +380,7 @@ const confirmClick = async () => {
     drawer.value = true
   }
 }
-
 </script>
-
-
 
 <style scoped lang="scss">
 .header {
@@ -401,7 +393,6 @@ const confirmClick = async () => {
 
   .el-card__body {
     padding: 0;
-
   }
 }
 </style>

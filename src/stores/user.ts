@@ -7,11 +7,7 @@ import {SET_TOKEN,GET_TOKEN,
 } from "@/utils/token"
 import { getUserInfo, userLogin, userLogout } from '@/api/user'
 import {getAllBuckets} from '@/api/file'
-import type {LoginForm} from "@/api/user/type.ts";
-import { useRoute, useRouter } from 'vue-router'
-
-// const router = useRouter()
-// const route = useRoute()
+import type {LoginForm} from "@/api/user/type";
 
 export interface storeState {
   token: string,
@@ -50,19 +46,19 @@ export const useUserStore = defineStore('user', {
 
     async getInfo() {
       //存储用户信息
-      const { code, data, message } = await getUserInfo()
-      if (code === 200) {
-        this.userName = data.username
-        SET_USERNAME(data.username as string)
+      const result:any = await getUserInfo()
+      if (result.code === 200) {
+        this.userName = result.data.username
+        SET_USERNAME(result.data.username as string)
         return 'ok'
       } else {
-        return Promise.reject(new Error(message))
+        return Promise.reject(new Error(result.message ))
       }
     },
 
     async userLogouts() {
       try {
-        const result: any = await userLogout()
+        await userLogout()
         this.token = ''
         this.userName = ''
         this.userRole = ''
@@ -71,7 +67,7 @@ export const useUserStore = defineStore('user', {
         REMOVE_USER_NAME()
         return 'ok'
       } catch (err) {
-        return Promise.reject(new Error(err))
+        return Promise.reject(new Error((err as string)))
       }
     }
   }

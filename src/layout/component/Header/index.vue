@@ -13,11 +13,7 @@
 <script setup lang="ts">
 import HeadLeft from "./component/headLeft/index.vue"
 import HeadRight from "./component/headRight/index.vue"
-
 </script>
-
-
-
 
 <style scoped lang="scss">
 .header {
@@ -29,7 +25,6 @@ import HeadRight from "./component/headRight/index.vue"
   justify-content: space-between;
   align-items: center;
   transition: all .5s;
-
   box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.12);
 
   .header-left,.header-right {

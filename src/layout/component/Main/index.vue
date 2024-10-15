@@ -1,24 +1,12 @@
 <template>
   <router-view class="main" style="" v-slot="{ Component }">
     <transition mode="out-in" name="fade">
-      <component :is="Component" v-if="isRefresh" />
+      <component :is="Component"  />
     </transition>
   </router-view>
 </template>
 
 <script setup lang="ts">
-// import {useSettingStore} from "@/store/modules/setting.ts"
-import {watch,ref,nextTick} from "vue";
-
-// const settingStore = useSettingStore()
-let isRefresh = ref(true)
-// 监听仓库中的刷新属性
-// watch(() => settingStore.refresh, () => {
-//     isRefresh.value = false
-//     nextTick(()=>{
-//       isRefresh.value = true
-//     })
-// })
 </script>
 
 <script lang="ts">

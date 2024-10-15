@@ -21,7 +21,7 @@
       :data="menuData"
       v-loading="loading"
       border
-      height="70vh"
+      height="68vh"
       style="width: 100%;
       margin-top: 20px"
       row-key="id"
@@ -30,7 +30,7 @@
       <el-table-column fixed  align="center" type="selection" ></el-table-column>
       <el-table-column align="center" type="index" label="序号" width="70" />
       <el-table-column show-overflow-tooltip align="center" prop="fileName" label="文件名称"  />
-      <el-table-column align="center" prop="uploadTime" label="修改时间" width="180" />
+      <el-table-column align="center" prop="lastModified" label="上传时间" width="180" />
       <el-table-column align="center" prop="size" label="文件大小" width="100"  />
       <el-table-column align="center" label="操作" width="180">
         <template #default="{row}">
@@ -38,8 +38,8 @@
             下载
           </el-button>
           <el-popconfirm
-            :title="`确认删除${row.fileName}?`"
-            width="250px"
+            title="确认删除该文件?"
+            width="200px"
             @confirm="handleDelete(row)"
           >
             <template #reference>
@@ -59,10 +59,9 @@
 </template>
 
 <script setup lang="ts">
-import { Upload, Download, UploadFilled } from '@element-plus/icons-vue'
+import { Upload, Download } from '@element-plus/icons-vue'
 import { ref, watch,watchEffect } from 'vue'
 const loading = ref(true)
-const uploadVisible = ref(false)
 
 const props = defineProps({
   menuData: {

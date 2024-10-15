@@ -1,4 +1,4 @@
-import { downloadFile,uploadFile } from '@/api/file'
+import { downloadFile } from '@/api/file'
 export const downloadFileUtil  = async (bucket:string,showName:string,fileName:string) =>{
   const result:any = await downloadFile(bucket,showName)
   const url = window.URL.createObjectURL(new Blob([result]));

@@ -30,20 +30,10 @@
 <script setup lang="ts">
 import LogoComponent from "@/layout/component/Logo/index.vue"
 import MenuComponent from "@/layout/component/Menu/index.vue"
-//右侧主体展示区域
 import MainComponent from "./component/Main/index.vue"
-//header组件
 import HeaderComponent from "./component/Header/index.vue"
-// 获取路由信息以生成菜单
-// import {useUserStore} from "@/store/modules/user.ts"
-// import {useSettingStore} from "@/store/modules/setting.ts"
-import {useRoute} from "vue-router";
 import {constantRoute,anyRoute} from "@/router/routers.ts";
-
-
 const menuRoutes = [...constantRoute,anyRoute]
-
-let route = useRoute();
 
 </script>
 
