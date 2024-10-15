@@ -21,13 +21,13 @@
       :data="menuData"
       v-loading="loading"
       border
-      height="67vh"
+      height="70vh"
       style="width: 100%;
-        margin-top: 20px"
+      margin-top: 20px"
       row-key="id"
       @selection-change="selectChange"
     >
-      <el-table-column align="center" type="selection" ></el-table-column>
+      <el-table-column fixed  align="center" type="selection" ></el-table-column>
       <el-table-column align="center" type="index" label="序号" width="70" />
       <el-table-column show-overflow-tooltip align="center" prop="fileName" label="文件名称"  />
       <el-table-column align="center" prop="uploadTime" label="修改时间" width="180" />
@@ -53,25 +53,6 @@
       </el-table-column>
 
     </el-table>
-
-    <el-dialog v-model="uploadVisible" title="上传文件" width="600">
-      <el-upload
-        action=""
-        drag
-        :auto-upload="false"
-        :on-change="handleChangeUpload"
-      >
-        <el-icon class="el-icon--upload"><upload-filled /></el-icon>
-        <div class="el-upload__text">
-          <em>点击上传</em>
-        </div>
-        <template #tip>
-          <div class="el-upload__tip">
-            文件大小不得超过1000M
-          </div>
-        </template>
-      </el-upload>
-    </el-dialog>
 
     <slot name="footer" />
   </el-card>
@@ -112,7 +93,6 @@ const emit = defineEmits([
   'delete-file',
   'size-change',
   'page-change',
-  'upload-change'
 ])
 
 const downloadList = ref(props.downloadList)
@@ -136,10 +116,6 @@ const handleDelete =  (file:any) => {
 const selectChange = (value:any) => {
   emit('selection-change', value)
   downloadList.value = value
-}
-
-const handleChangeUpload = (file:any) => {
-  emit('upload-change', file)
 }
 
 

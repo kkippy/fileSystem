@@ -25,7 +25,7 @@ export const downloadFile = (bucket:string,objectName:string)=>request.get<any>(
 
 export const deleteFile = (bucket:string,objectName:string)=>request.get<any>(FILE_API.DELETE_FILE_URL+`?bucket=${bucket}&objectName=${objectName}`)
 
-export const getFileList = (bucketName:string)=>request.get<any>(FILE_API.GET_FILE_URL+`?bucket=${bucketName}`)
+export const getFileList = (bucket:string,pageNo:number,pageSize:number)=>request.get<any>(FILE_API.GET_FILE_URL+`?bucket=${bucket}&pageNo=${pageNo}&pageSize=${pageSize}`)
 
 export const shareFile = (data:any)=>request.post<any>(FILE_API.SHARE_FILE_URL,data)
 

@@ -23,7 +23,14 @@
         <span style="margin-left: 5px;">批量删除</span>
       </el-button>
 
-      <el-table  v-loading="loading" @selection-change="selectChange" :data="userData" border height="67vh" style="width: 100%;margin-top: 20px">
+      <el-table
+        v-loading="loading"
+        @selection-change="selectChange"
+        :data="userData"
+        border
+        element-loading-text="正在加载..."
+        height="67vh"
+        style="width: 100%;margin-top: 20px">
         <el-table-column align="center" type="selection" ></el-table-column>
         <el-table-column align="center" type="index" label="序号" width="80" />
         <el-table-column align="center" show-overflow-tooltip prop="username" label="登录名" />
@@ -34,7 +41,7 @@
         <el-table-column align="center" show-overflow-tooltip prop="updateTime" label="更新时间" width="180" />
         <el-table-column align="center" label="操作" width="250">
           <template #default="{row}">
-            <el-button :icon="Edit" type="primary" @click="handleEditUser(row)">
+            <el-button :disabled="currentUser !== 'admin' && row.roleName === '管理员'" :icon="Edit" type="primary" @click="handleEditUser(row)">
               编辑
             </el-button>
             <el-popconfirm
@@ -43,7 +50,7 @@
               @confirm="handleDelUser(row.id)"
             >
               <template #reference>
-                <el-button type="danger" :icon="Delete">
+                <el-button :disabled="userStore.userName === row.username" type="danger" :icon="Delete">
                   删除
                 </el-button>
               </template>
@@ -74,7 +81,7 @@
     >
       <template #default>
         <div>
-          <el-form ref="userFromRef" :model="userFrom" :rules="!formShow ? addRules : updateRules">
+          <el-form ref="userFromRef" :model="userFrom" :rules="!userFrom.id ? addRules : updateRules">
 <!--            <el-form-item v-show="formShow" label="id" prop="id" label-width="90px">-->
 <!--              <el-input placeholder="请输入id" v-model="userFrom.id" />-->
 <!--            </el-form-item>-->
@@ -99,6 +106,20 @@
               <el-input placeholder="请输入用户密码" v-model="userFrom.password" />
             </el-form-item>
 
+            <el-form-item v-if="canChangeRole && userFrom.id"  label="用户角色" prop="roleName" label-width="90px">
+              <el-select
+                v-model="userFrom.roleName"
+                placeholder="Select"
+              >
+                <el-option
+                  v-for="item in options"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                />
+              </el-select>
+            </el-form-item>
+
             <el-form-item label="手机号" prop="phone" label-width="90px">
               <el-input placeholder="请输入手机号" v-model="userFrom.phone" />
             </el-form-item>
@@ -117,7 +138,7 @@
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted, reactive,nextTick} from "vue";
+import {ref, onMounted, reactive,nextTick,computed} from "vue";
 import {Delete, Edit, Plus, Search} from "@element-plus/icons-vue";
 import {ElMessage} from "element-plus";
 import type {ComponentSize,FormInstance} from "element-plus";
@@ -138,6 +159,26 @@ const userStore = useUserStore()
 const loading = ref<boolean>(true)
 const formShow = ref(false)
 
+export interface IUserForm {
+  id?:number,
+  username:string,
+  name:string,
+  password:string,
+  number:number | string,
+  phone:string,
+  roleName:string,
+  mail:string,
+}
+
+const currentUser = computed(()=>{
+  return userStore.userRole
+})
+
+const canEdit = (row:any) => {
+  // 只有当前用户是管理员，或者当前行的角色不是管理员时，才允许编辑
+  return userStore.userName === '管理员' || row.roleName !== '管理员';
+};
+
 const validatorUserName = (rule: any, value: any, callback: any) => {
   if(value.trim().length < 1){
     callback(new Error("账号不能小于1位"))
@@ -145,6 +186,10 @@ const validatorUserName = (rule: any, value: any, callback: any) => {
     callback()
   }
 }
+
+const canChangeRole = computed(()=>{
+  return userStore.userRole === 'admin';
+})
 
 const validatorPassword = (rule:any,value:any,callBack:any)=>{
   if(value.trim().length < 6){
@@ -174,19 +219,43 @@ const addRules = reactive({
   ],
   password:[
     {required:true,trigger:"blur",validator:validatorPassword}
+  ],
+  roleName:[
+    {
+      required:true,
+      message: '请选择用户角色',
+      trigger: 'change',
+    }
   ]
 })
 
 const updateRules = reactive({})
 
 //存储新增或修改用户的表单
-const userFrom = reactive({
-  id:0,
+const userFrom = reactive<IUserForm>({
   username:"",
   name:"",
   password:"",
-  number:""
+  number:"",
+  phone:"",
+  roleName:"",
+  mail:""
 })
+
+const options = [
+  {
+    value: '普通用户',
+    label: '普通用户',
+  },
+  {
+    value: '管理',
+    label: '管理',
+  },
+  {
+    value: '管理员',
+    label: '管理员',
+  },
+]
 
 onMounted(()=>{
   getUser()
@@ -198,7 +267,7 @@ const onSearch = async () => {
     pageSize:pageSize.value,
     name:searchUserName.value
   }
-  const result = await searchUser(searchParams )
+  const result:any = await searchUser(searchParams )
     userData.value = result.items
     total.value = result.counts
     searchUserName.value = ''
@@ -209,23 +278,38 @@ const reset = () => {
 }
 
 const handleAddUser = () => {
+  Object.assign(userFrom,JSON.parse(JSON.stringify(
+    {
+      username:"",
+      name:"",
+      password:"",
+      number:"",
+      roleCode:'user'
+    }
+  )))
+  if(userFromRef.value) {
+    userFromRef.value.clearValidate()
+  }
   nextTick(() => {
-    userFromRef.value.resetFields()
-  })
-  //清空userFrom的数据
-  Object.assign(userFrom,{
-    username:"",
-    name:"",
-    password:"",
-    number:"",
-    roleCode:'user'
+    userFromRef.value.clearValidate()
   })
   drawer.value = true
 }
 
 const handleClose = (done: () => void) => {
-  userFromRef.value.resetFields()
-  formShow.value = false
+  userFromRef.value.clearValidate()
+  Object.assign(userFrom,
+    {
+      username:"",
+      name:"",
+      password:"",
+      number:"",
+      roleCode:'user',
+      mail:'',
+      phone:''
+    }
+  )
+
   done()
 }
 
@@ -241,16 +325,14 @@ const handleDelete = async () => {
 }
 
 const handleEditUser = (row:any) => {
-  formShow.value = true
   row.password = ''
   Object.assign(userFrom,row)
   currentUserName.value = row.username
-  row.password = ''
   drawer.value = true
 }
 
 const handleDelUser = async (id:number) => {
-    const result = await deleteUser(id)
+    const result:any = await deleteUser(id)
     if(result.code === 200){
       ElMessage({
         message: '删除成功',
@@ -270,7 +352,7 @@ const getUser = async (pager = 1) => {
     currentPage:pager,
     pageSize:pageSize.value
   }
-  const result = await searchUser(getParams)
+  const result:any = await searchUser(getParams)
   loading.value = false
   userData.value = result.items
   total.value = result.counts
@@ -282,11 +364,11 @@ const cancelClick = () => {
 
 const confirmClick = async () => {
   await userFromRef.value.validate()
-  const result = await addOrUpdateUser(userFrom)
+  const result:any = await addOrUpdateUser(userFrom)
 
   if(result.code === 200){
     ElMessage({
-      message: !formShow.value ? '添加成功' : '修改成功',
+      message: !userFrom.id ? '添加成功' : '修改成功',
       type: "success"
     })
     drawer.value = false

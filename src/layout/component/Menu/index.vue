@@ -13,20 +13,6 @@
         </el-menu-item>
       </template>
 
-<!--      &lt;!&ndash;只有一个子路由&ndash;&gt;-->
-<!--      <el-menu-item-->
-<!--        v-if="item.children && item.children.length === 1"-->
-<!--        :index="item.children[0].path"-->
-<!--        @click="toView">-->
-<!--        <SvgIcon-->
-<!--          :width="30"-->
-<!--          :height="20"-->
-<!--          :name="item.children[0].meta.icon"/>-->
-<!--        <template #title>-->
-<!--          {{item.children[0].meta.title}}-->
-<!--        </template>-->
-<!--      </el-menu-item>-->
-
 <!--有多个子路由，使用递归进行多级菜单的渲染-->
       <el-sub-menu
           :index="item.path"
@@ -45,16 +31,14 @@
 import {useRouter} from "vue-router";
 import {useUserStore} from "@/stores/user.ts"
 import { ref,computed,watch } from 'vue'
-import {GET_USER} from "@/utils/token"
 
 let router = useRouter();
 const userStore = useUserStore()
 const props = defineProps(['menuList'])
 const menuList = ref(props.menuList)
-// const userName = computed(()=>GET_USER())
 
 const filterMenuList = computed(()=>{
-  if(userStore.userRole !== 'manager') {
+  if(userStore.userRole === 'user') {
     return menuList.value.filter(item => item.path !== '/auth')
   } else {
     return menuList.value
@@ -64,7 +48,6 @@ const filterMenuList = computed(()=>{
 watch(()=>props.menuList,()=>{
   menuList.value = props.menuList
 })
-// console.log(filterMenuList,'filterMenuList')
 const toView = (vc) => {
   router.push(vc.index)
 }

@@ -3,6 +3,7 @@ import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import {useUserStore} from '@/stores/user';
 import router from '@/router'
+import { REMOVE_TOKEN, REMOVE_USER, REMOVE_USER_NAME } from '@/utils/token'
 const request = axios.create({
     baseURL:import.meta.env.VITE_APP_BASE_API, //基础路径上会携带/api
     timeout:50000
@@ -31,11 +32,16 @@ request.interceptors.response.use( res=>{
       showMessage = false
       ElMessage({
         type: 'error',
-        message: "登录过期，请重新登录",
+        message: "登录过期，请刷新页面重新登录",
       });
+      REMOVE_TOKEN()
+      REMOVE_USER()
+      REMOVE_USER_NAME()
+      setTimeout(() => {
+        window.location.href = '/login'
+      },1000)
       showMessage = true;
     }
-     router.push('/login');
   }
 
     return res.data

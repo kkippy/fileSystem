@@ -31,22 +31,9 @@
 
     </FileTable>
     <el-dialog v-model="uploadVisible" title="上传文件" width="600">
-      <el-upload
-        action=""
-        drag
-        :auto-upload="false"
-        :on-change="handleChangeUpload"
-      >
-        <el-icon class="el-icon--upload"><upload-filled /></el-icon>
-        <div class="el-upload__text">
-          <em>点击上传</em>
-        </div>
-        <template #tip>
-          <div class="el-upload__tip">
-            文件大小不得超过1000M
-          </div>
-        </template>
-      </el-upload>
+      <Upload
+        @upload-change="handleChangeUpload"
+      />
     </el-dialog>
 
   </div>
@@ -54,11 +41,11 @@
 
 <script setup lang="ts">
 import FileTable from '@/components/FileTable/index.vue'
+import Upload from '@/components/Upload/index.vue'
 import {ElMessage } from 'element-plus'
 import type {ComponentSize} from 'element-plus'
 import { ref,onMounted } from 'vue'
-import { UploadFilled } from '@element-plus/icons-vue'
-import { downloadFile, getFileList,uploadFile,deleteFile } from '@/api/file'
+import { getFileList,uploadFile,deleteFile } from '@/api/file'
 import {downloadFileUtil} from '@/utils/fileTools'
 let size = ref<ComponentSize>('default')
 let currentPage = ref<number>(1)
@@ -93,7 +80,7 @@ const handleUpload = (val:boolean) => {
 
 const getLists = async () => {
   try {
-    const result:any = await getFileList('manage')
+    const result:any = await getFileList('manage',currentPage.value,pageSize.value)
     fileData.value = result.items.map(item => {
       let newItem = { ...item };
       let [name, extension] = newItem.fileName.split(/\.(?=[^.]+$)/); // 分割出文件名和扩展名
