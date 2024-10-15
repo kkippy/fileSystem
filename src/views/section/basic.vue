@@ -32,7 +32,7 @@
 
     <el-dialog v-model="uploadVisible" title="上传文件" width="600">
       <Upload
-        v-loading="loading"
+        v-loading="uploadLoading"
         element-loading-text="正在上传..."
         @upload-change="handleChangeUpload"
       />
@@ -62,6 +62,7 @@ const fileData = ref([])
 
 const route = useRoute()
 const loading = ref(false)
+const uploadLoading = ref(false)
 let bucket = route.meta.bucket || 'default'
 
 onMounted(()=>{
@@ -139,19 +140,20 @@ const handleChangeUpload = async(file:File) =>{
   const formData = new FormData();
   formData.append('uploadfile',file);
   try {
-    loading.value = true
+    uploadLoading.value = true
     const result:any = await uploadFile({ bucket: bucket, uploadfile: file.raw })
     if(result.code === 200){
       ElMessage({
         message: '上传成功',
         type: 'success'
       })
-      uploadVisible.value = false
-      loading.value = false
       await getLists()
     }
   } catch (error){
-    console.log(error)
+    console.log(error,'sss')
+  } finally {
+    uploadLoading.value = false
+    uploadVisible.value = false
   }
 }
 

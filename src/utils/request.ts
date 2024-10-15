@@ -5,7 +5,7 @@ import {useUserStore} from '@/stores/user';
 import { REMOVE_TOKEN, REMOVE_USER, REMOVE_USER_NAME } from '@/utils/token'
 const request = axios.create({
     baseURL:import.meta.env.VITE_APP_BASE_API, //基础路径上会携带/api
-    timeout:50000
+    timeout:5000
 })
 
 //请求拦截器
@@ -44,8 +44,13 @@ request.interceptors.response.use( res=>{
     return res.data
 },async error=>{
     //失败的回调
-   let message = ''
-  console.log(error)
+   let message = error.message
+    if(error.code === "ECONNABORTED") {
+      ElMessage({
+        message: '请求超时',
+        type: 'error'
+      })
+    }
     const status = error.response && error.response.status
     switch (status) {
         case 401:
