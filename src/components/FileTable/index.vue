@@ -1,12 +1,12 @@
 <template>
   <el-card style="margin-top: 20px;border-radius: 10px">
-    <el-button type="primary"
-               :disabled="!downloadList.length"
-               style="margin-right: 10px"
-               :icon="Download"
-               @click="handleBatchDownload">
-      <span style="margin-left: 5px;">批量下载</span>
-    </el-button>
+<!--    <el-button type="primary"-->
+<!--               :disabled="!downloadList.length"-->
+<!--               style="margin-right: 10px"-->
+<!--               :icon="Download"-->
+<!--               @click="handleBatchDownload">-->
+<!--      <span style="margin-left: 5px;">批量下载</span>-->
+<!--    </el-button>-->
 
 
     <el-button
@@ -27,7 +27,6 @@
       row-key="id"
       @selection-change="selectChange"
     >
-      <el-table-column fixed  align="center" type="selection" ></el-table-column>
       <el-table-column align="center" type="index" label="序号" width="70" />
       <el-table-column show-overflow-tooltip align="center" prop="fileName" label="文件名称"  />
       <el-table-column align="center" prop="lastModified" label="上传时间" width="180" />
@@ -47,7 +46,7 @@
             @confirm="handleDelete(row)"
           >
             <template #reference>
-              <el-button type="danger" >
+              <el-button :disabled="userStore.userRole === 'user'" type="danger" >
                 删除
               </el-button>
             </template>
@@ -65,7 +64,9 @@
 <script setup lang="ts">
 import { Upload, Download } from '@element-plus/icons-vue'
 import { ref, watch,watchEffect } from 'vue'
+import { useUserStore } from '@/stores/user'
 const loading = ref(true)
+const userStore = useUserStore()
 
 const props = defineProps({
   menuData: {

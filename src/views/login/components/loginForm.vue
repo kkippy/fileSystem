@@ -13,7 +13,7 @@
 
     <div class="login-btn">
       <el-button :icon="CircleClose" round size="large"  @click="resetForm(loginFormRef)"> 重置 </el-button>
-      <el-button :icon="UserFilled" round size="large" type="primary"  @click="login">
+      <el-button id="loginButton" :icon="UserFilled" round size="large" type="primary" @click="login">
         登录
       </el-button>
     </div>
@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import {reactive, ref} from "vue"
+import { reactive, ref } from 'vue'
 import type { ElForm } from "element-plus";
 import { CircleClose, UserFilled,User, Lock } from "@element-plus/icons-vue";
 import { ElMessage } from 'element-plus'
@@ -34,7 +34,6 @@ export interface LoginForm {
 }
 
 const userStore = useUserStore()
-
 
 type FormInstance = InstanceType<typeof ElForm>;
 const loginFormRef = ref<FormInstance>();

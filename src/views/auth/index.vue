@@ -313,8 +313,8 @@ const selectChange = (value:any) => {
 
 const handleDelete = async () => {
     ElMessage({
-      message: '批量删除成功',
-      type: 'success'
+      message: '批量删除功能尚未实现',
+      type: 'warning'
     })
 }
 

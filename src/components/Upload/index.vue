@@ -4,6 +4,7 @@
     drag
     :auto-upload="false"
     :on-change="handleChangeUpload"
+    :show-file-list="false"
   >
     <el-icon class="el-icon--upload"><upload-filled /></el-icon>
     <div class="el-upload__text">
