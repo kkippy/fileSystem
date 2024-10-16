@@ -32,10 +32,19 @@ import {useRouter} from "vue-router";
 import {useUserStore} from "@/stores/user"
 import { ref,computed,watch } from 'vue'
 
+interface MenuItem {
+  path: string;
+  meta: {
+    title: string;
+    hidden?: boolean; // 可选属性
+  };
+  children?: MenuItem[]; // 子菜单项
+}
+
 let router = useRouter();
 const userStore = useUserStore()
 const props = defineProps(['menuList'])
-const menuList = ref(props.menuList)
+const menuList = ref<MenuItem[]>(props.menuList)
 
 const filterMenuList = computed(()=>{
   if(userStore.userRole === 'user') {

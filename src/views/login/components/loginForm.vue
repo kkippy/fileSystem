@@ -46,8 +46,8 @@ const loginRules = reactive({
 
 
 const loginFormReactive = reactive<LoginForm>({
-  username:'',
-  password:''
+  username:'ops_liwenbo',
+  password:'123456'
 })
 
 const resetForm = (formEl: FormInstance | undefined)=> {

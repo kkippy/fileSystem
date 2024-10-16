@@ -3,7 +3,7 @@
     <div class="header" >
       <el-form>
         <el-form-item label="姓名" style="margin-top: 18px;margin-left: 20px">
-          <el-input id="inputField" v-model="searchUserName" @keyup.enter="onSearch" placeholder="请输入姓名" />
+          <el-input id="inputUserField" v-model="searchUserName" @keyup.enter="onSearch" placeholder="请输入姓名" />
         </el-form-item>
       </el-form>
 
@@ -254,7 +254,7 @@ onMounted(()=>{
   getUser()
 })
 
-const inputField = document.getElementById('inputField');
+const inputField = document.getElementById('inputUserField');
 inputField?.addEventListener('keyup', function(event) {
   if (event.key === 'Enter') {
     onSearch()
@@ -266,7 +266,6 @@ const onSearch = async () => {
     pageSize.value,{name:searchUserName.value} )
     userData.value = result.items
     total.value = result.counts
-    searchUserName.value = ''
 }
 
 const reset = () => {
@@ -287,13 +286,13 @@ const handleAddUser = () => {
     userFromRef.value.clearValidate()
   }
   nextTick(() => {
-    userFromRef.value.clearValidate()
+    userFromRef.value?.clearValidate()
   })
   drawer.value = true
 }
 
 const handleClose = (done: () => void) => {
-  userFromRef.value.clearValidate()
+  userFromRef.value?.clearValidate()
   Object.assign(userFrom,
     {
       username:"",
@@ -343,7 +342,8 @@ const handleSizeChange = () => {
   getUser()
 }
 
-const getUser = async () => {
+const getUser = async (pager = 1) => {
+  currentPage.value = pager
   loading.value = true
   const result:any = await searchUser(currentPage.value,pageSize.value)
   loading.value = false
@@ -356,8 +356,8 @@ const cancelClick = () => {
 }
 
 const confirmClick = async () => {
-  await userFromRef.value.validate()
-  if(userFromRef.value.fields[3].fieldValue === '') {
+  await userFromRef.value?.validate()
+  if(userFromRef.value?.fields[3].fieldValue === '') {
     userFrom.password = currentPassword.value
   }
   const result:any = await addOrUpdateUser(userFrom)

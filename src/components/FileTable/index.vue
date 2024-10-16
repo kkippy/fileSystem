@@ -1,5 +1,5 @@
 <template>
-  <el-card>
+  <el-card style="margin-top: 20px;border-radius: 10px">
     <el-button type="primary"
                :disabled="!downloadList.length"
                style="margin-right: 10px"
@@ -31,9 +31,13 @@
       <el-table-column align="center" type="index" label="序号" width="70" />
       <el-table-column show-overflow-tooltip align="center" prop="fileName" label="文件名称"  />
       <el-table-column align="center" prop="lastModified" label="上传时间" width="180" />
-      <el-table-column align="center" prop="size" label="文件大小" width="100"  />
-      <el-table-column align="center" label="操作" width="180">
+      <el-table-column align="center" prop="size" label="文件大小" width="120"  />
+      <el-table-column align="center" label="操作" width="250">
         <template #default="{row}">
+          <el-button type="success"   @click="handleShare(row)">
+            分享
+          </el-button>
+
           <el-button type="primary"   @click="handleDownload(row)">
             下载
           </el-button>
@@ -92,6 +96,7 @@ const emit = defineEmits([
   'delete-file',
   'size-change',
   'page-change',
+  'share-file'
 ])
 
 const downloadList = ref(props.downloadList)
@@ -115,6 +120,10 @@ const handleDelete =  (file:any) => {
 const selectChange = (value:any) => {
   emit('selection-change', value)
   downloadList.value = value
+}
+
+const handleShare = (row:any) => {
+  emit('share-file', row)
 }
 
 

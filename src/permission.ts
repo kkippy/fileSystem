@@ -57,9 +57,6 @@ router.beforeEach(async (to:any, from:any, next:any) => {
     } else { //想去其余的页面，拒绝
       next({
         path:'/login',
-        // query:{
-        //   redirect:to.path
-        // }
       })
     }
   }

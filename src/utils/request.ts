@@ -30,7 +30,7 @@ request.interceptors.response.use( res=>{
       showMessage = false
       ElMessage({
         type: 'error',
-        message: "登录过期，请刷新页面重新登录",
+        message: "登录过期，请重新登录",
       });
       REMOVE_TOKEN()
       REMOVE_USER()

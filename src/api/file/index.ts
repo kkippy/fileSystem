@@ -1,4 +1,5 @@
 import request from "@/utils/request"
+import type {fileResponse} from './type'
 enum FILE_API {
   GET_ALL_BUCKET_URL = '/api/file/listBuckets', //查询所有桶
   DELETE_BUCKET_URL = '/api/file/deleteBucket', //删除桶
@@ -25,9 +26,15 @@ export const downloadFile = (bucket:string,objectName:string)=>request.get<any>(
 
 export const deleteFile = (bucket:string,objectName:string)=>request.get<any>(FILE_API.DELETE_FILE_URL+`?bucket=${bucket}&objectName=${objectName}`)
 
-export const getFileList = (bucket:string,pageNo:number,pageSize:number)=>request.get<any>(FILE_API.GET_FILE_URL+`?bucket=${bucket}&pageNo=${pageNo}&pageSize=${pageSize}`)
+export const getFileList = (bucket:string,pageNo:number,pageSize:number,fileName?:string)=> {
+  if (!fileName) {
+    return request.get<any, fileResponse>(FILE_API.GET_FILE_URL + `?bucket=${bucket}&pageNo=${pageNo}&pageSize=${pageSize}`)
+  } else {
+    return request.get<any, fileResponse>(FILE_API.GET_FILE_URL + `?bucket=${bucket}&pageNo=${pageNo}&pageSize=${pageSize}&fileName=${fileName}`)
+  }
+}
 
-export const shareFile = (data:any)=>request.post<any>(FILE_API.SHARE_FILE_URL,data)
+export const shareFile = (bucket:string,objectName:string)=>request.get<any>(FILE_API.SHARE_FILE_URL+`?bucket=${bucket}&objectName=${objectName}`)
 
 
 

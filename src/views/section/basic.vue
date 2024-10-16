@@ -4,6 +4,20 @@
     element-loading-text="正在下载..."
     element-loading-background="rgba(122, 122, 122, 0.8)"
   >
+
+    <div class="header" >
+      <el-form>
+        <el-form-item label="文件名" style="margin-top: 18px;margin-left: 20px">
+          <el-input id="inputFileField" v-model="searchFileName" @keyup.enter="onSearch" placeholder="请输入文件名" />
+        </el-form-item>
+      </el-form>
+
+      <div style="margin-right: 40px">
+        <el-button type="primary" :icon="Search" @click="onSearch" :disabled="!searchFileName">搜索</el-button>
+        <el-button @click="reset">重置</el-button>
+      </div>
+    </div>
+
     <FileTable
       v-loading="loading"
       :menuData="fileData"
@@ -13,6 +27,7 @@
       @selection-change="updateSelectedFiles"
       @download-file="downloadSingleFile"
       @delete-file="handleRemoveFile"
+      @share-file="handleShareFile"
     >
         <template #footer>
           <el-pagination
@@ -38,6 +53,26 @@
       />
     </el-dialog>
 
+    <el-dialog v-model="shareVisible" title="分享文件" width="600">
+      <el-input
+        v-model="shareLink"
+        placeholder="Please input"
+      >
+        <template #append>
+          <el-button style="width: 100px;
+                            background-color: #67c23a;
+                            border-radius:0 4px 4px 0 ;
+                            color: #fff;font-size: 15px;
+                            letter-spacing: 2px;
+                            text-align: center"
+                     @click="copyLink"
+          >
+            复制链接
+          </el-button>
+        </template>
+      </el-input>
+    </el-dialog>
+
   </div>
 </template>
 
@@ -47,28 +82,46 @@ import Upload from '@/components/Upload/index.vue'
 import {ElMessage } from 'element-plus'
 import type {ComponentSize} from 'element-plus'
 import { ref,onMounted,watchEffect } from 'vue'
-import { getFileList,uploadFile,deleteFile } from '@/api/file'
+import { getFileList,uploadFile,deleteFile,shareFile } from '@/api/file'
 import {downloadFileUtil} from '@/utils/fileTools'
 import { useRoute } from 'vue-router'
+import type {RouteLocationNormalizedLoaded } from 'vue-router'
+import type {fileResponse,fileList}  from '@/api/file/type'
+import { Search } from '@element-plus/icons-vue'
+
+interface Route extends RouteLocationNormalizedLoaded{
+  meta:  {
+    bucket?: string;
+  }
+}
+
 let size = ref<ComponentSize>('default')
 let currentPage = ref<number>(1)
 let pageSize = ref<number>(10)
 let total = ref<number>(0)
 const downloadList = ref<any[]>([])
 const uploadVisible = ref(false)
+const shareVisible = ref(false)
 const fullscreenLoading = ref(false)
 const selectedFiles = ref([]); // 被选中的文件列表
-const fileData = ref([])
-
-const route = useRoute()
+const fileData = ref<fileList>([])
+let searchFileName = ref<string>('')
+let shareLink = ref<string>('')
+const route = useRoute() as Route
 const loading = ref(false)
 const uploadLoading = ref(false)
-let bucket = route.meta.bucket || 'default'
+let bucket: string | undefined = route.meta.bucket ||  route.fullPath
 
 onMounted(()=>{
-  console.log(route,'route')
   getLists()
 })
+
+const inputField = document.getElementById('inputFileField');
+inputField?.addEventListener('keyup', function(event) {
+  if (event.key === 'Enter') {
+    onSearch()
+  }
+});
 
 watchEffect(async ()=>{
   if(bucket !== route.meta.bucket){
@@ -81,9 +134,18 @@ watchEffect(async ()=>{
 
 const downloadSingleFile = async (row:any) => {
   fullscreenLoading.value = true
-  // console.log(typeof bucket,'bucket')
-  await downloadFileUtil(bucket,row.showName,row.fileName)
+  await downloadFileUtil(bucket as string,row.showName,row.fileName)
   fullscreenLoading.value = false
+}
+
+const handleShareFile = async (row:any) => {
+  try {
+    const result:any = await shareFile(bucket as string,row.showName)
+    shareLink.value = result.data.presignedUrl
+    shareVisible.value = true
+  } catch (error) {
+    console.log(error)
+  }
 }
 
 const handleBatchDownload = () => {
@@ -100,7 +162,7 @@ const handleUpload = (val:boolean) => {
 const getLists = async () => {
   loading.value = true
   try {
-    const result:any = await getFileList(bucket,currentPage.value,pageSize.value)
+    const result:fileResponse = await getFileList(bucket || route.fullPath,currentPage.value,pageSize.value)
     fileData.value = result.items.map(item => {
       let newItem = { ...item };
       let [name, extension] = newItem.fileName.split(/\.(?=[^.]+$)/); // 分割出文件名和扩展名
@@ -111,7 +173,6 @@ const getLists = async () => {
       newItem.fileName = parts.join("") + "." + extension; // 保留扩展名
       return newItem;
     });
-    console.log(fileData.value)
     total.value = result.counts
     loading.value = false
   } catch (error) {
@@ -125,7 +186,7 @@ const handleSizeChange = () => {
 }
 
 const handleRemoveFile =  async (row:any) => {
-  const result:any =await deleteFile(bucket,row.showName)
+  const result:any =await deleteFile(bucket as string,row.showName)
   if(result.code === 200){
     ElMessage({
       message: '删除成功',
@@ -135,7 +196,19 @@ const handleRemoveFile =  async (row:any) => {
   }
 }
 
-const handleChangeUpload = async(file:File) =>{
+const onSearch = async () => {
+  const result:fileResponse = await getFileList(bucket as string,currentPage.value,
+    pageSize.value,searchFileName.value)
+  fileData.value = result.items
+  total.value = result.counts
+  searchFileName.value = ''
+}
+
+const reset = () =>{
+  getLists()
+}
+
+const handleChangeUpload = async(file:any) =>{
   if (!file) return;
   const formData = new FormData();
   formData.append('uploadfile',file);
@@ -150,7 +223,7 @@ const handleChangeUpload = async(file:File) =>{
       await getLists()
     }
   } catch (error){
-    console.log(error,'sss')
+    console.log(error)
   } finally {
     uploadLoading.value = false
     uploadVisible.value = false
@@ -161,8 +234,41 @@ const updateSelectedFiles = (value:any) => {
   downloadList.value = value
 }
 
+const copyLink = () => {
+  navigator.clipboard.writeText(shareLink.value)
+  ElMessage({
+    message: '复制成功',
+    type: 'success'
+  })
+  shareVisible.value = false
+}
+
 
 </script>
 <style scoped lang="scss">
 
+.header {
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row;
+  box-shadow: 0 0 12px rgba(0,0,0,0.12);
+
+  .el-card__body {
+    padding: 0;
+  }
+}
+
+.btn {
+  width: 100px;
+  background-color: #409eff;
+  border-radius:0 4px 4px 0 ;
+}
+</style>
+
+<style scoped>
+.el-input-group__append, .el-input-group__prepend{
+  background-color: #409eff;
+}
 </style>
