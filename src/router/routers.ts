@@ -30,9 +30,19 @@ export const constantRoute = [
         },
       },
       {
+        path: '/section1/:folderName', // 动态路由
+        name: 'section1-folder',
+        component: () => import('@/views/section/fileList.vue'),
+        meta: {
+          title: '信息化一室 - 文件夹',
+          bucket: 'section1',
+          hidden: true, // 在菜单中隐藏
+        },
+      },
+      {
         path: '/section2',
         name: 'section2',
-        component: ()=>import('@/views/section/basic.vue'),
+        component: ()=>import('@/views/file/fileBoard.vue'),
         meta: {
           title: '信息化二室',
           bucket: 'section2',
@@ -40,9 +50,19 @@ export const constantRoute = [
         },
       },
       {
+        path: '/section2/:folderName', // 动态路由
+        name: 'section2-folder',
+        component: () => import('@/views/section/fileList.vue'),
+        meta: {
+          title: '信息化二室 - 文件夹',
+          bucket: 'section2',
+          hidden: true,
+        },
+      },
+      {
         path: '/basic',
         name: 'basic',
-        component: ()=>import('@/views/section/basic.vue'),
+        component: ()=>import('@/views/file/fileBoard.vue'),
         meta: {
           title: '基础架构室',
           bucket: 'basic',
@@ -50,9 +70,19 @@ export const constantRoute = [
         },
       },
       {
+        path: '/basic/:folderName', // 动态路由
+        name: 'basic-folder',
+        component: () => import('@/views/section/fileList.vue'),
+        meta: {
+          title: '基础架构室 - 文件夹',
+          bucket: 'section2',
+          hidden: true,
+        },
+      },
+      {
         path: '/support',
         name: 'support',
-        component: ()=>import('@/views/section/basic.vue'),
+        component: ()=>import('@/views/file/fileBoard.vue'),
         meta: {
           title: '开发支持室',
           bucket: 'support',
@@ -60,13 +90,33 @@ export const constantRoute = [
         },
       },
       {
+        path: '/support/:folderName', // 动态路由
+        name: 'support-folder',
+        component: () => import('@/views/section/fileList.vue'),
+        meta: {
+          title: '开发支持室 - 文件夹',
+          bucket: 'section2',
+          hidden: true,
+        },
+      },
+      {
         path: '/manage',
         name: 'manage',
-        component: ()=>import('@/views/section/basic.vue'),
+        component: ()=>import('@/views/file/fileBoard.vue'),
         meta: {
           title: '综合管理室',
           bucket: 'manage',
           hidden: false,
+        },
+      },
+      {
+        path: '/manage/:folderName', // 动态路由
+        name: 'manage-folder',
+        component: () => import('@/views/section/fileList.vue'),
+        meta: {
+          title: '综合管理室 - 文件夹',
+          bucket: 'section2',
+          hidden: true,
         },
       },
     ]

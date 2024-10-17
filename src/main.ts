@@ -11,6 +11,10 @@ import App from './App.vue'
 import router from './router'
 import 'virtual:svg-icons-register'
 import SvgIcon from "@/components/SvgIcon/index.vue";
+import '@imengyu/vue3-context-menu/lib/vue3-context-menu.css'
+import ContextMenu from '@imengyu/vue3-context-menu'
+import './assets/iconfont/iconfont.css'
+
 // 引入鉴权文件
 // import './permission'
 
@@ -23,5 +27,7 @@ app.component('SvgIcon', SvgIcon)
 app.use(ElementPlus, {
   locale: zhCn,
 })
+app.use(ContextMenu)
+
 
 app.mount('#app')
