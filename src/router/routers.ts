@@ -22,7 +22,7 @@ export const constantRoute = [
       {
         path: '/section1',
         name: 'section1',
-        component: ()=>import('@/views/section/basic.vue'),
+        component: ()=>import('@/views/file/fileBoard.vue'),
         meta: {
           title: '信息化一室',
           bucket: 'section1',

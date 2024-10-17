@@ -114,6 +114,7 @@ let bucket: string | undefined = route.meta.bucket ||  route.fullPath
 
 onMounted(()=>{
   getLists()
+  console.log(route.params.folderName,'s')
 })
 
 const inputField = document.getElementById('inputFileField');

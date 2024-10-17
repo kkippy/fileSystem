@@ -1,5 +1,5 @@
 <template>
-  <svg :style="iconStyle" aria-hidden="true">
+  <svg :style="iconStyle" aria-hidden="true" style="scale: none">
     <use :xlink:href="symbolId" />
   </svg>
 </template>
@@ -31,3 +31,5 @@ const iconStyle = computed(() => {
 })
 
 </script>
+
+<style ></style>

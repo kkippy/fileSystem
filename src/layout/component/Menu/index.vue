@@ -47,6 +47,7 @@ const props = defineProps(['menuList'])
 const menuList = ref<MenuItem[]>(props.menuList)
 
 const filterMenuList = computed(()=>{
+   menuList.value.filter((item) => {!/:/.test(item.path)})
   if(userStore.userRole === 'user') {
     return menuList.value.filter((item) => item.path !== '/auth')
   } else {

@@ -9,15 +9,16 @@ import '@/styles/index.scss';
 import zhCn from 'element-plus/es/locale/lang/zh-cn'
 import App from './App.vue'
 import router from './router'
-
+import 'virtual:svg-icons-register'
+import SvgIcon from "@/components/SvgIcon/index.vue";
 // 引入鉴权文件
-import './permission'
+// import './permission'
 
 const app = createApp(App)
 
 app.use(router)
 app.use(pinia)
-
+app.component('SvgIcon', SvgIcon)
 //国际化
 app.use(ElementPlus, {
   locale: zhCn,

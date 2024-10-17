@@ -73,7 +73,8 @@ button:focus-visible {
     }
 }
 #nprogress .bar {
-    background: #98fb98 !important;//这里自定义nprogress进度条颜色
+    /* 这里自定义nprogress进度条颜色 */
+    background: #98fb98 !important;
     height: 10px;
 }
 
