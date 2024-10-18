@@ -34,7 +34,6 @@ export const constantRoute = [
         name: 'section1-folder',
         component: () => import('@/views/section/fileList.vue'),
         meta: {
-          title: '信息化一室 - 文件夹',
           bucket: 'section1',
           hidden: true, // 在菜单中隐藏
         },
@@ -54,7 +53,6 @@ export const constantRoute = [
         name: 'section2-folder',
         component: () => import('@/views/section/fileList.vue'),
         meta: {
-          title: '信息化二室 - 文件夹',
           bucket: 'section2',
           hidden: true,
         },
@@ -74,7 +72,6 @@ export const constantRoute = [
         name: 'basic-folder',
         component: () => import('@/views/section/fileList.vue'),
         meta: {
-          title: '基础架构室 - 文件夹',
           bucket: 'section2',
           hidden: true,
         },
@@ -94,7 +91,6 @@ export const constantRoute = [
         name: 'support-folder',
         component: () => import('@/views/section/fileList.vue'),
         meta: {
-          title: '开发支持室 - 文件夹',
           bucket: 'section2',
           hidden: true,
         },
@@ -114,7 +110,6 @@ export const constantRoute = [
         name: 'manage-folder',
         component: () => import('@/views/section/fileList.vue'),
         meta: {
-          title: '综合管理室 - 文件夹',
           bucket: 'section2',
           hidden: true,
         },

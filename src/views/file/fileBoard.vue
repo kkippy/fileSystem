@@ -20,10 +20,18 @@
 
       <div class="fileContent">
         <ul  v-infinite-scroll="scrollLoad" class="folderList" :infinite-scroll-disabled="disabled">
-          <li @dblclick="goToFile(item.name)" class="folder" v-for="item in fileList" :key="item.id"  @contextmenu.prevent="onContextMenu($event, item)">
-            <SvgIcon :width="item.isDir ? 130 : 110"
-                     :height="150"
-                     :name="item.isDir ? 'folder1' : 'document1' " />
+          <li @dblclick="goToFile(item.name)"
+              class="folder"
+              v-for="item in fileList"
+              :key="item.id"
+              @contextmenu.prevent="onContextMenu($event, item)">
+              <SvgIcon v-if="item && ((item.fileType as string).toLowerCase()) === 'pdf'" :width="96" :height="150" name="pdf" />
+              <SvgIcon v-else-if="item && item.isDir === 1" :width="130" :height="150" name="folder" />
+              <SvgIcon v-else-if="item && item.fileType === 'txt'" :width="107" :height="150" name="txt" />
+              <SvgIcon v-else-if="item && pictureType.indexOf((item.fileType as string).toLowerCase()) !== -1" :width="120" :height="150" name="picture" />
+              <SvgIcon v-else-if="item && compressType.indexOf((item.fileType as string).toLowerCase()) !== -1" :width="98" :height="150" name="compress" />
+              <SvgIcon v-else-if="item && videoType.indexOf((item.fileType as string).toLowerCase()) !== -1" :width="98" :height="150" name="video" />
+
             <div class="objectName">
               <div style="display: flex;align-items: center;transition: all 0.3s; " >
                 <p v-if="!item.isEditing" class="folderName">{{ item.name }}</p>
@@ -65,6 +73,7 @@ interface FileItem {
   name: string;
   isDir: number;
   isEditing?: boolean;
+  fileType?: string;
 }
 
 type FileList = Array<FileItem>
@@ -78,25 +87,25 @@ const loading = ref<boolean>(false)
 const noMore = computed(() => fileList.value.length >= 20)
 const disabled = computed(() => loading.value || noMore.value)
 const fileList = ref<FileList>([
-  { id: 1, name: 'Folder 1', isDir:1 },
-  { id: 2, name: 'Folder 2', isDir:1 },
-  { id: 3, name: 'Folder 3', isDir:1 },
-  { id: 2, name: 'Folder 2', isDir:1 },
-  { id: 3, name: 'Folder 3', isDir:1 },
-  { id: 2, name: 'Folder 2', isDir:1 },
-  { id: 3, name: 'Folder 3', isDir:1 },
-  { id: 2, name: 'Folder 2', isDir:1 },
-  { id: 3, name: 'Folder 3', isDir:1 },
-  { id: 2, name: 'Folder 2', isDir:1 },
-  { id: 3, name: 'Folder 3', isDir:1 },
-  { id: 4, name: 'Folder 4', isDir:0 },
-  { id: 5, name: 'Folder 5', isDir:0 },
-  { id: 4, name: 'Folder 4', isDir:0 },
-  { id: 5, name: 'Folder 5', isDir:0 },
-  { id: 4, name: 'Folder 4', isDir:0 },
-  { id: 5, name: 'Folder 5', isDir:0 },
+  { id: 2, name: 'Folder 2', isDir:1,fileType:'' },
+  { id: 3, name: 'Folder 3', isDir:1,fileType:'' },
+  { id: 2, name: 'Folder 2', isDir:1,fileType:'' },
+  { id: 3, name: 'Folder 3', isDir:1,fileType:'' },
+  { id: 4, name: 'Folder 4', isDir:0,fileType:'pdf' },
+  { id: 5, name: 'Folder 5', isDir:0,fileType:'txt' },
+  { id: 4, name: 'Folder 4', isDir:0,fileType:'jpg' },
+  { id: 5, name: 'Folder 5', isDir:0,fileType:'pdf' },
+  { id: 4, name: 'Folder 4', isDir:0,fileType:'png' },
+  { id: 5, name: 'Folder 5', isDir:0,fileType:'pdf' },
+  { id: 5, name: 'Folder 5', isDir:0,fileType:'zip' },
+  { id: 5, name: 'Folder 5', isDir:0,fileType:'MOV' },
+  { id: 5, name: 'Folder 5', isDir:0,fileType:'zip' },
 ])
 const userStore = useUserStore();
+const pictureType:string[] = ['png','jpg','jpeg']
+const compressType:string[] = ['zip','rar','7z']
+const videoType:string[] = ['mp4','mov','flv','avi']
+
 
 onMounted(()=>{
   fileList.value.forEach(item => {
@@ -117,11 +126,11 @@ const reset = () => {
 }
 
 const scrollLoad = () => {
-  loading.value = true
-  setTimeout(() => {
-    fileList.value.push({ id: 6, name: 'Folder 6', isEditing: false,isDir:1 })
-    loading.value = false
-  }, 2000)
+  // loading.value = true
+  // setTimeout(() => {
+  //   fileList.value.push({ id: 6, name: 'Folder 6', isEditing: false,isDir:1 })
+  //   loading.value = false
+  // }, 2000)
   // ElMessage({
   //   message: '暂未开放',
   //   type: 'warning'
@@ -249,7 +258,7 @@ const onContextMenu = (event:any, config:any) =>{
 
 const goToFile = (folderName:string) => {
   router.push({
-    path:`${route.path}/${folderName}`,
+    path:`${route.path}`,
     params:{
       folderName
     }
@@ -286,7 +295,7 @@ const goToFile = (folderName:string) => {
 .fileContent {
     margin-top: 20px;
     border-radius: 10px;
-    height: 50vh;
+    height: 80vh;
     overflow: auto;
     box-shadow: 0 0 12px rgba(0,0,0,0.12);
 
