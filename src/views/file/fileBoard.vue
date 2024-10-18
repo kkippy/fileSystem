@@ -1,19 +1,24 @@
 <template>
     <div >
       <div class="header" >
-        <el-form>
-          <el-form-item label="文件名" style="margin-top: 18px;margin-left: 20px">
-            <el-input id="inputFileField" v-model="searchName" @keyup.enter="onSearch" placeholder="请输入文件名" />
-          </el-form-item>
-        </el-form>
+        <div class="headerLeft">
+          <el-button style="margin-left: 20px" type="primary" :icon="Plus">新增文件夹</el-button>
+          <el-button type="success" :icon="Upload" >上传文件</el-button>
 
-        <div style="margin-right: 40px">
-          <el-button type="primary" :icon="Search" @click="onSearch" :disabled="!searchName">搜索</el-button>
-          <el-button @click="reset">重置</el-button>
+          <el-form style="margin-left: 10px">
+            <el-form-item label="文件名" style="margin-top: 18px;margin-left: 20px">
+              <el-input id="inputFileField" v-model="searchName" @keyup.enter="onSearch" placeholder="请输入文件名" />
+            </el-form-item>
+          </el-form>
+
+          <div style="margin-left: 20px">
+            <el-button type="primary" :icon="Search" @click="onSearch" :disabled="!searchName">搜索</el-button>
+            <el-button @click="reset">重置</el-button>
+          </div>
         </div>
       </div>
 
-      <div class="fileContent" style="">
+      <div class="fileContent">
         <ul  v-infinite-scroll="scrollLoad" class="folderList" :infinite-scroll-disabled="disabled">
           <li @dblclick="goToFile(item.name)" class="folder" v-for="item in fileList" :key="item.id"  @contextmenu.prevent="onContextMenu($event, item)">
             <SvgIcon :width="item.isDir ? 130 : 110"
@@ -52,7 +57,7 @@ import SvgIcon from '@/components/SvgIcon/index.vue'
 import ContextMenu from '@imengyu/vue3-context-menu'
 import type {Router } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { Search } from '@element-plus/icons-vue'
+import { Search,Plus,Upload } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 interface FileItem {
@@ -260,6 +265,18 @@ const goToFile = (folderName:string) => {
   align-items: center;
   flex-direction: row;
   box-shadow: 0 0 12px rgba(0,0,0,0.12);
+
+  .headerLeft {
+    display: flex;
+    flex: 0 0 60%;
+    align-items: center;
+  }
+
+  .headerRight {
+    display: flex;
+    flex: 0 0 20%;
+    align-items: center;
+  }
 
   .el-card__body {
     padding: 0;
