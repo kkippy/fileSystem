@@ -114,7 +114,6 @@ let bucket: string | undefined = route.meta.bucket ||  route.fullPath
 
 onMounted(()=>{
   getLists()
-  console.log(route,'s')
 })
 
 const inputField = document.getElementById('inputFileField');
@@ -161,7 +160,7 @@ const handleUpload = (val:boolean) => {
 }
 
 const getLists = async () => {
-  loading.value = true
+  // loading.value = true
   try {
     const result:fileResponse = await getFileList(bucket || route.fullPath,currentPage.value,pageSize.value)
     fileData.value = result.items.map(item => {

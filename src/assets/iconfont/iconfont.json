@@ -6,6 +6,27 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "335681",
+      "name": "分享",
+      "font_class": "fenxiang",
+      "unicode": "e602",
+      "unicode_decimal": 58882
+    },
+    {
+      "icon_id": "2019044",
+      "name": "分享",
+      "font_class": "fenxiang1",
+      "unicode": "e79c",
+      "unicode_decimal": 59292
+    },
+    {
+      "icon_id": "12875296",
+      "name": "下载",
+      "font_class": "xiazai",
+      "unicode": "e616",
+      "unicode_decimal": 58902
+    },
+    {
       "icon_id": "1367342",
       "name": "重命名",
       "font_class": "zhongmingming",
