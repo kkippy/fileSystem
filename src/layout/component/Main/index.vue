@@ -1,12 +1,16 @@
 <template>
-  <router-view class="main" style="" v-slot="{ Component }">
+  <router-view class="main" style="" >
     <transition mode="out-in" name="fade">
-      <component :is="Component"  />
+      <component :is="userStore.layoutStatus ? ListComponent : GridComponent"  />
     </transition>
   </router-view>
 </template>
 
 <script setup lang="ts">
+import GridComponent from "@/views/file/fileBoard.vue"
+import ListComponent from "@/views/section/fileList.vue"
+import {useUserStore} from "@/stores/user";
+const userStore = useUserStore();
 </script>
 
 <script lang="ts">

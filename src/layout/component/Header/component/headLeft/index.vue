@@ -1,7 +1,7 @@
 <template>
   <el-breadcrumb style="margin-left: 10px" :separator-icon="ArrowRight">
     <el-breadcrumb-item>{{ constantRoute[1].meta.title }}</el-breadcrumb-item>
-    <el-breadcrumb-item >{{route.meta.title}}</el-breadcrumb-item >
+    <el-breadcrumb-item :to="{ path: `${route.path}`}" >{{route.meta.title}}</el-breadcrumb-item >
 <!--    <el-breadcrumb-item-->
 <!--        v-for="(item,index) in route.matched"-->
 <!--        :key="index"-->
@@ -10,9 +10,9 @@
 <!--    >-->
 <!--    </el-breadcrumb-item >-->
 
-<el-breadcrumb-item v-for="(item,index) in filePathList" :key="index">
-  {{item}}
-</el-breadcrumb-item>
+  <el-breadcrumb-item v-for="(item,index) in filePathList" :key="index">
+    {{item}}
+  </el-breadcrumb-item>
   </el-breadcrumb>
 </template>
 

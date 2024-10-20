@@ -14,7 +14,8 @@ export interface storeState {
   userRole:string,
   userName: string,
   sessionTime: number | string,
-  userId: number | string
+  userId: number | string,
+  layoutStatus:boolean
 }
 
 export const useUserStore = defineStore('user', {
@@ -24,7 +25,8 @@ export const useUserStore = defineStore('user', {
       userRole: GET_USER() || '',
       userName: GET_USERNAME() || '',
       sessionTime: '',
-      userId: ''
+      userId: '',
+      layoutStatus:false //true代表列表模式，false代表图标模式
     }
   },
   actions: {

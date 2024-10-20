@@ -1,13 +1,20 @@
 <template>
-  <el-button :icon="FullScreen" circle @click="handleFullscreen"/>
-  <div class="avatar" style="background-color: #1e80ff"></div>
-  <el-dropdown style="margin-left: 12px" @command="handleCommand">
-      <span class="el-dropdown-link">
-        {{ userStore.userName }}
-        <el-icon class="el-icon--right">
-          <arrow-down />
-        </el-icon>
-      </span>
+  <SvgIcon class="changeLayout" :width="45" :height="35" name="layout" @click="handleChangeLayout"/>
+  <SvgIcon class="fullScreen"
+           :width="isFullScreen ? 40 : 35"
+           :height="isFullScreen ? 39 : 23"
+           :name="isFullScreen ? 'normalScreen' : 'fullScreen' "
+           @click="handleFullscreen" />
+  <el-dropdown trigger="click" style="margin-left: 12px" @command="handleCommand">
+<!--      <span class="el-dropdown-link">-->
+<!--        {{ userStore.userName }}-->
+<!--        <el-icon class="el-icon&#45;&#45;right">-->
+<!--          <arrow-down />-->
+<!--        </el-icon>-->
+<!--      </span>-->
+    <div class="avatar" >
+      <img :src=userImg alt="" />
+    </div>
     <template #dropdown>
       <el-dropdown-menu>
         <el-dropdown-item command="logout">退出登录</el-dropdown-item>
@@ -17,23 +24,26 @@
 </template>
 
 <script setup lang="ts">
-import {FullScreen, ArrowDown} from "@element-plus/icons-vue";
 import {useUserStore} from "@/stores/user";
 import {useRouter,useRoute} from "vue-router";
 import {ElMessage} from "element-plus";
+import { ref } from 'vue'
+import userImg from "@/assets/images/user.png"
 
 const userStore = useUserStore()
 let router = useRouter()
 let route = useRoute()
-
+let isFullScreen = ref<boolean>(false)
 
 const handleFullscreen = () => {
   let full = document.fullscreenElement
   //切换为全屏模式
   if(!full){
+    isFullScreen.value = true
     document.documentElement.requestFullscreen()
   }else{
     document.exitFullscreen()
+    isFullScreen.value = false
   }
 }
 
@@ -50,6 +60,11 @@ const handleCommand = async (command: string | number | object) => {
   }
 }
 
+const handleChangeLayout = () => {
+ElMessage.success('切换成功')
+  userStore.layoutStatus = !userStore.layoutStatus
+}
+
 </script>
 
 <script  lang="ts">
@@ -61,11 +76,27 @@ name: "HeadRight"
 
 
 <style scoped lang="scss">
+.changeLayout,.fullScreen {
+  &:hover {
+    cursor: pointer;
+  }
+}
+
 .avatar{
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  margin-left: 12px;
+  margin-left: 5px;
+
+  &:hover{
+    cursor: pointer;
+  }
+
+  img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 }
 
 .el-dropdown-link {

@@ -20,17 +20,22 @@
 
       <div class="fileContent">
         <ul  v-infinite-scroll="scrollLoad" class="folderList" :infinite-scroll-disabled="disabled">
-          <li @dblclick="goToFile(item.name)"
+          <li @dblclick="goToFile(item)"
               class="folder"
               v-for="item in fileList"
               :key="item.id"
               @contextmenu.prevent="onContextMenu($event, item)">
-              <SvgIcon v-if="item && ((item.fileType as string).toLowerCase()) === 'pdf'" :width="96" :height="150" name="pdf" />
-              <SvgIcon v-else-if="item && item.isDir === 1" :width="130" :height="150" name="folder" />
-              <SvgIcon v-else-if="item && item.fileType === 'txt'" :width="107" :height="150" name="txt" />
-              <SvgIcon v-else-if="item && pictureType.indexOf((item.fileType as string).toLowerCase()) !== -1" :width="120" :height="150" name="picture" />
-              <SvgIcon v-else-if="item && compressType.indexOf((item.fileType as string).toLowerCase()) !== -1" :width="98" :height="150" name="compress" />
-              <SvgIcon v-else-if="item && videoType.indexOf((item.fileType as string).toLowerCase()) !== -1" :width="98" :height="150" name="video" />
+            <div class="icon-container"
+                 @mouseenter="handlePreview(item)"
+                 @mouseleave="handleCancelPreview(item)">
+              <SvgIcon v-if="item.isPreview" :width="110" :height="150" name="preview" @click="previewFile(item)" />
+              <SvgIcon v-if="!item.isPreview && ((item.fileType as string).toLowerCase()) === 'pdf'" :width="96" :height="150" :name="item.isPreview ? 'preview' : 'pdf'" />
+              <SvgIcon v-else-if="!item.isPreview && item.isDir === 1" :width="130" :height="150" name="folder" />
+              <SvgIcon v-else-if="!item.isPreview && item.fileType === 'txt'" :width="107" :height="150" name="txt" />
+              <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.fileType as string),'picture')" :width="120" :height="150" :name="item.isPreview ? 'preview' :'picture'" />
+              <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.fileType as string),'compress')" :width="98" :height="150" :name="item.isPreview ? 'preview' : 'compress'" />
+              <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.fileType as string),'video')" :width="98" :height="150" :name="item.isPreview ? 'preview' :'video'" />
+            </div>
 
             <div class="objectName">
               <div style="display: flex;align-items: center;transition: all 0.3s; " >
@@ -74,6 +79,7 @@ interface FileItem {
   isDir: number;
   isEditing?: boolean;
   fileType?: string;
+  isPreview?:boolean
 }
 
 type FileList = Array<FileItem>
@@ -87,29 +93,55 @@ const loading = ref<boolean>(false)
 const noMore = computed(() => fileList.value.length >= 20)
 const disabled = computed(() => loading.value || noMore.value)
 const fileList = ref<FileList>([
-  { id: 2, name: 'Folder 2', isDir:1,fileType:'' },
-  { id: 3, name: 'Folder 3', isDir:1,fileType:'' },
-  { id: 2, name: 'Folder 2', isDir:1,fileType:'' },
-  { id: 3, name: 'Folder 3', isDir:1,fileType:'' },
-  { id: 4, name: 'Folder 4', isDir:0,fileType:'pdf' },
-  { id: 5, name: 'Folder 5', isDir:0,fileType:'txt' },
-  { id: 4, name: 'Folder 4', isDir:0,fileType:'jpg' },
-  { id: 5, name: 'Folder 5', isDir:0,fileType:'pdf' },
-  { id: 4, name: 'Folder 4', isDir:0,fileType:'png' },
-  { id: 5, name: 'Folder 5', isDir:0,fileType:'pdf' },
-  { id: 5, name: 'Folder 5', isDir:0,fileType:'zip' },
-  { id: 5, name: 'Folder 5', isDir:0,fileType:'MOV' },
-  { id: 5, name: 'Folder 5', isDir:0,fileType:'zip' },
+  { id: 2, name: 'Folder 1', isDir:1,fileType:'' },
+  { id: 3, name: 'Folder 2', isDir:1,fileType:'' },
+  { id: 2, name: 'Folder 3', isDir:1,fileType:'' },
+  { id: 3, name: 'Folder 4', isDir:1,fileType:'' },
+  { id: 4, name: 'pdf', isDir:0,fileType:'pdf' },
+  { id: 5, name: 'txt', isDir:0,fileType:'txt' },
+  { id: 4, name: 'jpg', isDir:0,fileType:'jpg' },
+  { id: 5, name: 'pdf', isDir:0,fileType:'pdf' },
+  { id: 4, name: 'png', isDir:0,fileType:'png' },
+  { id: 5, name: 'pdf', isDir:0,fileType:'pdf' },
+  { id: 5, name: 'zip', isDir:0,fileType:'zip' },
+  { id: 5, name: 'MOV', isDir:0,fileType:'MOV' },
+  { id: 5, name: 'zip', isDir:0,fileType:'zip' },
 ])
 const userStore = useUserStore();
 const pictureType:string[] = ['png','jpg','jpeg']
 const compressType:string[] = ['zip','rar','7z']
 const videoType:string[] = ['mp4','mov','flv','avi']
+const isSpecialFileType  = (fileType:string,type:string):boolean => {
+  const lowerCaseFileType  = fileType.toLowerCase()
+  const fileTypes:Record<string, string[]> = {
+    picture: pictureType,
+    compress: compressType,
+    video: videoType
+  };
+  return fileTypes[type].includes(lowerCaseFileType );
+}
 
+const handlePreview = (item:FileItem) =>{
+  if(item.isDir === 1) return
+  item.isPreview = true
+}
+
+const handleCancelPreview = (item:FileItem) =>{
+  if(item.isDir === 1) return
+  item.isPreview = false
+}
+
+const previewFile = (item:FileItem) =>{
+  ElMessage({
+    message: '预览功能暂未开放',
+    type: 'warning'
+  })
+}
 
 onMounted(()=>{
   fileList.value.forEach(item => {
     item.isEditing = false
+    item.isPreview = false
   })
 })
 
@@ -256,13 +288,13 @@ const onContextMenu = (event:any, config:any) =>{
   }
 }
 
-const goToFile = (folderName:string) => {
-  router.push({
-    path:`${route.path}`,
-    params:{
-      folderName
-    }
-  });
+const goToFile = (item:FileItem) => {
+  if(item.isDir === 0) return
+//调查询接口
+  ElMessage({
+    message: '暂未开放',
+    type: 'warning'
+  })
 };
 </script>
 
@@ -295,7 +327,7 @@ const goToFile = (folderName:string) => {
 .fileContent {
     margin-top: 20px;
     border-radius: 10px;
-    height: 80vh;
+    height: 75vh;
     overflow: auto;
     box-shadow: 0 0 12px rgba(0,0,0,0.12);
 
@@ -309,11 +341,10 @@ const goToFile = (folderName:string) => {
   }
 
   .folderList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  flex-flow: row wrap;
-  align-content: space-around;
+    display: flex;
+    gap: 1rem;
+    flex-flow: row wrap;
+    align-content: space-around;
 
 
   .folder {
@@ -325,25 +356,22 @@ const goToFile = (folderName:string) => {
     width: 150px;
     height: 150px;
     position: relative;
-    //background-color: red;
-
-    .folderImg {
+    &:hover{
       cursor: pointer;
-      position: absolute;
-      object-fit: cover;
+    }
+
+    .icon-container {
+      position: relative;
       width: 90%;
-      height: 90%;
-      top: -10px;
-      left: 8px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .objectName {
-      //position: absolute;
-      //bottom: -5px;
-      //left: 0;
-      //background-color: red;
       width: 100%;
-      height: 30px;
+      height: 0;
       display: flex;
       align-items: center;
       justify-content: center;

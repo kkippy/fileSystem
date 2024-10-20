@@ -21,7 +21,7 @@ export const constantRoute = [
     children: [
       {
         path: '/section1',
-        name: 'section1',
+        name: 'GridComponent',
         component: ()=>import('@/views/file/fileBoard.vue'),
         meta: {
           title: '信息化一室',
@@ -30,8 +30,8 @@ export const constantRoute = [
         },
       },
       {
-        path: '/section1/:folderName', // 动态路由
-        name: 'section1-folder',
+        path: '/section1', // 动态路由
+        name: 'ListComponent',
         component: () => import('@/views/section/fileList.vue'),
         meta: {
           bucket: 'section1',

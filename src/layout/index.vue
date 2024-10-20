@@ -18,7 +18,7 @@
       </el-aside>
       <el-container>
         <el-header style="padding: 0;z-index: 2">
-          <HeaderComponent />
+          <HeaderComponent @changeLayout="changeLayout" />
         </el-header>
         <el-main class="elMain">
           <MainComponent/>
@@ -34,8 +34,14 @@ import MainComponent from "./component/Main/index.vue"
 import HeaderComponent from "./component/Header/index.vue"
 import {constantRoute,anyRoute} from "@/router/routers";
 import {useRoute} from "vue-router";
+import { ref } from 'vue'
 const menuRoutes = [...constantRoute,anyRoute]
 let route = useRoute();
+const defaultComponent = ref<string>('GridComponent')
+const changeLayout = (isGridLayout:boolean)=>{
+  console.log(isGridLayout)
+  defaultComponent.value = isGridLayout ? 'GridComponent' : 'ListComponent'
+}
 </script>
 
 
