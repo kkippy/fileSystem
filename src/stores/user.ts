@@ -6,7 +6,7 @@ import {SET_TOKEN,GET_TOKEN,
   REMOVE_USER_NAME
 } from "@/utils/token"
 import { getUserInfo, userLogin, userLogout } from '@/api/user'
-import {getAllBuckets} from '@/api/file'
+// import {getAllBuckets} from '@/api/file'
 import type {LoginForm} from "@/api/user/type";
 
 export interface storeState {
@@ -40,7 +40,7 @@ export const useUserStore = defineStore('user', {
         this.userId = parseInt(result.data.loginId)
         SET_USER(this.userRole as string)
         SET_TOKEN(this.token as string)
-        await getAllBuckets()
+        // await getAllBuckets()
         return 'ok'
       } else {
         return Promise.reject(new Error(result.data))

@@ -2,8 +2,9 @@
     <div >
       <div class="header" >
         <div class="headerLeft">
-          <el-button style="margin-left: 20px" type="primary" :icon="Plus">新增文件夹</el-button>
-          <el-button type="success" :icon="Upload" >上传文件</el-button>
+          <SvgIcon class="back" style="margin-left: 10px;" name="back" @click="goBack" :width="30" :height="30"></SvgIcon>
+          <el-button style="margin-left: 20px" type="primary" :icon="Plus" @click="addFolderVisible = true">新增文件夹</el-button>
+          <el-button type="success" :icon="Upload" @click="handleUpload" >上传文件</el-button>
 
           <el-form style="margin-left: 10px">
             <el-form-item label="文件名" style="margin-top: 18px;margin-left: 20px">
@@ -22,34 +23,34 @@
         <ul  v-infinite-scroll="scrollLoad" class="folderList" :infinite-scroll-disabled="disabled">
           <li @dblclick="goToFile(item)"
               class="folder"
-              v-for="item in fileList"
+              v-for="item in fileListData"
               :key="item.id"
               @contextmenu.prevent="onContextMenu($event, item)">
             <div class="icon-container"
                  @mouseenter="handlePreview(item)"
                  @mouseleave="handleCancelPreview(item)">
               <SvgIcon v-if="item.isPreview" :width="90" :height="82" name="preview" @click="previewFile(item)" />
-              <SvgIcon class="fileTour" v-if="!item.isPreview && ((item.fileType as string).toLowerCase()) === 'pdf'" :width="96" :height="150" :name="item.isPreview ? 'preview' : 'pdf'" />
+              <SvgIcon class="fileTour" v-if="!item.isPreview && ((item.suffixName as string)) === 'pdf'" :width="96" :height="150" :name="item.isPreview ? 'preview' : 'pdf'" />
               <SvgIcon class="folderTour" v-else-if="!item.isPreview && item.isDir === 1" :width="120" :height="150" name="folder" />
-              <SvgIcon v-else-if="!item.isPreview && item.fileType === 'txt'" :width="115" :height="150" name="txt" />
-              <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.fileType as string),'picture')" :width="98" :height="150" :name="item.isPreview ? 'preview' :'picture'" />
-              <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.fileType as string),'compress')" :width="98" :height="150" :name="item.isPreview ? 'preview' : 'compress'" />
-              <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.fileType as string),'video')" :width="98" :height="150" :name="item.isPreview ? 'preview' :'video'" />
+              <SvgIcon v-else-if="!item.isPreview && item.suffixName === 'txt'" :width="115" :height="150" name="txt" />
+              <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.suffixName as string),'picture')" :width="98" :height="150" :name="item.isPreview ? 'preview' :'picture'" />
+              <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.suffixName as string),'compress')" :width="98" :height="150" :name="item.isPreview ? 'preview' : 'compress'" />
+              <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.suffixName as string),'video')" :width="98" :height="150" :name="item.isPreview ? 'preview' :'video'" />
             </div>
 
             <div class="objectName">
-              <div style="display: flex;align-items: center;transition: all 0.3s; " >
-                <p v-if="!item.isEditing" class="folderName">{{ item.name }}</p>
-                <el-input
-                  v-else
-                  ref="renameInputRef"
-                  v-model="item.name"
-                  style="width: 130px"
-                  autofocus
-                  @blur="updateFolderName(item)"
-                  @click.stop
-                  @keyup.enter="updateFolderName(item)"
-                />
+              <div class="objectNameContent" style="display: flex;align-items: center; " >
+                <span :title="item.fileName" v-if="!item.isEditing" class="folderName">{{ item.fileName }}</span>
+                  <el-input
+                    v-else
+                    ref="renameInputRef"
+                    v-model="item.fileName"
+                    style="width: 130px"
+                    autofocus
+                    @blur="updateFolderName(item)"
+                    @click.stop
+                    @keyup.enter="updateFolderName(item)"
+                  />
               </div>
             </div>
           </li>
@@ -81,6 +82,29 @@
         </el-tour-step>
       </el-tour>
 
+      <el-dialog v-model="uploadVisible" title="上传文件" width="600">
+        <UploadComponent
+          v-loading="uploadLoading"
+          element-loading-text="正在上传..."
+          @upload-change="handleChangeUpload"
+        />
+      </el-dialog>
+
+      <el-dialog v-model="addFolderVisible" width="400">
+        <el-form ref="addFolderRef" :model="addFolder" style="margin-top: 20px;" label-width="80px">
+          <el-form-item prop="folderName" label="文件夹名">
+            <el-input v-model="folderName" placeholder="请输入文件夹名" />
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <div style="padding-top: 0;">
+            <el-button @click="addFolderVisible = false">取消</el-button>
+            <el-button type="primary" @click="handleAddFolder">
+              确定
+            </el-button>
+          </div>
+        </template>
+      </el-dialog>
 
     </div>
 </template>
@@ -88,55 +112,47 @@
 
 <script setup lang="ts">
 import { useRouter, useRoute, } from 'vue-router'
-import { ref, onMounted, nextTick, computed, watch } from 'vue'
+import { ref, onMounted, nextTick, computed, watchEffect, reactive } from 'vue'
 import SvgIcon from '@/components/SvgIcon/index.vue'
+import UploadComponent from '@/components/Upload/index.vue'
 import ContextMenu from '@imengyu/vue3-context-menu'
-import type {Router } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { Search,Plus,Upload } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-
-interface FileItem {
-  id: number;
-  name: string;
-  isDir: number;
-  isEditing?: boolean;
-  fileType?: string;
-  isPreview?:boolean
+import { getFileList, uploadFile,createFolder } from '@/api/file'
+import type {fileItem,fileList,fileResponse} from '@/api/file/type'
+import type {RouteLocationNormalizedLoaded } from 'vue-router'
+interface Route extends RouteLocationNormalizedLoaded{
+  meta:  {
+    bucket?: string;
+  }
 }
 
-type FileList = Array<FileItem>
-
-const router:Router = useRouter() ;
-const route = useRoute();
+const route = useRoute() as Route
 const renameInputRef = ref()
 const isEdit = ref<boolean>(false);
 let searchName = ref<string>('')
 const loading = ref<boolean>(false)
-const noMore = computed(() => fileList.value.length >= 20)
+const noMore = computed(() => fileListData.value.length >= 20)
 const disabled = computed(() => loading.value || noMore.value)
-const fileList = ref<FileList>([
-  { id: 2, name: 'Folder 1', isDir:1,fileType:'' },
-  { id: 3, name: 'Folder 2', isDir:1,fileType:'' },
-  { id: 2, name: 'Folder 3', isDir:1,fileType:'' },
-  { id: 3, name: 'Folder 4', isDir:1,fileType:'' },
-  { id: 4, name: 'pdf', isDir:0,fileType:'pdf' },
-  { id: 5, name: 'txt', isDir:0,fileType:'txt' },
-  { id: 4, name: 'jpg', isDir:0,fileType:'jpg' },
-  { id: 5, name: 'pdf', isDir:0,fileType:'pdf' },
-  { id: 4, name: 'png', isDir:0,fileType:'png' },
-  { id: 5, name: 'pdf', isDir:0,fileType:'pdf' },
-  { id: 5, name: 'zip', isDir:0,fileType:'zip' },
-  { id: 5, name: 'MOV', isDir:0,fileType:'MOV' },
-  { id: 5, name: 'zip', isDir:0,fileType:'zip' },
-])
+const fileListData = ref<fileList>([])
 const userStore = useUserStore();
 const pictureType:string[] = ['png','jpg','jpeg']
 const compressType:string[] = ['zip','rar','7z']
 const videoType:string[] = ['mp4','mov','flv','avi']
 let previewDialog = ref<boolean>(false)
-const fileRef = ref()
-const folderRef = ref()
+let bucket: string | undefined = route.meta.bucket ||  route.fullPath
+let uploadVisible = ref<boolean>(false)
+let uploadLoading = ref<boolean>(false)
+let addFolderVisible = ref<boolean>(false)
+const filePath = ref<string>('/')
+let folderName = ref<string>('')
+const addFolderRef = ref()
+
+
+const addFolder = reactive({
+  folderName: ''
+})
 
 const isSpecialFileType  = (fileType:string,type:string):boolean => {
   const lowerCaseFileType  = fileType.toLowerCase()
@@ -148,37 +164,96 @@ const isSpecialFileType  = (fileType:string,type:string):boolean => {
   return fileTypes[type].includes(lowerCaseFileType );
 }
 
-const viewportWidth = ref(window.innerWidth)
-const viewportHeight = ref(window.innerHeight)
+onMounted(()=>{
+  fileListData.value.forEach(item => {
+    item.isEditing = false
+    item.isPreview = false
+  })
+  getFiles()
+  console.log(route)
+})
 
-const updateViewportWidth = () => {
-  viewportWidth.value = window.innerWidth;
-};
+watchEffect(async ()=>{
+  if(bucket !== route.meta.bucket){
+    loading.value = true
+    bucket = route.meta.bucket
+    await getFiles()
+    loading.value = false
+  }
+})
 
-console.log(`视口宽度: ${viewportWidth.value}, 视口高度: ${viewportHeight.value}`);
+
+const getFiles = async () =>{
+  const result:fileResponse = await getFileList(bucket as string,'/')
+  fileListData.value = result.data
+  console.log(result,'result')
+}
+
+const handleUpload = () =>{
+  uploadVisible.value = true
+}
+
+const handleChangeUpload = async(file:any) =>{
+  if (!file) return;
+  const formData = new FormData();
+  formData.append('uploadFile',file);
+  try {
+    uploadLoading.value = true
+    const result:any = await uploadFile({ bucket: bucket, path:filePath.value, uploadFile: file.raw })
+    if(result.code === 200){
+      ElMessage({
+        message: '上传成功',
+        type: 'success'
+      })
+      await getFiles()
+    }
+  } catch (error){
+    console.log(error)
+  } finally {
+    uploadLoading.value = false
+    uploadVisible.value = false
+  }
+}
 
 
-const handlePreview = (item:FileItem) =>{
+const handlePreview = (item:fileItem) =>{
   if(item.isDir === 1) return
   item.isPreview = true
 }
 
-const handleCancelPreview = (item:FileItem) =>{
+const handleCancelPreview = (item:fileItem) =>{
   if(item.isDir === 1) return
   item.isPreview = false
 }
 
-const previewFile = (item:FileItem) =>{
+const previewFile = (item:fileItem) =>{
   previewDialog.value = true
 }
 
-onMounted(()=>{
-  fileList.value.forEach(item => {
-    item.isEditing = false
-    item.isPreview = false
-  })
-  window.addEventListener('resize', updateViewportWidth);
-})
+const goBack = () =>{
+  console.log(filePath.value,'goBack')
+  // filePath.value = '/'
+  // getFiles()
+}
+
+const handleAddFolder = async ()=>{
+  console.log(folderName.value,filePath.value,'folderName')
+  const result:any = await createFolder(bucket as string,folderName.value,filePath.value)
+  if(result.code === 500){
+    ElMessage({
+      message: result.msg,
+      type:'error'
+    })
+  }else{
+    ElMessage({
+      message: '创建成功',
+      type: 'success'
+    })
+    addFolderVisible.value = false
+    await getFiles()
+  }
+
+}
 
 const onSearch = () => {
   ElMessage({
@@ -224,7 +299,6 @@ const updateFolderName = (item:any) => {
 }
 
 const onContextMenu = (event:any, config:any) =>{
-  console.log(config,'conmfig')
   event.preventDefault();
   if(config.isDir === 0){
     ContextMenu.showContextMenu({
@@ -276,7 +350,7 @@ const onContextMenu = (event:any, config:any) =>{
           divided: true,
           icon: 'icon-a-folder-opened',
           onClick: () => {
-            // this.openDocument(config.id);
+           goToFile(config);
           },
         },
         {
@@ -323,13 +397,13 @@ const onContextMenu = (event:any, config:any) =>{
   }
 }
 
-const goToFile = (item:FileItem) => {
+const goToFile = async (item:fileItem) => {
   if(item.isDir === 0) return
-//调查询接口
-  ElMessage({
-    message: '暂未开放',
-    type: 'warning'
-  })
+  filePath.value = item.path + item.fileName + '/'
+  const result:fileResponse = await getFileList(bucket as string,filePath.value)
+  console.log(result,'双击')
+  fileListData.value = result.data
+
 };
 </script>
 
@@ -346,6 +420,14 @@ const goToFile = (item:FileItem) => {
     display: flex;
     flex: 0 0 90%;
     align-items: center;
+
+    .back{
+      margin-left: 10px;
+
+      &:hover{
+        cursor: pointer;
+      }
+    }
   }
 
   .headerRight {
@@ -402,14 +484,29 @@ const goToFile = (item:FileItem) => {
       display: flex;
       align-items: center;
       justify-content: center;
+      overflow: hidden;
     }
 
     .objectName {
-      width: 100%;
-      height: 0;
+      width: 75%;
+      height: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
+      margin: 0 auto;
+
+      .objectNameContent{
+        width: 100%;
+        height: 100%;
+
+        .folderName{
+          width: 100%;
+          text-align: center;
+          white-space: nowrap;        /* 不换行 */
+          overflow: hidden;          /* 隐藏超出部分 */
+          text-overflow: ellipsis;   /* 使用省略号表示溢出部分 */
+        }
+      }
 
       .editIcon{
         margin-left: 15px;
@@ -424,7 +521,8 @@ const goToFile = (item:FileItem) => {
       }
     }
   }
-}
+ }
+
 }
 
 </style>
