@@ -36,7 +36,6 @@ export const constantRoute = [
         meta: {
           bucket: 'section1',
           hidden: true, // 在菜单中隐藏
-          root:'/'
         },
       },
       {

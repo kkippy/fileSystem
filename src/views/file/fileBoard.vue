@@ -19,7 +19,7 @@
         </div>
       </div>
 
-      <div class="fileContent">
+      <div class="fileContent" v-loading="fileLoading">
         <ul  v-infinite-scroll="scrollLoad" class="folderList" :infinite-scroll-disabled="disabled">
           <li @dblclick="goToFile(item)"
               class="folder"
@@ -133,6 +133,7 @@ const renameInputRef = ref()
 const isEdit = ref<boolean>(false);
 let searchName = ref<string>('')
 const loading = ref<boolean>(false)
+const fileLoading = ref<boolean>(false)
 const noMore = computed(() => fileListData.value.length >= 20)
 const disabled = computed(() => loading.value || noMore.value)
 const fileListData = ref<fileList>([])
@@ -184,8 +185,10 @@ watchEffect(async ()=>{
 
 
 const getFiles = async () =>{
+  fileLoading.value = true
   const result:fileResponse = await getFileList(bucket as string,'/')
   fileListData.value = result.data
+  fileLoading.value = false
   console.log(result,'result')
 }
 
@@ -252,7 +255,6 @@ const handleAddFolder = async ()=>{
     addFolderVisible.value = false
     await getFiles()
   }
-
 }
 
 const onSearch = () => {
@@ -273,10 +275,6 @@ const scrollLoad = () => {
   //   fileList.value.push({ id: 6, name: 'Folder 6', isEditing: false,isDir:1 })
   //   loading.value = false
   // }, 2000)
-  // ElMessage({
-  //   message: '暂未开放',
-  //   type: 'warning'
-  // })
   // 查询接口，相当于分页
 }
 
@@ -298,103 +296,187 @@ const updateFolderName = (item:any) => {
   },10)
 }
 
-const onContextMenu = (event:any, config:any) =>{
+const onContextMenu = (event:MouseEvent, config:fileItem) =>{
   event.preventDefault();
-  if(config.isDir === 0){
-    ContextMenu.showContextMenu({
-      x: event.x,
-      y: event.y,
-      theme: 'mac',
-      items: [
-        {
-          label: "分享",
-          divided: true,
-          icon:'icon-fenxiang',
-          onClick: () => {
-            // this.openDocument(config.id);
-          },
-        },
-        {
-          label: "下载",
-          divided: true,
-          icon: "icon-xiazai",
-          onClick: () => {
-            // handleRename(config);
-          },
-        },
-        {
-          label: "重命名",
-          divided: true,
-          icon: "icon-zhongmingming",
-          onClick: () => {
-            handleRename(config);
-          },
-        },
-        {
-          label: "删除",
-          icon: "icon-shanchu",
-          onClick: () => {
-            // this.handlerDelete(config);
-          },
-        },
-      ],
-    });
-  } else if(userStore.userRole !== 'user') {
-    ContextMenu.showContextMenu({
-      x: event.x,
-      y: event.y,
-      theme: 'mac',
-      items: [
-        {
-          label: "打开",
-          divided: true,
-          icon: 'icon-a-folder-opened',
-          onClick: () => {
-           goToFile(config);
-          },
-        },
-        {
-          label: "重命名",
-          divided: true,
-          icon: "icon-zhongmingming",
-          onClick: () => {
-            handleRename(config);
-          },
-        },
-        {
-          label: "删除",
-          icon: "icon-shanchu",
-          onClick: () => {
-            // this.handlerDelete(config);
-          },
-        },
-      ],
-    });
-  } else {
-    ContextMenu.showContextMenu({
-      x: event.x,
-      y: event.y,
-      theme: 'mac',
-      items: [
-        {
-          label: "打开",
-          divided: true,
-          icon: 'icon-a-folder-opened',
-          onClick: () => {
-            // this.openDocument(config.id);
-          },
-        },
-        {
-          label: "重命名",
-          divided: true,
-          icon: "icon-zhongmingming",
-          onClick: () => {
-            handleRename(config);
-          },
-        },
-      ],
-    });
+  const userRole = userStore.userRole;
+  const commonItems = [
+    {
+      label: "重命名",
+      divided: true,
+      icon: "icon-zhongmingming",
+      onClick: () => {
+        handleRename(config);
+      },
+    },
+  ];
+
+  const showContextMenu = (items:any[])=>{
+    try {
+      ContextMenu.showContextMenu({
+        x: event.clientX,
+        y: event.clientY,
+        theme: 'mac',
+        items: items,
+      });
+    } catch (error) {
+      console.error('Error showing context menu:', error);
+    }
   }
+
+  if (config.isDir === 0) {
+    const items = [{
+        label: "分享",
+        divided: true,
+        icon: 'icon-fenxiang',
+        onClick: () => {
+          // this.openDocument(config.id);
+        },
+      },
+      {
+        label: "下载",
+        divided: true,
+        icon: "icon-xiazai",
+        onClick: () => {
+          // handleRename(config);
+        },
+      },
+      ...commonItems,
+      {
+        label: "删除",
+        icon: "icon-shanchu",
+        onClick: () => {
+          // this.handlerDelete(config);
+        },
+      }];
+    showContextMenu(items);
+  } else if (userRole !== 'user') {
+    const items = [{
+        label: "打开",
+        divided: true,
+        icon: 'icon-a-folder-opened',
+        onClick: () => {
+          goToFile(config);
+        },
+      },
+      ...commonItems,
+      {
+        label: "删除",
+        icon: "icon-shanchu",
+        onClick: () => {
+          // this.handlerDelete(config);
+        },
+      }];
+    showContextMenu(items);
+  } else {
+    const items = [
+      {
+        label: "打开",
+        divided: true,
+        icon: 'icon-a-folder-opened',
+        onClick: () => {
+          // this.openDocument(config.id);
+        },
+      },
+      ...commonItems];
+    showContextMenu(items);
+  }
+
+
+  // if(config.isDir === 0){
+  //   ContextMenu.showContextMenu({
+  //     x: event.x,
+  //     y: event.y,
+  //     theme: 'mac',
+  //     items: [
+  //       {
+  //         label: "分享",
+  //         divided: true,
+  //         icon:'icon-fenxiang',
+  //         onClick: () => {
+  //           // this.openDocument(config.id);
+  //         },
+  //       },
+  //       {
+  //         label: "下载",
+  //         divided: true,
+  //         icon: "icon-xiazai",
+  //         onClick: () => {
+  //           // handleRename(config);
+  //         },
+  //       },
+  //       {
+  //         label: "重命名",
+  //         divided: true,
+  //         icon: "icon-zhongmingming",
+  //         onClick: () => {
+  //           handleRename(config);
+  //         },
+  //       },
+  //       {
+  //         label: "删除",
+  //         icon: "icon-shanchu",
+  //         onClick: () => {
+  //           // this.handlerDelete(config);
+  //         },
+  //       },
+  //     ],
+  //   });
+  // } else if(userStore.userRole !== 'user') {
+  //   ContextMenu.showContextMenu({
+  //     x: event.x,
+  //     y: event.y,
+  //     theme: 'mac',
+  //     items: [
+  //       {
+  //         label: "打开",
+  //         divided: true,
+  //         icon: 'icon-a-folder-opened',
+  //         onClick: () => {
+  //          goToFile(config);
+  //         },
+  //       },
+  //       {
+  //         label: "重命名",
+  //         divided: true,
+  //         icon: "icon-zhongmingming",
+  //         onClick: () => {
+  //           handleRename(config);
+  //         },
+  //       },
+  //       {
+  //         label: "删除",
+  //         icon: "icon-shanchu",
+  //         onClick: () => {
+  //           // this.handlerDelete(config);
+  //         },
+  //       },
+  //     ],
+  //   });
+  // } else {
+  //   ContextMenu.showContextMenu({
+  //     x: event.x,
+  //     y: event.y,
+  //     theme: 'mac',
+  //     items: [
+  //       {
+  //         label: "打开",
+  //         divided: true,
+  //         icon: 'icon-a-folder-opened',
+  //         onClick: () => {
+  //           // this.openDocument(config.id);
+  //         },
+  //       },
+  //       {
+  //         label: "重命名",
+  //         divided: true,
+  //         icon: "icon-zhongmingming",
+  //         onClick: () => {
+  //           handleRename(config);
+  //         },
+  //       },
+  //     ],
+  //   });
+  // }
 }
 
 const goToFile = async (item:fileItem) => {
