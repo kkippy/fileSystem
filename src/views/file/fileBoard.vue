@@ -28,11 +28,11 @@
             <div class="icon-container"
                  @mouseenter="handlePreview(item)"
                  @mouseleave="handleCancelPreview(item)">
-              <SvgIcon v-if="item.isPreview" :width="110" :height="150" name="preview" @click="previewFile(item)" />
-              <SvgIcon v-if="!item.isPreview && ((item.fileType as string).toLowerCase()) === 'pdf'" :width="96" :height="150" :name="item.isPreview ? 'preview' : 'pdf'" />
-              <SvgIcon v-else-if="!item.isPreview && item.isDir === 1" :width="130" :height="150" name="folder" />
-              <SvgIcon v-else-if="!item.isPreview && item.fileType === 'txt'" :width="107" :height="150" name="txt" />
-              <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.fileType as string),'picture')" :width="120" :height="150" :name="item.isPreview ? 'preview' :'picture'" />
+              <SvgIcon v-if="item.isPreview" :width="90" :height="82" name="preview" @click="previewFile(item)" />
+              <SvgIcon class="fileTour" v-if="!item.isPreview && ((item.fileType as string).toLowerCase()) === 'pdf'" :width="96" :height="150" :name="item.isPreview ? 'preview' : 'pdf'" />
+              <SvgIcon class="folderTour" v-else-if="!item.isPreview && item.isDir === 1" :width="120" :height="150" name="folder" />
+              <SvgIcon v-else-if="!item.isPreview && item.fileType === 'txt'" :width="115" :height="150" name="txt" />
+              <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.fileType as string),'picture')" :width="98" :height="150" :name="item.isPreview ? 'preview' :'picture'" />
               <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.fileType as string),'compress')" :width="98" :height="150" :name="item.isPreview ? 'preview' : 'compress'" />
               <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.fileType as string),'video')" :width="98" :height="150" :name="item.isPreview ? 'preview' :'video'" />
             </div>
@@ -59,13 +59,36 @@
           <p v-if="noMore">已经到底啦~</p>
         </div>
       </div>
+
+      <el-dialog v-model="previewDialog" width="300">
+        <h1>文件预览</h1>
+      </el-dialog>
+
+      <el-tour v-model="userStore.help">
+        <el-tour-step
+          :target="'.folderTour'"
+          title="文件夹操作" >
+        <div>
+          右键文件夹可进行打开、重命名和删除文件夹的操作<br/>
+          双击文件夹可查看其中文件
+        </div>
+        </el-tour-step>
+        <el-tour-step :target="'.fileTour'" title="文件操作">
+          <div>
+            右键文件可进行下载、分享、重命名等操作<br/>
+            单击文件可进行预览
+          </div>
+        </el-tour-step>
+      </el-tour>
+
+
     </div>
 </template>
 
 
 <script setup lang="ts">
 import { useRouter, useRoute, } from 'vue-router'
-import { ref, onMounted, nextTick, computed } from 'vue'
+import { ref, onMounted, nextTick, computed, watch } from 'vue'
 import SvgIcon from '@/components/SvgIcon/index.vue'
 import ContextMenu from '@imengyu/vue3-context-menu'
 import type {Router } from 'vue-router'
@@ -111,6 +134,10 @@ const userStore = useUserStore();
 const pictureType:string[] = ['png','jpg','jpeg']
 const compressType:string[] = ['zip','rar','7z']
 const videoType:string[] = ['mp4','mov','flv','avi']
+let previewDialog = ref<boolean>(false)
+const fileRef = ref()
+const folderRef = ref()
+
 const isSpecialFileType  = (fileType:string,type:string):boolean => {
   const lowerCaseFileType  = fileType.toLowerCase()
   const fileTypes:Record<string, string[]> = {
@@ -120,6 +147,16 @@ const isSpecialFileType  = (fileType:string,type:string):boolean => {
   };
   return fileTypes[type].includes(lowerCaseFileType );
 }
+
+const viewportWidth = ref(window.innerWidth)
+const viewportHeight = ref(window.innerHeight)
+
+const updateViewportWidth = () => {
+  viewportWidth.value = window.innerWidth;
+};
+
+console.log(`视口宽度: ${viewportWidth.value}, 视口高度: ${viewportHeight.value}`);
+
 
 const handlePreview = (item:FileItem) =>{
   if(item.isDir === 1) return
@@ -132,10 +169,7 @@ const handleCancelPreview = (item:FileItem) =>{
 }
 
 const previewFile = (item:FileItem) =>{
-  ElMessage({
-    message: '预览功能暂未开放',
-    type: 'warning'
-  })
+  previewDialog.value = true
 }
 
 onMounted(()=>{
@@ -143,6 +177,7 @@ onMounted(()=>{
     item.isEditing = false
     item.isPreview = false
   })
+  window.addEventListener('resize', updateViewportWidth);
 })
 
 const onSearch = () => {
@@ -309,7 +344,7 @@ const goToFile = (item:FileItem) => {
 
   .headerLeft {
     display: flex;
-    flex: 0 0 60%;
+    flex: 0 0 90%;
     align-items: center;
   }
 
@@ -342,7 +377,7 @@ const goToFile = (item:FileItem) => {
 
   .folderList {
     display: flex;
-    gap: 1rem;
+    gap: 0 15px;
     flex-flow: row wrap;
     align-content: space-around;
 
@@ -350,7 +385,7 @@ const goToFile = (item:FileItem) => {
   .folder {
     display: flex;
     flex-direction: column;
-    flex:  0 0 10%;
+    flex:  0 0 9%;
     align-items: center;
     justify-content: center;
     width: 150px;
@@ -363,7 +398,7 @@ const goToFile = (item:FileItem) => {
     .icon-container {
       position: relative;
       width: 90%;
-      height: 100%;
+      height: 80%;
       display: flex;
       align-items: center;
       justify-content: center;

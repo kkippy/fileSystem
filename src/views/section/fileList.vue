@@ -113,7 +113,7 @@ const uploadLoading = ref(false)
 let bucket: string | undefined = route.meta.bucket ||  route.fullPath
 
 onMounted(()=>{
-  getLists()
+  // getLists()
 })
 
 const inputField = document.getElementById('inputFileField');
@@ -162,7 +162,7 @@ const handleUpload = (val:boolean) => {
 const getLists = async () => {
   // loading.value = true
   try {
-    const result:fileResponse = await getFileList(bucket || route.fullPath,currentPage.value,pageSize.value)
+    const result:fileResponse = await getFileList(bucket || route.fullPath,'/')
     fileData.value = result.items.map(item => {
       let newItem = { ...item };
       let [name, extension] = newItem.fileName.split(/\.(?=[^.]+$)/); // 分割出文件名和扩展名
@@ -197,8 +197,7 @@ const handleRemoveFile =  async (row:any) => {
 }
 
 const onSearch = async () => {
-  const result:fileResponse = await getFileList(bucket as string,currentPage.value,
-    pageSize.value,searchFileName.value)
+  const result:fileResponse = await getFileList(bucket as string,'/')
   fileData.value = result.items
   total.value = result.counts
   searchFileName.value = ''

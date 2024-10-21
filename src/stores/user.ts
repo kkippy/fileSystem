@@ -15,7 +15,8 @@ export interface storeState {
   userName: string,
   sessionTime: number | string,
   userId: number | string,
-  layoutStatus:boolean
+  layoutStatus:boolean,
+  help:boolean
 }
 
 export const useUserStore = defineStore('user', {
@@ -26,7 +27,8 @@ export const useUserStore = defineStore('user', {
       userName: GET_USERNAME() || '',
       sessionTime: '',
       userId: '',
-      layoutStatus:false //true代表列表模式，false代表图标模式
+      layoutStatus:false, //true代表列表模式，false代表图标模式
+      help:false//漫游式引导
     }
   },
   actions: {

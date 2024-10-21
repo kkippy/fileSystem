@@ -1,4 +1,5 @@
 <template>
+  <SvgIcon class="help"  :width="35" :height="35" name="help" @click="getHelp"/>
   <SvgIcon class="changeLayout" :width="45" :height="35" name="layout" @click="handleChangeLayout"/>
   <SvgIcon class="fullScreen"
            :width="isFullScreen ? 40 : 35"
@@ -47,6 +48,10 @@ const handleFullscreen = () => {
   }
 }
 
+const getHelp = ()=>{
+  userStore.help = true
+}
+
 const handleCommand = async (command: string | number | object) => {
   if (command === 'logout'){
     await userStore.userLogouts()
@@ -78,6 +83,12 @@ name: "HeadRight"
 <style scoped lang="scss">
 .changeLayout,.fullScreen {
   &:hover {
+    cursor: pointer;
+  }
+}
+
+.help{
+  &:hover{
     cursor: pointer;
   }
 }
