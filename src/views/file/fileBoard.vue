@@ -3,8 +3,8 @@
       <div class="header" >
         <div class="headerLeft">
           <SvgIcon class="back" style="margin-left: 10px;" name="back" @click="goBack" :width="30" :height="30"></SvgIcon>
-          <el-button style="margin-left: 20px" type="primary" :icon="Plus" @click="addFolderVisible = true">新增文件夹</el-button>
-          <el-button type="success" :icon="Upload" @click="handleUpload" >上传文件</el-button>
+          <el-button style="margin-left: 20px" type="primary" :icon="Plus" @click="beforeAddFolder">新增文件夹</el-button>
+          <el-button type="success" :icon="Upload" @click=" uploadVisible = true" >上传文件</el-button>
 
           <el-form style="margin-left: 10px">
             <el-form-item label="文件名" style="margin-top: 18px;margin-left: 20px">
@@ -43,13 +43,14 @@
                 <span :title="item.fileName" v-if="!item.isEditing" class="folderName">{{ item.fileName }}</span>
                   <el-input
                     v-else
+                    id="renameInput"
                     ref="renameInputRef"
                     v-model="item.fileName"
                     style="width: 130px"
                     autofocus
-                    @blur="updateFolderName(item)"
+                    @blur="updateDocumentName(item)"
                     @click.stop
-                    @keyup.enter="updateFolderName(item)"
+                    @keyup.enter="updateDocumentName(item)"
                   />
               </div>
             </div>
@@ -59,6 +60,7 @@
           <p v-if="loading">加载中...</p>
           <p v-if="noMore">已经到底啦~</p>
         </div>
+        <el-empty v-if="fileListData.length === 0" description="暂无数据" />
       </div>
 
       <el-dialog v-model="previewDialog" width="300">
@@ -91,9 +93,13 @@
       </el-dialog>
 
       <el-dialog v-model="addFolderVisible" width="400">
-        <el-form ref="addFolderRef" :model="addFolder" style="margin-top: 20px;" label-width="80px">
+        <el-form ref="addFolderRef"
+                 :model="addFolder"
+                 :rules="addRules"
+                 style="margin-top: 20px;"
+                 label-width="80px">
           <el-form-item prop="folderName" label="文件夹名">
-            <el-input v-model="folderName" placeholder="请输入文件夹名" />
+            <el-input v-model="addFolder.folderName" placeholder="请输入文件夹名" />
           </el-form-item>
         </el-form>
         <template #footer>
@@ -112,24 +118,31 @@
 
 <script setup lang="ts">
 import { useRouter, useRoute, } from 'vue-router'
-import { ref, onMounted, nextTick, computed, watchEffect, reactive } from 'vue'
+import { ref, onMounted, nextTick, computed, watchEffect, reactive, onBeforeUnmount, watch } from 'vue'
 import SvgIcon from '@/components/SvgIcon/index.vue'
 import UploadComponent from '@/components/Upload/index.vue'
 import ContextMenu from '@imengyu/vue3-context-menu'
 import { useUserStore } from '@/stores/user'
 import { Search,Plus,Upload } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { getFileList, uploadFile,createFolder } from '@/api/file'
+import type {FormInstance} from "element-plus";
+import { getFileList, uploadFile,createFolder,deleteFolder,renameFile,renameFolder,deleteFile } from '@/api/file'
 import type {fileItem,fileList,fileResponse} from '@/api/file/type'
 import type {RouteLocationNormalizedLoaded } from 'vue-router'
+
 interface Route extends RouteLocationNormalizedLoaded{
   meta:  {
     bucket?: string;
   }
 }
 
+interface IAddFolder {
+  folderName:string
+}
+
 const route = useRoute() as Route
 const renameInputRef = ref()
+const renameInput = ref()
 const isEdit = ref<boolean>(false);
 let searchName = ref<string>('')
 const loading = ref<boolean>(false)
@@ -147,13 +160,26 @@ let uploadVisible = ref<boolean>(false)
 let uploadLoading = ref<boolean>(false)
 let addFolderVisible = ref<boolean>(false)
 const filePath = ref<string>('/')
-let folderName = ref<string>('')
-const addFolderRef = ref()
+const addFolderRef = ref<FormInstance>()
+let timerId: ReturnType<typeof setTimeout> | null = null;
+const validatorFolderName = (rule:any,value:any,callBack:any)=>{
+  if(value === '' ){
+    callBack(new Error('文件夹名不能为空'))
+  }else{
+    callBack()
+  }
+}
 
+const addRules = reactive({
+  folderName:[
+    {required:true,trigger:"blur",validator:validatorFolderName}
+  ]
+})
 
-const addFolder = reactive({
+const addFolder = reactive<IAddFolder>({
   folderName: ''
 })
+
 
 const isSpecialFileType  = (fileType:string,type:string):boolean => {
   const lowerCaseFileType  = fileType.toLowerCase()
@@ -164,6 +190,10 @@ const isSpecialFileType  = (fileType:string,type:string):boolean => {
   };
   return fileTypes[type].includes(lowerCaseFileType );
 }
+
+watch(()=>userStore.path,()=>{
+  getFiles()
+})
 
 onMounted(()=>{
   fileListData.value.forEach(item => {
@@ -185,15 +215,11 @@ watchEffect(async ()=>{
 
 
 const getFiles = async () =>{
-  fileLoading.value = true
-  const result:fileResponse = await getFileList(bucket as string,'/')
-  fileListData.value = result.data
-  fileLoading.value = false
+  // fileLoading.value = true
+  const result:fileResponse = await getFileList(bucket as string,userStore.path === '/' ? '/' : userStore.path + '/')
+  fileListData.value = result.data || []
+  // fileLoading.value = false
   console.log(result,'result')
-}
-
-const handleUpload = () =>{
-  uploadVisible.value = true
 }
 
 const handleChangeUpload = async(file:any) =>{
@@ -239,9 +265,23 @@ const goBack = () =>{
   // getFiles()
 }
 
+const beforeAddFolder = () =>{
+  addFolder.folderName = ''
+  nextTick(() => {
+    try {
+      if (addFolderRef.value) {
+        addFolderRef.value.clearValidate()
+      }
+    } catch (error) {
+      console.error('Error clearing validation:', error)
+    }
+  })
+  addFolderVisible.value = true
+}
+
 const handleAddFolder = async ()=>{
-  console.log(folderName.value,filePath.value,'folderName')
-  const result:any = await createFolder(bucket as string,folderName.value,filePath.value)
+  await addFolderRef.value?.validate()
+  const result:any = await createFolder(bucket as string,addFolder.folderName,filePath.value)
   if(result.code === 500){
     ElMessage({
       message: result.msg,
@@ -278,22 +318,91 @@ const scrollLoad = () => {
   // 查询接口，相当于分页
 }
 
-const handleRename = (item:any) => {
-  if(isEdit.value) return
+const handleRename = (item: fileItem) => {
+  if (isEdit.value) return;
   isEdit.value = true;
-  item.isEditing = true; // 进入编辑模式
-  nextTick(() => {
-    renameInputRef.value && renameInputRef.value[0].focus();
-  })
+  item.isEditing = true;
+  if (item.isDir === 0) {
+    nextTick(() => {
+      if (renameInputRef.value) {
+        const commaIndex = item.fileName.indexOf('.');
+        if (commaIndex !== -1) {
+          console.log(commaIndex);
+          const obj = document.getElementById('renameInput') as HTMLInputElement;
+          timerId = setTimeout(() => {
+            obj?.setSelectionRange(commaIndex, commaIndex);
+          }, 1);
+          renameInputRef.value && renameInputRef.value[0].focus();
+        }
+      }
+    });
+  } else {
+    nextTick(() => {
+      renameInputRef.value && renameInputRef.value[0].focus();
+    });
+  }
 }
 
-const updateFolderName = (item:any) => {
-  console.log(item,'编辑后')
-  item.name = '测试文件夹';
+const updateDocumentName = async (item: fileItem) => {
+  let newName = item.fileName;
+  try {
+    if (item.isDir === 1) {
+      const result: any = await renameFolder(bucket as string, item.fileName, item.path, String(item.id));
+      if (result.code === 200) {
+        ElMessage({
+          message: '重命名成功',
+          type: 'success'
+        });
+      } else {
+        ElMessage({
+          message: item.fileName === newName ? '已取消' : '重命名失败',
+          type: item.fileName === newName ? 'warning' : 'error'
+        });
+      }
+      await getFiles();
+    } else {
+      const result: any = await renameFile(bucket as string, item.path, {
+        id: item.id,
+        fileName: item.fileName,
+        status: item.status,
+      });
+      if (result.code === 200) {
+        ElMessage({
+          message: '重命名成功',
+          type: 'success'
+        });
+      } else {
+        ElMessage({
+          message: item.fileName === newName ? '已取消' : '重命名失败',
+          type: item.fileName === newName ? 'warning' : 'error'
+        });
+      }
+    }
+  } catch (error) {
+    ElMessage({
+      message: `${error}`,
+      type: 'error'
+    });
+  }
+
   item.isEditing = false;
-  setTimeout(()=>{
-    isEdit.value = false;
-  },10)
+  isEdit.value = false;
+}
+
+const handleDeleteFolder = async(item:any) => {
+  const result:any =await deleteFolder(item.id)
+  if(result.code === 200) {
+    ElMessage({
+      message: '删除成功',
+      type: 'success'
+    })
+  }
+  await getFiles()
+}
+
+const handleDeleteFile = async(item:any) => {
+  const result:any = await deleteFile(bucket as string,item.id,item.path+item.fileName)
+  console.log(result,'result')
 }
 
 const onContextMenu = (event:MouseEvent, config:fileItem) =>{
@@ -345,7 +454,7 @@ const onContextMenu = (event:MouseEvent, config:fileItem) =>{
         label: "删除",
         icon: "icon-shanchu",
         onClick: () => {
-          // this.handlerDelete(config);
+         handleDeleteFile(config)
         },
       }];
     showContextMenu(items);
@@ -363,7 +472,7 @@ const onContextMenu = (event:MouseEvent, config:fileItem) =>{
         label: "删除",
         icon: "icon-shanchu",
         onClick: () => {
-          // this.handlerDelete(config);
+         handleDeleteFolder(config)
         },
       }];
     showContextMenu(items);
@@ -480,13 +589,29 @@ const onContextMenu = (event:MouseEvent, config:fileItem) =>{
 }
 
 const goToFile = async (item:fileItem) => {
+  userStore.path = ''
   if(item.isDir === 0) return
-  filePath.value = item.path + item.fileName + '/'
+  if(item.path === '/'){
+    filePath.value =  item.fileName + '/'
+    console.log(filePath.value,'filePath.value')
+    userStore.path = item.path + item.fileName + '/'
+  } else {
+    userStore.path = item.path + item.fileName
+    // userStore.path = ''
+  }
+
   const result:fileResponse = await getFileList(bucket as string,filePath.value)
   console.log(result,'双击')
-  fileListData.value = result.data
-
+  console.log(userStore.path,'userStore.path')
+  fileListData.value = result.data || []
 };
+
+onBeforeUnmount(() => {
+  if (timerId) {
+    clearTimeout(timerId);
+  }
+});
+
 </script>
 
 <style scoped lang="scss">

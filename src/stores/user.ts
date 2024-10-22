@@ -16,7 +16,8 @@ export interface storeState {
   sessionTime: number | string,
   userId: number | string,
   layoutStatus:boolean,
-  help:boolean
+  help:boolean,
+  path:string,
 }
 
 export const useUserStore = defineStore('user', {
@@ -28,7 +29,8 @@ export const useUserStore = defineStore('user', {
       sessionTime: '',
       userId: '',
       layoutStatus:false, //true代表列表模式，false代表图标模式
-      help:false//漫游式引导
+      help:false,//漫游式引导
+      path:'/' //用于面包屑导航
     }
   },
   actions: {
