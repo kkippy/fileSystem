@@ -8,6 +8,7 @@ import {SET_TOKEN,GET_TOKEN,
 import { getUserInfo, userLogin, userLogout } from '@/api/user'
 // import {getAllBuckets} from '@/api/file'
 import type {LoginForm} from "@/api/user/type";
+import { SET_PATH,REMOVE_PATH,GET_PATH } from '@/utils/path'
 
 export interface storeState {
   token: string,
@@ -30,7 +31,7 @@ export const useUserStore = defineStore('user', {
       userId: '',
       layoutStatus:false, //true代表列表模式，false代表图标模式
       help:false,//漫游式引导
-      path:'/' //用于面包屑导航
+      path:GET_PATH() || '/' //用于面包屑导航
     }
   },
   actions: {
@@ -42,6 +43,7 @@ export const useUserStore = defineStore('user', {
         this.userId = parseInt(result.data.loginId)
         SET_USER(this.userRole as string)
         SET_TOKEN(this.token as string)
+        SET_PATH(this.path as string)
         // await getAllBuckets()
         return 'ok'
       } else {
@@ -71,6 +73,7 @@ export const useUserStore = defineStore('user', {
         REMOVE_TOKEN()
         REMOVE_USER()
         REMOVE_USER_NAME()
+        REMOVE_PATH()
         return 'ok'
       } catch (err) {
         return Promise.reject(new Error((err as string)))

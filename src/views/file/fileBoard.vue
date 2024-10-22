@@ -2,7 +2,6 @@
     <div >
       <div class="header" >
         <div class="headerLeft">
-          <SvgIcon class="back" style="margin-left: 10px;" name="back" @click="goBack" :width="30" :height="30"></SvgIcon>
           <el-button style="margin-left: 20px" type="primary" :icon="Plus" @click="beforeAddFolder">新增文件夹</el-button>
           <el-button type="success" :icon="Upload" @click=" uploadVisible = true" >上传文件</el-button>
 
@@ -30,12 +29,12 @@
                  @mouseenter="handlePreview(item)"
                  @mouseleave="handleCancelPreview(item)">
               <SvgIcon v-if="item.isPreview" :width="90" :height="82" name="preview" @click="previewFile(item)" />
-              <SvgIcon class="fileTour" v-if="!item.isPreview && ((item.suffixName as string)) === 'pdf'" :width="96" :height="150" :name="item.isPreview ? 'preview' : 'pdf'" />
+              <SvgIcon class="fileTour" v-if="!item.isPreview && ((item.suffixName as string)) === 'pdf'" :width="96" :height="150" name="pdf" />
               <SvgIcon class="folderTour" v-else-if="!item.isPreview && item.isDir === 1" :width="120" :height="150" name="folder" />
-              <SvgIcon v-else-if="!item.isPreview && item.suffixName === 'txt'" :width="115" :height="150" name="txt" />
-              <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.suffixName as string),'picture')" :width="98" :height="150" :name="item.isPreview ? 'preview' :'picture'" />
-              <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.suffixName as string),'compress')" :width="98" :height="150" :name="item.isPreview ? 'preview' : 'compress'" />
-              <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.suffixName as string),'video')" :width="98" :height="150" :name="item.isPreview ? 'preview' :'video'" />
+              <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.suffixName as string),'document')" :width="115" :height="150" name="txt" />
+              <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.suffixName as string),'picture')" :width="98" :height="150" name="picture" />
+              <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.suffixName as string),'compress')" :width="98" :height="150" name="compress" />
+              <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.suffixName as string),'video')" :width="98" :height="150" name="video" />
             </div>
 
             <div class="objectName">
@@ -117,7 +116,7 @@
 
 
 <script setup lang="ts">
-import { useRouter, useRoute, } from 'vue-router'
+import { useRoute, } from 'vue-router'
 import { ref, onMounted, nextTick, computed, watchEffect, reactive, onBeforeUnmount, watch } from 'vue'
 import SvgIcon from '@/components/SvgIcon/index.vue'
 import UploadComponent from '@/components/Upload/index.vue'
@@ -129,7 +128,7 @@ import type {FormInstance} from "element-plus";
 import { getFileList, uploadFile,createFolder,deleteFolder,renameFile,renameFolder,deleteFile } from '@/api/file'
 import type {fileItem,fileList,fileResponse} from '@/api/file/type'
 import type {RouteLocationNormalizedLoaded } from 'vue-router'
-
+import { SET_PATH,REMOVE_PATH,GET_PATH } from '@/utils/path'
 interface Route extends RouteLocationNormalizedLoaded{
   meta:  {
     bucket?: string;
@@ -142,7 +141,6 @@ interface IAddFolder {
 
 const route = useRoute() as Route
 const renameInputRef = ref()
-const renameInput = ref()
 const isEdit = ref<boolean>(false);
 let searchName = ref<string>('')
 const loading = ref<boolean>(false)
@@ -154,6 +152,7 @@ const userStore = useUserStore();
 const pictureType:string[] = ['png','jpg','jpeg']
 const compressType:string[] = ['zip','rar','7z']
 const videoType:string[] = ['mp4','mov','flv','avi']
+const documentType:string[] = ['txt','doc','docx','avi']
 let previewDialog = ref<boolean>(false)
 let bucket: string | undefined = route.meta.bucket ||  route.fullPath
 let uploadVisible = ref<boolean>(false)
@@ -186,12 +185,14 @@ const isSpecialFileType  = (fileType:string,type:string):boolean => {
   const fileTypes:Record<string, string[]> = {
     picture: pictureType,
     compress: compressType,
-    video: videoType
+    video: videoType,
+    document: documentType
   };
   return fileTypes[type].includes(lowerCaseFileType );
 }
 
 watch(()=>userStore.path,()=>{
+  userStore.path  = GET_PATH() as string
   getFiles()
 })
 
@@ -201,7 +202,6 @@ onMounted(()=>{
     item.isPreview = false
   })
   getFiles()
-  console.log(route)
 })
 
 watchEffect(async ()=>{
@@ -215,11 +215,8 @@ watchEffect(async ()=>{
 
 
 const getFiles = async () =>{
-  // fileLoading.value = true
-  const result:fileResponse = await getFileList(bucket as string,userStore.path === '/' ? '/' : userStore.path + '/')
+  const result:fileResponse = await getFileList(bucket as string,userStore.path )
   fileListData.value = result.data || []
-  // fileLoading.value = false
-  console.log(result,'result')
 }
 
 const handleChangeUpload = async(file:any) =>{
@@ -257,12 +254,6 @@ const handleCancelPreview = (item:fileItem) =>{
 
 const previewFile = (item:fileItem) =>{
   previewDialog.value = true
-}
-
-const goBack = () =>{
-  console.log(filePath.value,'goBack')
-  // filePath.value = '/'
-  // getFiles()
 }
 
 const beforeAddFolder = () =>{
@@ -327,7 +318,6 @@ const handleRename = (item: fileItem) => {
       if (renameInputRef.value) {
         const commaIndex = item.fileName.indexOf('.');
         if (commaIndex !== -1) {
-          console.log(commaIndex);
           const obj = document.getElementById('renameInput') as HTMLInputElement;
           timerId = setTimeout(() => {
             obj?.setSelectionRange(commaIndex, commaIndex);
@@ -396,13 +386,29 @@ const handleDeleteFolder = async(item:any) => {
       message: '删除成功',
       type: 'success'
     })
+  } else {
+    ElMessage({
+      message: result.msg,
+      type: 'error'
+    })
   }
   await getFiles()
 }
 
 const handleDeleteFile = async(item:any) => {
-  const result:any = await deleteFile(bucket as string,item.id,item.path+item.fileName)
-  console.log(result,'result')
+  const result:any =await deleteFile(bucket as string,item.id,item.path+item.fileName)
+  if(result.code === 200){
+    ElMessage({
+      message: '删除成功',
+      type: 'success'
+    })
+  } else {
+    ElMessage({
+      message: result.msg,
+      type: 'error'
+    })
+  }
+  await getFiles()
 }
 
 const onContextMenu = (event:MouseEvent, config:fileItem) =>{
@@ -483,126 +489,20 @@ const onContextMenu = (event:MouseEvent, config:fileItem) =>{
         divided: true,
         icon: 'icon-a-folder-opened',
         onClick: () => {
-          // this.openDocument(config.id);
+          goToFile(config);
         },
       },
       ...commonItems];
     showContextMenu(items);
   }
-
-
-  // if(config.isDir === 0){
-  //   ContextMenu.showContextMenu({
-  //     x: event.x,
-  //     y: event.y,
-  //     theme: 'mac',
-  //     items: [
-  //       {
-  //         label: "分享",
-  //         divided: true,
-  //         icon:'icon-fenxiang',
-  //         onClick: () => {
-  //           // this.openDocument(config.id);
-  //         },
-  //       },
-  //       {
-  //         label: "下载",
-  //         divided: true,
-  //         icon: "icon-xiazai",
-  //         onClick: () => {
-  //           // handleRename(config);
-  //         },
-  //       },
-  //       {
-  //         label: "重命名",
-  //         divided: true,
-  //         icon: "icon-zhongmingming",
-  //         onClick: () => {
-  //           handleRename(config);
-  //         },
-  //       },
-  //       {
-  //         label: "删除",
-  //         icon: "icon-shanchu",
-  //         onClick: () => {
-  //           // this.handlerDelete(config);
-  //         },
-  //       },
-  //     ],
-  //   });
-  // } else if(userStore.userRole !== 'user') {
-  //   ContextMenu.showContextMenu({
-  //     x: event.x,
-  //     y: event.y,
-  //     theme: 'mac',
-  //     items: [
-  //       {
-  //         label: "打开",
-  //         divided: true,
-  //         icon: 'icon-a-folder-opened',
-  //         onClick: () => {
-  //          goToFile(config);
-  //         },
-  //       },
-  //       {
-  //         label: "重命名",
-  //         divided: true,
-  //         icon: "icon-zhongmingming",
-  //         onClick: () => {
-  //           handleRename(config);
-  //         },
-  //       },
-  //       {
-  //         label: "删除",
-  //         icon: "icon-shanchu",
-  //         onClick: () => {
-  //           // this.handlerDelete(config);
-  //         },
-  //       },
-  //     ],
-  //   });
-  // } else {
-  //   ContextMenu.showContextMenu({
-  //     x: event.x,
-  //     y: event.y,
-  //     theme: 'mac',
-  //     items: [
-  //       {
-  //         label: "打开",
-  //         divided: true,
-  //         icon: 'icon-a-folder-opened',
-  //         onClick: () => {
-  //           // this.openDocument(config.id);
-  //         },
-  //       },
-  //       {
-  //         label: "重命名",
-  //         divided: true,
-  //         icon: "icon-zhongmingming",
-  //         onClick: () => {
-  //           handleRename(config);
-  //         },
-  //       },
-  //     ],
-  //   });
-  // }
 }
 
 const goToFile = async (item:fileItem) => {
-  userStore.path = ''
   if(item.isDir === 0) return
-  if(item.path === '/'){
-    filePath.value =  item.fileName + '/'
-    console.log(filePath.value,'filePath.value')
-    userStore.path = item.path + item.fileName + '/'
-  } else {
-    userStore.path = item.path + item.fileName
-    // userStore.path = ''
-  }
-
+  filePath.value = item.path + item.fileName + '/'
+  userStore.path = filePath.value
+  SET_PATH(userStore.path)
   const result:fileResponse = await getFileList(bucket as string,filePath.value)
-  console.log(result,'双击')
-  console.log(userStore.path,'userStore.path')
   fileListData.value = result.data || []
 };
 

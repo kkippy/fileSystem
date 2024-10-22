@@ -3,7 +3,7 @@ import type {fileResponse} from './type'
 enum FILE_API {
   // GET_ALL_BUCKET_URL = '/api/file/list', //查询所有桶
   DELETE_BUCKET_URL = '/api/file/deleteBucket', //删除桶
-  UPLOAD_FILE_URL = '/api/file/uploadfile', //上传文件
+  UPLOAD_FILE_URL = '/api/file/uploadFile', //上传文件
   DOWNLOAD_FILE_URL = '/api/file/downloadFile', //下载文件
   RENAME_FILE_URL = '/api/file/updateFile',
   DELETE_FILE_URL = '/api/file/deleteFile', //删除文件
