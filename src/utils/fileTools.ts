@@ -1,6 +1,14 @@
 import { downloadFile } from '@/api/file'
-export const downloadFileUtil  = async (bucket:string,showName:string,fileName:string) =>{
-  const result:any = await downloadFile(bucket,showName)
+
+/**
+ * bucket: 文件所在bucket;
+ * objectName: 路径 +文件名;
+ * fileId: 文件id;
+ * fileName: 下载文件的文件名;
+ * */
+
+export const downloadFileUtil  = async (bucket:string,objectName:string,fileId:number,fileName:string) =>{
+  const result:any = await downloadFile(bucket,objectName,fileId)
   const url = window.URL.createObjectURL(new Blob([result]));
   const link = document.createElement('a');
   link.href = url;

@@ -1,5 +1,9 @@
 <template>
-    <div >
+    <div
+      v-loading.fullscreen.lock="fullscreenLoading"
+      element-loading-text="正在下载..."
+      element-loading-background="rgba(122, 122, 122, 0.8)"
+    >
       <div class="header" >
         <div class="headerLeft">
           <el-button style="margin-left: 20px" type="primary" :icon="Plus" @click="beforeAddFolder">新增文件夹</el-button>
@@ -131,6 +135,8 @@ import { getFileList, uploadFile,createFolder,deleteFolder,
 import type {fileItem,fileList,fileResponse} from '@/api/file/type'
 import type {RouteLocationNormalizedLoaded } from 'vue-router'
 import { SET_PATH,GET_PATH } from '@/utils/path'
+import {downloadFileUtil} from '@/utils/fileTools'
+
 interface Route extends RouteLocationNormalizedLoaded{
   meta:  {
     bucket?: string;
@@ -161,6 +167,7 @@ let bucket: string | undefined = route.meta.bucket ||  route.fullPath
 let uploadVisible = ref<boolean>(false)
 let uploadLoading = ref<boolean>(false)
 let addFolderVisible = ref<boolean>(false)
+let fullscreenLoading = ref(false)
 const filePath = ref<string>('/')
 const addFolderRef = ref<FormInstance>()
 let timerId: ReturnType<typeof setTimeout> | null = null;
@@ -214,9 +221,6 @@ onMounted(()=>{
   getFiles()
 })
 
-
-
-
 const getFiles = async () =>{
   const result:fileResponse = await getFileList(bucket as string,userStore.path )
   if(result.code === 200){
@@ -250,7 +254,6 @@ const handleChangeUpload = async(file:any) =>{
     uploadVisible.value = false
   }
 }
-
 
 const handlePreview = (item:fileItem) =>{
   if(item.isDir === 1) return
@@ -296,6 +299,12 @@ const handleAddFolder = async ()=>{
     addFolderVisible.value = false
     await getFiles()
   }
+}
+
+const handleDownloadFile = async (item:fileItem) =>{
+  fullscreenLoading.value = true
+  await downloadFileUtil(bucket as string,item.path + item.fileName,item.id,item.fileName)
+  fullscreenLoading.value = false
 }
 
 const onSearch = () => {
@@ -462,7 +471,7 @@ const onContextMenu = (event:MouseEvent, config:fileItem) =>{
         divided: true,
         icon: "icon-xiazai",
         onClick: () => {
-          // handleRename(config);
+          handleDownloadFile(config)
         },
       },
       ...commonItems,
