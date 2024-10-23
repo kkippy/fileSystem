@@ -72,7 +72,7 @@
         <iframe style="width: 100%;height: 80vh" :src="previewUrl"></iframe>
       </el-dialog>
 
-      <CustomTour />
+      <custom-tour />
 
       <el-dialog v-model="uploadVisible" title="上传文件" width="600">
         <UploadComponent
@@ -102,7 +102,7 @@
         </template>
       </el-dialog>
 
-      <ShareDialog @update:shareLink="handleShareFile" v-model="shareVisible" :shareLink="shareLink"  />
+      <share-dialog @update:shareLink="handleShareFile" v-model="shareVisible" :shareLink="shareLink"  />
     </div>
 </template>
 
