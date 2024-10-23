@@ -72,30 +72,7 @@
         <iframe style="width: 100%;height: 80vh" :src="previewUrl"></iframe>
       </el-dialog>
 
-      <el-tour v-model="userStore.help">
-        <el-tour-step
-          :target="'.header-left'"
-          title="文件路径操作" >
-          <div>
-            右键文件夹可进行打开、重命名和删除文件夹的操作<br/>
-            双击文件夹可查看其中文件
-          </div>
-        </el-tour-step>
-        <el-tour-step
-          :target="'.folderTour'"
-          title="文件夹操作" >
-        <div>
-          右键文件夹可进行打开、重命名和删除文件夹的操作<br/>
-          双击文件夹可查看其中文件
-        </div>
-        </el-tour-step>
-        <el-tour-step :target="'.fileTour'" title="文件操作">
-          <div>
-            右键文件可进行下载、分享、重命名等操作<br/>
-            单击文件可进行预览
-          </div>
-        </el-tour-step>
-      </el-tour>
+      <CustomTour />
 
       <el-dialog v-model="uploadVisible" title="上传文件" width="600">
         <UploadComponent
@@ -125,24 +102,7 @@
         </template>
       </el-dialog>
 
-      <el-dialog v-model="shareVisible" title="分享文件" width="600">
-        <el-input
-          v-model="shareLink"
-          placeholder="Please input"
-        >
-          <template #append>
-            <el-button style="width: 100px;
-                            background-color: #67c23a;
-                            border-radius:0 4px 4px 0 ;
-                            color: #fff;font-size: 15px;
-                            letter-spacing: 2px;
-                            text-align: center"
-                       @click="copyLink"
-            >复制链接</el-button>
-          </template>
-        </el-input>
-      </el-dialog>
-
+      <ShareDialog @update:shareLink="handleShareFile" v-model="shareVisible" :shareLink="shareLink"  />
     </div>
 </template>
 
@@ -152,6 +112,8 @@ import { useRoute, } from 'vue-router'
 import { ref, onMounted, nextTick, computed, watchEffect, reactive, onBeforeUnmount, watch } from 'vue'
 import SvgIcon from '@/components/SvgIcon/index.vue'
 import UploadComponent from '@/components/Upload/index.vue'
+import CustomTour from '@/components/Tour/index.vue'
+import ShareDialog from '@/components/ShareDialog/index.vue'
 import ContextMenu from '@imengyu/vue3-context-menu'
 import { useUserStore } from '@/stores/user'
 import { Search,Plus,Upload } from '@element-plus/icons-vue'
@@ -162,7 +124,7 @@ import { getFileList, uploadFile,createFolder,deleteFolder,
 import type {fileItem,fileList,fileResponse} from '@/api/file/type'
 import type {RouteLocationNormalizedLoaded } from 'vue-router'
 import { SET_PATH,GET_PATH } from '@/utils/path'
-import {downloadFileUtil} from '@/utils/fileTools'
+import {downloadFileUtil,isSpecialFileType} from '@/utils/fileTools'
 
 interface Route extends RouteLocationNormalizedLoaded{
   meta:  {
@@ -177,18 +139,13 @@ interface IAddFolder {
 const route = useRoute() as Route
 const renameInputRef = ref()
 const isEdit = ref<boolean>(false);
-let searchName = ref<string>('')
 const loading = ref<boolean>(false)
 const fileLoading = ref<boolean>(false)
 const noMore = computed(() => fileListData.value.length >= 20)
 const disabled = computed(() => loading.value || noMore.value)
 const fileListData = ref<fileList>([])
 const userStore = useUserStore();
-const pictureType:string[] = ['png','jpg','jpeg','psd','gif','bmp','webp','svg']
-const compressType:string[] = ['zip','rar','7z','jar','gzip','tar']
-const videoType:string[] = ['mp4','mov','flv','avi','wav']
-const documentType:string[] = ['txt','doc','docx','avi','dotx','wps','dps']
-const excelType:string[] = ['xlsx','xlsm','xlsb','xltx','csv','tsv','xla','xls']
+const addFolderRef = ref<FormInstance>()
 let previewDialog = ref<boolean>(false)
 let bucket: string | undefined = route.meta.bucket ||  route.fullPath
 let uploadVisible = ref<boolean>(false)
@@ -196,11 +153,12 @@ let uploadLoading = ref<boolean>(false)
 let addFolderVisible = ref<boolean>(false)
 let shareVisible = ref<boolean>(false)
 let fullscreenLoading = ref(false)
-const filePath = ref<string>('/')
-const previewUrl = ref<string>('')
+let searchName = ref<string>('')
+let filePath = ref<string>('/')
+let previewUrl = ref<string>('')
 let shareLink = ref<string>('')
-const addFolderRef = ref<FormInstance>()
 let timerId: ReturnType<typeof setTimeout> | null = null;
+
 const validatorFolderName = (rule:any,value:any,callBack:any)=>{
   if(value === '' ){
     callBack(new Error('文件夹名不能为空'))
@@ -218,18 +176,6 @@ const addRules = reactive({
 const addFolder = reactive<IAddFolder>({
   folderName: ''
 })
-
-const isSpecialFileType  = (fileType:string,type:string):boolean => {
-  const lowerCaseFileType  = fileType.toLowerCase()
-  const fileTypes:Record<string, string[]> = {
-    picture: pictureType,
-    compress: compressType,
-    video: videoType,
-    document: documentType,
-    excel: excelType
-  };
-  return fileTypes[type].includes(lowerCaseFileType );
-}
 
 watch(()=>userStore.path,()=>{
   userStore.path  = GET_PATH() as string
@@ -311,15 +257,6 @@ const handleShareFile = async (item:fileItem) =>{
   }
 }
 
-const copyLink = () => {
-  navigator.clipboard.writeText(shareLink.value)
-  ElMessage({
-    message: '复制成功',
-    type: 'success'
-  })
-  shareVisible.value = false
-}
-
 const beforeAddFolder = () =>{
   addFolder.folderName = ''
   nextTick(() => {
@@ -371,12 +308,7 @@ const reset = () => {
 }
 
 const scrollLoad = () => {
-  // loading.value = true
-  // setTimeout(() => {
-  //   fileList.value.push({ id: 6, name: 'Folder 6', isEditing: false,isDir:1 })
-  //   loading.value = false
-  // }, 2000)
-  // 查询接口，相当于分页
+  //虚拟滚动+数据懒加载
 }
 
 const handleRename = (item: fileItem) => {
