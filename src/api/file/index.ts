@@ -26,7 +26,7 @@ export const uploadFile = (data:any)=>{
   })
 }
 
-export const downloadFile = (bucket:string,objectName:string)=>request.get<any>(FILE_API.DOWNLOAD_FILE_URL+`?bucket=${bucket}&objectName=${objectName}`,{responseType:'blob'})
+export const downloadFile = (bucket:string,objectName:string,fileId:number)=>request.get<any>(FILE_API.DOWNLOAD_FILE_URL+`?bucket=${bucket}&objectName=${objectName}&fileId=${fileId}`,{responseType:'blob'})
 
 export const deleteFile = (bucket:string,fileId:number,objectName:string)=>request.get<any>(FILE_API.DELETE_FILE_URL+`?bucket=${bucket}&fileId=${fileId}&objectName=${objectName}`)
 

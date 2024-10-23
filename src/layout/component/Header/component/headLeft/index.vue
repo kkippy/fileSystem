@@ -15,10 +15,10 @@ import {useRoute} from "vue-router";
 import {useUserStore} from "@/stores/user";
 import { constantRoute } from '@/router/routers'
 import { ref, watch } from 'vue'
-import {SET_PATH } from '@/utils/path'
+import { GET_PATH, SET_PATH } from '@/utils/path'
 const route = useRoute()
 const userStore = useUserStore()
-let filePathList = ref<string[]>()
+let filePathList = ref<string[]>([])
 filePathList.value = userStore.path.split("/").filter(item => item !== "");
 
 watch(()=>userStore.path,(newVal)=>{
@@ -26,9 +26,10 @@ watch(()=>userStore.path,(newVal)=>{
 })
 
 const goBack = (item:string)=>{
-  userStore.path = '/' + item +'/'
+  if (item === filePathList.value[filePathList.value.length - 1]) return;
+  const lastSlashIndex = (GET_PATH()as string).indexOf(item);
+  userStore.path =(GET_PATH() as string).slice(0, lastSlashIndex + item.length ) + '/';
   SET_PATH(userStore.path)
-  console.log(userStore.path,'userStore.path')
 }
 const goRoot = ()=>{
   userStore.path = '/'

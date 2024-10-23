@@ -35,6 +35,7 @@
               <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.suffixName as string),'picture')" :width="98" :height="150" name="picture" />
               <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.suffixName as string),'compress')" :width="98" :height="150" name="compress" />
               <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.suffixName as string),'video')" :width="98" :height="150" name="video" />
+              <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.suffixName as string),'excel')" :width="98" :height="150" name="excel" />
             </div>
 
             <div class="objectName">
@@ -125,10 +126,11 @@ import { useUserStore } from '@/stores/user'
 import { Search,Plus,Upload } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import type {FormInstance} from "element-plus";
-import { getFileList, uploadFile,createFolder,deleteFolder,renameFile,renameFolder,deleteFile } from '@/api/file'
+import { getFileList, uploadFile,createFolder,deleteFolder,
+  renameFile,renameFolder,deleteFile,downloadFile } from '@/api/file'
 import type {fileItem,fileList,fileResponse} from '@/api/file/type'
 import type {RouteLocationNormalizedLoaded } from 'vue-router'
-import { SET_PATH,REMOVE_PATH,GET_PATH } from '@/utils/path'
+import { SET_PATH,GET_PATH } from '@/utils/path'
 interface Route extends RouteLocationNormalizedLoaded{
   meta:  {
     bucket?: string;
@@ -153,6 +155,7 @@ const pictureType:string[] = ['png','jpg','jpeg']
 const compressType:string[] = ['zip','rar','7z']
 const videoType:string[] = ['mp4','mov','flv','avi']
 const documentType:string[] = ['txt','doc','docx','avi']
+const excelType:string[] = ['xlsx','xlsm','xlsb','xltx']
 let previewDialog = ref<boolean>(false)
 let bucket: string | undefined = route.meta.bucket ||  route.fullPath
 let uploadVisible = ref<boolean>(false)
@@ -179,14 +182,14 @@ const addFolder = reactive<IAddFolder>({
   folderName: ''
 })
 
-
 const isSpecialFileType  = (fileType:string,type:string):boolean => {
   const lowerCaseFileType  = fileType.toLowerCase()
   const fileTypes:Record<string, string[]> = {
     picture: pictureType,
     compress: compressType,
     video: videoType,
-    document: documentType
+    document: documentType,
+    excel: excelType
   };
   return fileTypes[type].includes(lowerCaseFileType );
 }
@@ -194,6 +197,13 @@ const isSpecialFileType  = (fileType:string,type:string):boolean => {
 watch(()=>userStore.path,()=>{
   userStore.path  = GET_PATH() as string
   getFiles()
+})
+
+watchEffect( ()=>{
+  if(bucket !== route.meta.bucket){
+    bucket = route.meta.bucket
+    getFiles()
+  }
 })
 
 onMounted(()=>{
@@ -204,19 +214,19 @@ onMounted(()=>{
   getFiles()
 })
 
-watchEffect(async ()=>{
-  if(bucket !== route.meta.bucket){
-    loading.value = true
-    bucket = route.meta.bucket
-    await getFiles()
-    loading.value = false
-  }
-})
+
 
 
 const getFiles = async () =>{
   const result:fileResponse = await getFileList(bucket as string,userStore.path )
-  fileListData.value = result.data || []
+  if(result.code === 200){
+    fileListData.value = result.data || []
+  } else {
+    ElMessage({
+      message: result.msg,
+      type: 'error'
+    })
+  }
 }
 
 const handleChangeUpload = async(file:any) =>{
