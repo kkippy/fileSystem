@@ -12,6 +12,7 @@ enum FILE_API {
   CREATE_FOLDER_URL = '/api/file/createFolder',
   RENAME_FOLDER_URL = '/api/file/updateFolder',
   DELETE_FOLDER_URL = '/api/file/deleteFolder',
+  PREVIEW_FILE_URL = '/api/file/preview'
 }
 
 // export const getAllBuckets = ()=>request.get<any>(FILE_API.GET_ALL_BUCKET_URL)
@@ -37,10 +38,11 @@ export const renameFile = (bucket:string,path:string,body:any)=> {
   return request.post<any>(url,body)
 }
 
-export const shareFile = (bucket:string,objectName:string)=>request.get<any>(FILE_API.SHARE_FILE_URL+`?bucket=${bucket}&objectName=${objectName}`)
+export const shareFile = (bucket:string,objectName:string,fileId:number)=>request.get<any>(FILE_API.SHARE_FILE_URL+`?bucket=${bucket}&objectName=${objectName}&fileId=${fileId}`)
 
 export const createFolder = (bucket:string,folderName:string,path:string)=>request.get<any>(FILE_API.CREATE_FOLDER_URL+`?bucket=${bucket}&folderName=${folderName}&path=${path}`)
 
+export const previewFile = (bucket:string,objectName:string,fileId:number)=>request.get<any>(FILE_API.PREVIEW_FILE_URL+`?bucket=${bucket}&objectName=${objectName}&fileId=${fileId}`)
 export const renameFolder = (bucket:string,folderName:string,path:string,fileId:string)=>request.get<any>(FILE_API.RENAME_FOLDER_URL+`?bucket=${bucket}&folderName=${folderName}&path=${path}&fileId=${fileId}`)
 
 export const deleteFolder = (fileId:string)=>request.get<any>(FILE_API.DELETE_FOLDER_URL+`?fileId=${fileId}`)

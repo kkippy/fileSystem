@@ -32,14 +32,14 @@
             <div class="icon-container"
                  @mouseenter="handlePreview(item)"
                  @mouseleave="handleCancelPreview(item)">
-              <SvgIcon v-if="item.isPreview" :width="90" :height="82" name="preview" @click="previewFile(item)" />
+              <SvgIcon v-if="item.isPreview" :width="90" :height="82" name="preview" @click="handlePreviewFile(item)" />
               <SvgIcon class="fileTour" v-if="!item.isPreview && ((item.suffixName as string)) === 'pdf'" :width="96" :height="150" name="pdf" />
               <SvgIcon class="folderTour" v-else-if="!item.isPreview && item.isDir === 1" :width="120" :height="150" name="folder" />
               <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.suffixName as string),'document')" :width="115" :height="150" name="txt" />
               <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.suffixName as string),'picture')" :width="98" :height="150" name="picture" />
               <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.suffixName as string),'compress')" :width="98" :height="150" name="compress" />
               <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.suffixName as string),'video')" :width="98" :height="150" name="video" />
-              <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.suffixName as string),'excel')" :width="98" :height="150" name="excel" />
+              <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.suffixName as string),'excel')" :width="106" :height="150" name="excel" />
             </div>
 
             <div class="objectName">
@@ -58,6 +58,7 @@
                   />
               </div>
             </div>
+
           </li>
         </ul>
         <div class="scrollStatus">
@@ -67,11 +68,19 @@
         <el-empty v-if="fileListData.length === 0" description="暂无数据" />
       </div>
 
-      <el-dialog v-model="previewDialog" width="300">
-        <h1>文件预览</h1>
+      <el-dialog top="7vh" style="height:85vh" v-model="previewDialog" width="60%" >
+        <iframe style="width: 100%;height: 80vh" :src="previewUrl"></iframe>
       </el-dialog>
 
       <el-tour v-model="userStore.help">
+        <el-tour-step
+          :target="'.header-left'"
+          title="文件路径操作" >
+          <div>
+            右键文件夹可进行打开、重命名和删除文件夹的操作<br/>
+            双击文件夹可查看其中文件
+          </div>
+        </el-tour-step>
         <el-tour-step
           :target="'.folderTour'"
           title="文件夹操作" >
@@ -116,6 +125,24 @@
         </template>
       </el-dialog>
 
+      <el-dialog v-model="shareVisible" title="分享文件" width="600">
+        <el-input
+          v-model="shareLink"
+          placeholder="Please input"
+        >
+          <template #append>
+            <el-button style="width: 100px;
+                            background-color: #67c23a;
+                            border-radius:0 4px 4px 0 ;
+                            color: #fff;font-size: 15px;
+                            letter-spacing: 2px;
+                            text-align: center"
+                       @click="copyLink"
+            >复制链接</el-button>
+          </template>
+        </el-input>
+      </el-dialog>
+
     </div>
 </template>
 
@@ -131,7 +158,7 @@ import { Search,Plus,Upload } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import type {FormInstance} from "element-plus";
 import { getFileList, uploadFile,createFolder,deleteFolder,
-  renameFile,renameFolder,deleteFile,downloadFile } from '@/api/file'
+  renameFile,renameFolder,deleteFile,previewFile,shareFile } from '@/api/file'
 import type {fileItem,fileList,fileResponse} from '@/api/file/type'
 import type {RouteLocationNormalizedLoaded } from 'vue-router'
 import { SET_PATH,GET_PATH } from '@/utils/path'
@@ -157,18 +184,21 @@ const noMore = computed(() => fileListData.value.length >= 20)
 const disabled = computed(() => loading.value || noMore.value)
 const fileListData = ref<fileList>([])
 const userStore = useUserStore();
-const pictureType:string[] = ['png','jpg','jpeg']
-const compressType:string[] = ['zip','rar','7z']
-const videoType:string[] = ['mp4','mov','flv','avi']
-const documentType:string[] = ['txt','doc','docx','avi']
-const excelType:string[] = ['xlsx','xlsm','xlsb','xltx']
+const pictureType:string[] = ['png','jpg','jpeg','psd','gif','bmp','webp','svg']
+const compressType:string[] = ['zip','rar','7z','jar','gzip','tar']
+const videoType:string[] = ['mp4','mov','flv','avi','wav']
+const documentType:string[] = ['txt','doc','docx','avi','dotx','wps','dps']
+const excelType:string[] = ['xlsx','xlsm','xlsb','xltx','csv','tsv','xla','xls']
 let previewDialog = ref<boolean>(false)
 let bucket: string | undefined = route.meta.bucket ||  route.fullPath
 let uploadVisible = ref<boolean>(false)
 let uploadLoading = ref<boolean>(false)
 let addFolderVisible = ref<boolean>(false)
+let shareVisible = ref<boolean>(false)
 let fullscreenLoading = ref(false)
 const filePath = ref<string>('/')
+const previewUrl = ref<string>('')
+let shareLink = ref<string>('')
 const addFolderRef = ref<FormInstance>()
 let timerId: ReturnType<typeof setTimeout> | null = null;
 const validatorFolderName = (rule:any,value:any,callBack:any)=>{
@@ -265,8 +295,29 @@ const handleCancelPreview = (item:fileItem) =>{
   item.isPreview = false
 }
 
-const previewFile = (item:fileItem) =>{
+const handlePreviewFile = async (item:fileItem) =>{
+  const result:any = await previewFile(bucket as string,item.path + item.fileName,item.id)
+  previewUrl.value = result.data.previewUrl
   previewDialog.value = true
+}
+
+const handleShareFile = async (item:fileItem) =>{
+  try{
+    const result:any = await shareFile(bucket as string,item.path + item.fileName,item.id)
+    shareLink.value = result.data.presignedUrl
+    shareVisible.value = true
+  } catch (error){
+    console.log(error)
+  }
+}
+
+const copyLink = () => {
+  navigator.clipboard.writeText(shareLink.value)
+  ElMessage({
+    message: '复制成功',
+    type: 'success'
+  })
+  shareVisible.value = false
 }
 
 const beforeAddFolder = () =>{
@@ -463,7 +514,7 @@ const onContextMenu = (event:MouseEvent, config:fileItem) =>{
         divided: true,
         icon: 'icon-fenxiang',
         onClick: () => {
-          // this.openDocument(config.id);
+          handleShareFile(config)
         },
       },
       {
