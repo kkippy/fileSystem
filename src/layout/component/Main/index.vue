@@ -1,7 +1,7 @@
 <template>
-  <router-view class="main" style="" >
+  <router-view class="main" style="" v-slot="{ Component }">
     <transition mode="out-in" name="fade">
-      <component :is="userStore.layoutStatus ? ListComponent : GridComponent"  />
+      <component :is="isAuthPage ? Component : layoutComponent" />
     </transition>
   </router-view>
 </template>
@@ -10,7 +10,18 @@
 import GridComponent from "@/views/file/fileBoard.vue"
 import ListComponent from "@/views/section/fileList.vue"
 import {useUserStore} from "@/stores/user";
+import { computed } from 'vue'
+import {useRoute} from 'vue-router'
+
 const userStore = useUserStore();
+const route = useRoute()
+const layoutComponent = computed(()=>{
+  return userStore.layoutStatus ? ListComponent : GridComponent
+})
+
+const isAuthPage = computed(()=>{
+  return route.path === '/auth/user'
+})
 </script>
 
 <script lang="ts">

@@ -255,6 +255,7 @@ const handleCancelPreview = (item:fileItem) =>{
 }
 
 const handlePreviewFile = async (item:fileItem) =>{
+  previewUrl.value = ''
   const result:any = await previewFile(bucket as string,item.path + item.fileName,item.id)
   previewUrl.value = result.data.previewUrl
   previewDialog.value = true

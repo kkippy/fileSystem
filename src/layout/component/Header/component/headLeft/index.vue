@@ -30,7 +30,6 @@ const goBack = (item:string)=>{
   const lastSlashIndex = (GET_PATH()as string).indexOf(item);
   userStore.path =(GET_PATH() as string).slice(0, lastSlashIndex + item.length ) + '/';
   SET_PATH(userStore.path)
-  console.log(GET_PATH,'GET_PATH')
 }
 const goRoot = ()=>{
   userStore.path = '/'
