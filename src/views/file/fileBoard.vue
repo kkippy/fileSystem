@@ -11,7 +11,7 @@
 
           <el-form style="margin-left: 10px">
             <el-form-item label="文件名" style="margin-top: 18px;margin-left: 20px">
-              <el-input id="inputFileField" v-model="searchName" @keyup.enter="onSearch" placeholder="请输入文件名" />
+              <el-input id="inputSearchField" v-model="searchName" @keyup.enter="onSearch" placeholder="请输入文件名" />
             </el-form-item>
           </el-form>
 
@@ -89,7 +89,7 @@
                  style="margin-top: 20px;"
                  label-width="80px">
           <el-form-item prop="folderName" label="文件夹名">
-            <el-input v-model="addFolder.folderName" placeholder="请输入文件夹名" />
+            <el-input id="inputFolderField" @keyup.enter="handleAddFolder" v-model="addFolder.folderName" placeholder="请输入文件夹名" />
           </el-form-item>
         </el-form>
         <template #footer>
@@ -120,8 +120,8 @@ import { Search,Plus,Upload } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import type {FormInstance} from "element-plus";
 import { getFileList, uploadFile,createFolder,deleteFolder,
-  renameFile,renameFolder,deleteFile,previewFile,shareFile } from '@/api/file'
-import type {fileItem,fileList,fileResponse} from '@/api/file/type'
+  renameFile,renameFolder,deleteFile,previewFile,shareFile,searchDocument } from '@/api/file'
+import type {fileItem,fileList,fileResponse,searchFileResponse,searchFileItem} from '@/api/file/type'
 import type {RouteLocationNormalizedLoaded } from 'vue-router'
 import { SET_PATH,GET_PATH } from '@/utils/path'
 import {downloadFileUtil,isSpecialFileType} from '@/utils/fileTools'
@@ -154,7 +154,6 @@ let addFolderVisible = ref<boolean>(false)
 let shareVisible = ref<boolean>(false)
 let fullscreenLoading = ref(false)
 let searchName = ref<string>('')
-let filePath = ref<string>('/')
 let previewUrl = ref<string>('')
 let shareLink = ref<string>('')
 let timerId: ReturnType<typeof setTimeout> | null = null;
@@ -197,6 +196,20 @@ onMounted(()=>{
   getFiles()
 })
 
+const inputFolderField = document.getElementById('inputFolderField');
+inputFolderField?.addEventListener('keyup', function(event) {
+  if (event.key === 'Enter') {
+    handleAddFolder()
+  }
+});
+
+const inputSearchField = document.getElementById('inputSearchField');
+inputSearchField?.addEventListener('keyup', function(event) {
+  if (event.key === 'Enter') {
+    onSearch()
+  }
+});
+
 const getFiles = async () =>{
   const result:fileResponse = await getFileList(bucket as string,userStore.path )
   if(result.code === 200){
@@ -215,7 +228,7 @@ const handleChangeUpload = async(file:any) =>{
   formData.append('uploadFile',file);
   try {
     uploadLoading.value = true
-    const result:any = await uploadFile({ bucket: bucket, path:filePath.value, uploadFile: file.raw })
+    const result:any = await uploadFile({ bucket: bucket, path:userStore.path, uploadFile: file.raw })
     if(result.code === 200){
       ElMessage({
         message: '上传成功',
@@ -273,7 +286,7 @@ const beforeAddFolder = () =>{
 
 const handleAddFolder = async ()=>{
   await addFolderRef.value?.validate()
-  const result:any = await createFolder(bucket as string,addFolder.folderName,filePath.value)
+  const result:any = await createFolder(bucket as string,addFolder.folderName,userStore.path)
   if(result.code === 500){
     ElMessage({
       message: result.msg,
@@ -295,16 +308,16 @@ const handleDownloadFile = async (item:fileItem) =>{
   fullscreenLoading.value = false
 }
 
-const onSearch = () => {
-  ElMessage({
-    message: '暂未开放',
-    type: 'warning'
-  })
-  searchName.value = ''
+const onSearch = async () => {
+  const result:searchFileResponse = await searchDocument(bucket as string,userStore.path,searchName.value)
+  if(result.code === 200){
+    fileListData.value = result.data || []
+  }
 }
 
 const reset = () => {
   searchName.value = ''
+  getFiles()
 }
 
 const scrollLoad = () => {
@@ -501,10 +514,9 @@ const onContextMenu = (event:MouseEvent, config:fileItem) =>{
 
 const goToFile = async (item:fileItem) => {
   if(item.isDir === 0) return
-  filePath.value = item.path + item.fileName + '/'
-  userStore.path = filePath.value
+  userStore.path = item.path + item.fileName + '/'
   SET_PATH(userStore.path)
-  const result:fileResponse = await getFileList(bucket as string,filePath.value)
+  const result:fileResponse = await getFileList(bucket as string,userStore.path)
   fileListData.value = result.data || []
 };
 

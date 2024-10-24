@@ -1,3 +1,8 @@
+export interface ResponseData {
+  code: number;
+  msg:string
+}
+
 export interface fileItem {
   bucket: string;          // 存储桶名称
   createTime: string;     // 创建时间
@@ -21,8 +26,30 @@ export interface fileItem {
 
 export type fileList = fileItem[];
 
-export interface fileResponse {
-  code: number;
-  msg:string
+export interface searchFileItem {
+  id: number;
+  parentId: number;
+  bucket: string;
+  fileName: string;
+  timeName: string;
+  suffixName: string | null;
+  isDir: number;
+  isImg: number;
+  fileSize: number | null;
+  fileDepth: number;
+  status: number;
+  createTime: string;
+  updateTime: string;
+  userId: number;
+  path: string;
+  presignedUrl: string | null;
+  previewUrl: string | null;
+}
+
+export interface fileResponse extends ResponseData{
   data:fileList
+}
+
+export interface searchFileResponse extends ResponseData{
+  data:searchFileItem[]
 }

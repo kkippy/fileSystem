@@ -1,8 +1,6 @@
 import request from "@/utils/request"
-import type {fileResponse} from './type'
+import type {fileResponse,searchFileResponse} from './type'
 enum FILE_API {
-  // GET_ALL_BUCKET_URL = '/api/file/list', //查询所有桶
-  DELETE_BUCKET_URL = '/api/file/deleteBucket', //删除桶
   UPLOAD_FILE_URL = '/api/file/uploadFile', //上传文件
   DOWNLOAD_FILE_URL = '/api/file/downloadFile', //下载文件
   RENAME_FILE_URL = '/api/file/updateFile',
@@ -12,12 +10,9 @@ enum FILE_API {
   CREATE_FOLDER_URL = '/api/file/createFolder',
   RENAME_FOLDER_URL = '/api/file/updateFolder',
   DELETE_FOLDER_URL = '/api/file/deleteFolder',
-  PREVIEW_FILE_URL = '/api/file/preview'
+  PREVIEW_FILE_URL = '/api/file/preview',
+  SEARCH_DOCUMENT_URL = '/api/file/search'
 }
-
-// export const getAllBuckets = ()=>request.get<any>(FILE_API.GET_ALL_BUCKET_URL)
-
-export const deleteBucket = (bucketName:string)=>request.get<any>(FILE_API.DELETE_BUCKET_URL+`?bucketName=${bucketName}`)
 
 export const uploadFile = (data:any)=>{
   return request.post<any>(FILE_API.UPLOAD_FILE_URL,data,{
@@ -43,6 +38,9 @@ export const shareFile = (bucket:string,objectName:string,fileId:number)=>reques
 export const createFolder = (bucket:string,folderName:string,path:string)=>request.get<any>(FILE_API.CREATE_FOLDER_URL+`?bucket=${bucket}&folderName=${folderName}&path=${path}`)
 
 export const previewFile = (bucket:string,objectName:string,fileId:number)=>request.get<any>(FILE_API.PREVIEW_FILE_URL+`?bucket=${bucket}&objectName=${objectName}&fileId=${fileId}`)
+
 export const renameFolder = (bucket:string,folderName:string,path:string,fileId:string)=>request.get<any>(FILE_API.RENAME_FOLDER_URL+`?bucket=${bucket}&folderName=${folderName}&path=${path}&fileId=${fileId}`)
 
 export const deleteFolder = (fileId:string)=>request.get<any>(FILE_API.DELETE_FOLDER_URL+`?fileId=${fileId}`)
+
+export const searchDocument = (bucket:string,path:string,searchName:string)=>request.get<any,searchFileResponse>(FILE_API.SEARCH_DOCUMENT_URL+`?bucket=${bucket}&path=${path}&searchName=${searchName}`)
