@@ -2,14 +2,14 @@
   <div>
     <div class="header" >
       <el-form>
-        <el-form-item label="姓名" style="margin-top: 18px;margin-left: 20px">
+        <el-form-item style="margin-top: 18px;margin-left: 20px">
           <el-input id="inputUserField" v-model="searchUserName" @keyup.enter="onSearch" placeholder="请输入姓名" />
         </el-form-item>
       </el-form>
 
-      <div style="margin-right: 40px">
+      <div style="margin-left: 20px">
         <el-button type="primary" :icon="Search" @click="onSearch" :disabled="!searchUserName">搜索</el-button>
-        <el-button @click="reset">重置</el-button>
+        <el-button @click="reset" :icon="Refresh">重置</el-button>
       </div>
     </div>
 
@@ -27,7 +27,7 @@
         @selection-change="selectChange"
         :data="userData"
         border
-        height="67vh"
+        height="65vh"
         style="width: 100%;margin-top: 20px">
         <el-table-column align="center" type="selection" ></el-table-column>
         <el-table-column align="center" type="index" label="序号" width="80" />
@@ -138,7 +138,7 @@
 
 <script setup lang="ts">
 import {ref, onMounted, reactive,nextTick,computed} from "vue";
-import {Delete, Edit, Plus, Search} from "@element-plus/icons-vue";
+import { Delete, Edit, Plus, Refresh, Search } from '@element-plus/icons-vue'
 import {ElMessage} from "element-plus";
 import type {ComponentSize,FormInstance} from "element-plus";
 import {searchUser,addOrUpdateUser,deleteUser} from '@/api/user'
@@ -386,7 +386,7 @@ const confirmClick = async () => {
 .header {
   border-radius: 10px;
   display: flex;
-  justify-content: space-between;
+  justify-content: start;
   align-items: center;
   flex-direction: row;
   box-shadow: 0 0 12px rgba(0,0,0,0.12);

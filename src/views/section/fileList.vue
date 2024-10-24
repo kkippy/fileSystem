@@ -7,14 +7,14 @@
 
     <div class="header" >
       <el-form>
-        <el-form-item label="文件名" style="margin-top: 18px;margin-left: 20px">
+        <el-form-item style="margin-top: 18px;margin-left: 20px">
           <el-input id="inputFileField" v-model="searchFileName" @keyup.enter="onSearch" placeholder="请输入文件名" />
         </el-form-item>
       </el-form>
 
       <div style="margin-right: 40px">
         <el-button type="primary" :icon="Search" @click="onSearch" :disabled="!searchFileName">搜索</el-button>
-        <el-button @click="reset">重置</el-button>
+        <el-button @click="reset" :icon="Refresh" >重置</el-button>
       </div>
     </div>
 
@@ -87,7 +87,7 @@ import {downloadFileUtil} from '@/utils/fileTools'
 import { useRoute } from 'vue-router'
 import type {RouteLocationNormalizedLoaded } from 'vue-router'
 import type {fileResponse,fileList}  from '@/api/file/type'
-import { Search } from '@element-plus/icons-vue'
+import { Refresh, Search } from '@element-plus/icons-vue'
 
 interface Route extends RouteLocationNormalizedLoaded{
   meta:  {

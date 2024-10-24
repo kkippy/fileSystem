@@ -16,14 +16,13 @@
       <span style="margin-left: 5px;">上传文件</span>
     </el-button>
 
-
     <el-table
       :data="menuData"
       v-loading="loading"
       border
-      height="68vh"
+      height="65vh"
       style="width: 100%;
-      margin-top: 20px"
+      margin-top: 10px"
       row-key="id"
       @selection-change="selectChange"
     >

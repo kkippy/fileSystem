@@ -10,14 +10,14 @@
           <el-button type="success" :icon="Upload" @click=" uploadVisible = true" >上传文件</el-button>
 
           <el-form style="margin-left: 10px">
-            <el-form-item label="文件名" style="margin-top: 18px;margin-left: 20px">
+            <el-form-item style="margin-top: 18px;margin-left: 20px">
               <el-input id="inputSearchField" v-model="searchName" @keyup.enter="onSearch" placeholder="请输入文件名" />
             </el-form-item>
           </el-form>
 
           <div style="margin-left: 20px">
             <el-button type="primary" :icon="Search" @click="onSearch" :disabled="!searchName">搜索</el-button>
-            <el-button @click="reset">重置</el-button>
+            <el-button @click="reset" :icon="Refresh">重置</el-button>
           </div>
         </div>
       </div>
@@ -116,7 +116,7 @@ import CustomTour from '@/components/Tour/index.vue'
 import ShareDialog from '@/components/ShareDialog/index.vue'
 import ContextMenu from '@imengyu/vue3-context-menu'
 import { useUserStore } from '@/stores/user'
-import { Search,Plus,Upload } from '@element-plus/icons-vue'
+import { Search,Plus,Upload,Refresh } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import type {FormInstance} from "element-plus";
 import { getFileList, uploadFile,createFolder,deleteFolder,
