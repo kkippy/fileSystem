@@ -35,11 +35,25 @@
         <el-table-column align="center" show-overflow-tooltip prop="name" label="姓名" />
         <el-table-column align="center" show-overflow-tooltip prop="number" label="工号" />
         <el-table-column align="center" show-overflow-tooltip prop="roleName" label="用户角色" width="100" />
-        <el-table-column align="center" show-overflow-tooltip prop="createTime" label="创建时间" width="180" />
         <el-table-column align="center" show-overflow-tooltip prop="updateTime" label="更新时间" width="180" />
+        <el-table-column align="center" show-overflow-tooltip prop="userStatus" label="用户状态" width="100" >
+          <template #default={row}>
+            <el-switch
+              v-model="row.userStatus"
+              @change="handleUserStatusChange(row)"
+              inline-prompt
+              style="--el-switch-on-color: #13ce66;
+            --el-switch-off-color: #ff4949"
+              active-text="正常"
+              inactive-text="禁用"
+            />
+          </template>
+
+        </el-table-column>
         <el-table-column align="center" label="操作" width="250">
           <template #default="{row}">
-            <el-button :disabled="currentUser !== 'admin' && row.roleName === '管理员'"
+            <el-button :disabled="(row.roleName === '管理' && (currentUser !== row.username && row.roleName !== '普通用户')) ||
+              (row.roleName === '管理员' && userStore.userRole !== 'admin')"
                        :icon="Edit"
                        type="primary"
                        @click="handleEditUser(row)"
@@ -77,13 +91,13 @@
     </el-card>
     <el-drawer
       v-model="drawer"
-      :title="formShow? '修改用户' : '添加用户'"
+      title="修改用户"
       size="500"
       :before-close="handleClose"
     >
       <template #default>
         <div>
-          <el-form ref="userFromRef" :model="userFrom" :rules="!userFrom.id ? addRules : updateRules">
+          <el-form ref="userFromRef" :model="userFrom" :rules="updateRules">
 
             <el-form-item label="姓名" prop="name" label-width="90px">
               <el-input placeholder="请输入姓名" v-model="userFrom.name" />
@@ -101,7 +115,7 @@
               <el-input placeholder="请输入用户密码" v-model="userFrom.password" />
             </el-form-item>
 
-            <el-form-item v-if="canChangeRole && userFrom.id"  label="用户角色" prop="roleName" label-width="90px">
+            <el-form-item v-if="canChangeRole"  label="用户角色" prop="roleName" label-width="90px">
               <el-select
                 v-model="userFrom.roleName"
                 placeholder="Select"
@@ -133,6 +147,50 @@
         </div>
       </template>
     </el-drawer>
+
+
+    <el-dialog title="添加用户" v-model="addUserVisible" width="500px">
+      <el-form ref="addUserFromRef" :model="userFrom" :rules="addRules">
+        <el-form-item label="姓名" label-width="90px">
+          <el-input placeholder="请输入姓名" v-model="userFrom.name" />
+        </el-form-item>
+        <el-form-item label="账号" label-width="90px">
+          <el-input placeholder="请输入账号" v-model="userFrom.username" />
+        </el-form-item>
+        <el-form-item label="工号" label-width="90px">
+          <el-input placeholder="请输入工号" v-model="userFrom.number" />
+        </el-form-item>
+        <el-form-item label="用户密码" label-width="90px">
+          <el-input placeholder="请输入用户密码" v-model="userFrom.password" />
+        </el-form-item>
+        <el-form-item label="用户角色" label-width="90px">
+            <el-select
+              v-model="userFrom.roleName"
+              placeholder="请选择用户角色"
+            >
+              <el-option
+                v-for="item in options"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-select>
+        </el-form-item>
+        <el-form-item label="手机号" label-width="90px">
+          <el-input placeholder="请输入手机号" v-model="userFrom.phone" />
+        </el-form-item>
+        <el-form-item label="邮箱" label-width="90px">
+          <el-input placeholder="请输入邮箱" v-model="userFrom.mail" />
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <div style="flex: auto">
+          <el-button @click="addUserVisible = false">取消</el-button>
+          <el-button type="primary" @click="confirmAddClick">提交</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -150,14 +208,15 @@ let pageSize = ref<number>(10)
 let total = ref<number>(0)
 let drawer = ref<boolean>(false)
 let userFromRef = ref<FormInstance>()
+let addUserFromRef = ref<FormInstance>()
 let currentUserName = ref<string>('')
 let searchUserName = ref<string>('')
 const removeUserIdList = ref([])
 const userData = ref([])
 const userStore = useUserStore()
 const loading = ref<boolean>(true)
-const formShow = ref(false)
 const currentPassword = ref('')
+const addUserVisible = ref<boolean>(false)
 export interface IUserForm {
   id?:number,
   username:string,
@@ -167,10 +226,11 @@ export interface IUserForm {
   phone:string,
   roleName:string,
   mail:string,
+  userStatus:string,
 }
 
 const currentUser = computed(()=>{
-  return userStore.userRole
+  return userStore.userName
 })
 
 const validatorUserName = (rule: any, value: any, callback: any) => {
@@ -232,7 +292,8 @@ const userFrom = reactive<IUserForm>({
   number:"",
   phone:"",
   roleName:"",
-  mail:""
+  mail:"",
+  userStatus:""
 })
 
 const options = [
@@ -288,7 +349,7 @@ const handleAddUser = () => {
   nextTick(() => {
     userFromRef.value?.clearValidate()
   })
-  drawer.value = true
+  addUserVisible.value = true
 }
 
 const handleClose = (done: () => void) => {
@@ -363,7 +424,7 @@ const confirmClick = async () => {
   const result:any = await addOrUpdateUser(userFrom)
   if(result.code === 200){
     ElMessage({
-      message: !userFrom.id ? '添加成功' : '修改成功',
+      message: '修改成功',
       type: "success"
     })
     drawer.value = false
@@ -379,6 +440,33 @@ const confirmClick = async () => {
     })
     drawer.value = true
   }
+}
+
+const confirmAddClick = async () => {
+  try {
+    await addUserFromRef.value?.validate()
+    const result: any = await addOrUpdateUser(userFrom)
+    if (result.code === 200) {
+      ElMessage({
+        message: '添加成功',
+        type: "success"
+      })
+    }
+  } catch (error){
+    ElMessage({
+      message: '添加失败',
+      type: "error"
+    })
+  } finally {
+    addUserVisible.value = false
+  }
+
+}
+
+const handleUserStatusChange = async (row:any) => {
+  // console.log(row)
+  // row.userStatus = row.userStatus !== '1'
+  // row.userStatus = '1'
 }
 </script>
 
