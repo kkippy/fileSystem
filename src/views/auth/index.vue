@@ -148,7 +148,6 @@
       </template>
     </el-drawer>
 
-
     <el-dialog title="添加用户" v-model="addUserVisible" width="500px">
       <el-form ref="addUserFromRef" :model="userFrom" :rules="addRules">
         <el-form-item label="姓名" label-width="90px">
@@ -163,7 +162,7 @@
         <el-form-item label="用户密码" label-width="90px">
           <el-input placeholder="请输入用户密码" v-model="userFrom.password" />
         </el-form-item>
-        <el-form-item label="用户角色" label-width="90px">
+        <el-form-item v-if="canChangeRole" label="用户角色" label-width="90px">
             <el-select
               v-model="userFrom.roleName"
               placeholder="请选择用户角色"
@@ -184,6 +183,7 @@
         </el-form-item>
       </el-form>
 
+
       <template #footer>
         <div style="flex: auto">
           <el-button @click="addUserVisible = false">取消</el-button>
@@ -197,7 +197,7 @@
 <script setup lang="ts">
 import {ref, onMounted, reactive,nextTick,computed} from "vue";
 import { Delete, Edit, Plus, Refresh, Search } from '@element-plus/icons-vue'
-import {ElMessage} from "element-plus";
+import { ElMessage} from 'element-plus'
 import type {ComponentSize,FormInstance} from "element-plus";
 import {searchUser,addOrUpdateUser,deleteUser} from '@/api/user'
 import {useUserStore} from "@/stores/user"
@@ -226,11 +226,25 @@ export interface IUserForm {
   phone:string,
   roleName:string,
   mail:string,
-  userStatus:string,
+  userStatus?:string,
 }
 
 const currentUser = computed(()=>{
   return userStore.userName
+})
+
+const canChangeRole = computed(()=>{
+  return userStore.userRole === 'admin';
+})
+
+const userFrom = reactive<IUserForm>({
+  username:"",
+  name:"",
+  password:"",
+  number:"",
+  phone:"",
+  roleName:"",
+  mail:"",
 })
 
 const validatorUserName = (rule: any, value: any, callback: any) => {
@@ -240,10 +254,6 @@ const validatorUserName = (rule: any, value: any, callback: any) => {
     callback()
   }
 }
-
-const canChangeRole = computed(()=>{
-  return userStore.userRole === 'admin';
-})
 
 const validatorPassword = (rule:any,value:any,callBack:any)=>{
   if(value.trim().length < 6){
@@ -281,19 +291,6 @@ const addRules = reactive({
       trigger: 'change',
     }
   ]
-})
-
-const updateRules = reactive({})
-
-const userFrom = reactive<IUserForm>({
-  username:"",
-  name:"",
-  password:"",
-  number:"",
-  phone:"",
-  roleName:"",
-  mail:"",
-  userStatus:""
 })
 
 const options = [
@@ -343,28 +340,28 @@ const handleAddUser = () => {
       roleCode:'user'
     }
   )))
-  if(addUserFromRef.value) {
-    addUserFromRef.value.clearValidate()
-  }
-  nextTick(() => {
-    addUserFromRef.value?.clearValidate()
-  })
+  // if(addUserFromRef.value) {
+  //   addUserFromRef.value.clearValidate()
+  // }
+  // nextTick(() => {
+  //   addUserFromRef.value?.clearValidate()
+  // })
   addUserVisible.value = true
 }
 
 const handleClose = (done: () => void) => {
-  userFromRef.value?.clearValidate()
-  Object.assign(userFrom,
-    {
-      username:"",
-      name:"",
-      password:"",
-      number:"",
-      roleCode:'user',
-      mail:'',
-      phone:''
-    }
-  )
+  // userFromRef.value?.clearValidate()
+  // Object.assign(userFrom,
+  //   {
+  //     username:"",
+  //     name:"",
+  //     password:"",
+  //     number:"",
+  //     // roleCode:'user',
+  //     mail:'',
+  //     phone:''
+  //   }
+  // )
   done()
 }
 
@@ -407,6 +404,8 @@ const getUser = async (pager = 1) => {
   currentPage.value = pager
   loading.value = true
   const result:any = await searchUser(currentPage.value,pageSize.value)
+  console.log(result)
+  result.items.forEach((item:any) => item.userStatus = item.userStatus !== '1')
   loading.value = false
   userData.value = result.items
   total.value = result.counts
@@ -417,7 +416,6 @@ const cancelClick = () => {
 }
 
 const confirmClick = async () => {
-  await userFromRef.value?.validate()
   if(userFromRef.value?.fields[3].fieldValue === '') {
     userFrom.password = currentPassword.value
   }
@@ -446,6 +444,7 @@ const confirmClick = async () => {
 const confirmAddClick = async () => {
   try {
     await addUserFromRef.value?.validate()
+    console.log(userFrom,'userFrom')
     const result: any = await addOrUpdateUser(userFrom)
     console.log(result,'添加用户')
     if (result.code === 200) {

@@ -41,6 +41,13 @@ request.interceptors.response.use( res=>{
       showMessage = true;
     }
   }
+
+  if(message === '用户已禁用'){
+    ElMessage({
+      type: 'error',
+      message: "用户已禁用，请联系管理员",
+    });
+  }
     return res.data
 },async error=>{
     //失败的回调
