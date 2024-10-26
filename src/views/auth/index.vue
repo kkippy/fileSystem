@@ -150,19 +150,19 @@
 
     <el-dialog title="添加用户" v-model="addUserVisible" width="500px">
       <el-form ref="addUserFromRef" :model="userFrom" :rules="addRules">
-        <el-form-item label="姓名" label-width="90px">
+        <el-form-item label="姓名"  prop="name" label-width="90px">
           <el-input placeholder="请输入姓名" v-model="userFrom.name" />
         </el-form-item>
-        <el-form-item label="账号" label-width="90px">
-          <el-input placeholder="请输入账号" v-model="userFrom.username" />
+        <el-form-item label="账号" prop="username" label-width="90px">
+          <el-input placeholder="请输入账号"  v-model="userFrom.username" />
         </el-form-item>
-        <el-form-item label="工号" label-width="90px">
-          <el-input placeholder="请输入工号" v-model="userFrom.number" />
+        <el-form-item label="工号" prop="number" label-width="90px">
+          <el-input placeholder="请输入工号"  v-model="userFrom.number" />
         </el-form-item>
-        <el-form-item label="用户密码" label-width="90px">
+        <el-form-item label="用户密码" prop="password" label-width="90px">
           <el-input placeholder="请输入用户密码" v-model="userFrom.password" />
         </el-form-item>
-        <el-form-item v-if="canChangeRole" label="用户角色" label-width="90px">
+        <el-form-item v-if="canChangeRole" prop="roleName" label="用户角色" label-width="90px">
             <el-select
               v-model="userFrom.roleName"
               placeholder="请选择用户角色"
@@ -340,12 +340,12 @@ const handleAddUser = () => {
       roleCode:'user'
     }
   )))
-  // if(addUserFromRef.value) {
-  //   addUserFromRef.value.clearValidate()
-  // }
-  // nextTick(() => {
-  //   addUserFromRef.value?.clearValidate()
-  // })
+  if(addUserFromRef.value) {
+    addUserFromRef.value.clearValidate()
+  }
+  nextTick(() => {
+    addUserFromRef.value?.clearValidate()
+  })
   addUserVisible.value = true
 }
 
@@ -444,25 +444,28 @@ const confirmClick = async () => {
 const confirmAddClick = async () => {
   try {
     await addUserFromRef.value?.validate()
-    console.log(userFrom,'userFrom')
     const result: any = await addOrUpdateUser(userFrom)
-    console.log(result,'添加用户')
     if (result.code === 200) {
       ElMessage({
         message: '添加成功',
         type: "success"
       })
+      addUserVisible.value = false
       await getUser()
+    } else {
+      if( result.msg === '用户已存在' ){
+        ElMessage({
+          message: '用户已存在',
+          type: "error"
+        })
+      }
     }
   } catch (error){
     ElMessage({
       message: '添加失败',
       type: "error"
     })
-  } finally {
-    addUserVisible.value = false
   }
-
 }
 
 const handleUserStatusChange = async (row:any) => {
