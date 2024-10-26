@@ -97,7 +97,7 @@
     >
       <template #default>
         <div>
-          <el-form ref="userFromRef" :model="userFrom" :rules="updateRules">
+          <el-form ref="userFromRef" :model="userFrom" >
 
             <el-form-item label="姓名" prop="name" label-width="90px">
               <el-input placeholder="请输入姓名" v-model="userFrom.name" />
@@ -343,11 +343,11 @@ const handleAddUser = () => {
       roleCode:'user'
     }
   )))
-  if(userFromRef.value) {
-    userFromRef.value.clearValidate()
+  if(addUserFromRef.value) {
+    addUserFromRef.value.clearValidate()
   }
   nextTick(() => {
-    userFromRef.value?.clearValidate()
+    addUserFromRef.value?.clearValidate()
   })
   addUserVisible.value = true
 }
@@ -422,6 +422,7 @@ const confirmClick = async () => {
     userFrom.password = currentPassword.value
   }
   const result:any = await addOrUpdateUser(userFrom)
+  console.log(result,'更新')
   if(result.code === 200){
     ElMessage({
       message: '修改成功',
@@ -446,11 +447,13 @@ const confirmAddClick = async () => {
   try {
     await addUserFromRef.value?.validate()
     const result: any = await addOrUpdateUser(userFrom)
+    console.log(result,'添加用户')
     if (result.code === 200) {
       ElMessage({
         message: '添加成功',
         type: "success"
       })
+      await getUser()
     }
   } catch (error){
     ElMessage({
