@@ -1,26 +1,27 @@
 <template>
   <div>
-    <div class="header" >
-      <el-form>
-        <el-form-item style="margin-top: 18px;margin-left: 20px">
-          <el-input id="inputUserField" v-model="searchUserName" @keyup.enter="onSearch" placeholder="请输入姓名" />
-        </el-form-item>
-      </el-form>
+    <el-card style="border-radius: 10px">
+      <div class="header" >
+        <el-button type="primary" style="margin-right: 10px" :icon="Plus" @click="handleAddUser">
+          <span style="margin-left: 5px;">添加用户</span>
+        </el-button>
 
-      <div style="margin-left: 20px">
-        <el-button type="primary" :icon="Search" @click="onSearch" :disabled="!searchUserName">搜索</el-button>
-        <el-button @click="reset" :icon="Refresh">重置</el-button>
+        <el-button type="danger" :icon="Delete" @click="handleDelete" :disabled="!removeUserIdList.length">
+          <span style="margin-left: 5px;">批量删除</span>
+        </el-button>
+
+        <el-form >
+          <el-form-item style="margin-left: 20px;margin-bottom: 0">
+            <el-input id="inputUserField" v-model="searchUserName" @keyup.enter="onSearch" placeholder="请输入姓名" />
+          </el-form-item>
+        </el-form>
+
+        <div style="margin-left: 20px">
+          <el-button type="primary" :icon="Search" @click="onSearch" :disabled="!searchUserName">搜索</el-button>
+          <el-button @click="reset" :icon="Refresh">重置</el-button>
+        </div>
       </div>
-    </div>
 
-    <el-card style="margin-top: 20px;border-radius: 10px">
-      <el-button type="primary" style="margin-right: 10px" :icon="Plus" @click="handleAddUser">
-        <span style="margin-left: 5px;">添加用户</span>
-      </el-button>
-
-      <el-button type="danger" :icon="Delete" @click="handleDelete" :disabled="!removeUserIdList.length">
-        <span style="margin-left: 5px;">批量删除</span>
-      </el-button>
 
       <el-table
         v-loading="loading"
@@ -465,7 +466,6 @@ const handleUserStatusChange = async (row:any) => {
   justify-content: start;
   align-items: center;
   flex-direction: row;
-  box-shadow: 0 0 12px rgba(0,0,0,0.12);
 
   .el-card__body {
     padding: 0;
