@@ -93,7 +93,6 @@
       v-model="drawer"
       title="修改用户"
       size="500"
-      :before-close="handleClose"
     >
       <template #default>
         <div>
@@ -349,22 +348,6 @@ const handleAddUser = () => {
   addUserVisible.value = true
 }
 
-const handleClose = (done: () => void) => {
-  // userFromRef.value?.clearValidate()
-  // Object.assign(userFrom,
-  //   {
-  //     username:"",
-  //     name:"",
-  //     password:"",
-  //     number:"",
-  //     // roleCode:'user',
-  //     mail:'',
-  //     phone:''
-  //   }
-  // )
-  done()
-}
-
 const selectChange = (value:any) => {
   removeUserIdList.value = value
 }
@@ -404,7 +387,6 @@ const getUser = async (pager = 1) => {
   currentPage.value = pager
   loading.value = true
   const result:any = await searchUser(currentPage.value,pageSize.value)
-  console.log(result)
   result.items.forEach((item:any) => item.userStatus = item.userStatus !== '1')
   loading.value = false
   userData.value = result.items
@@ -420,7 +402,6 @@ const confirmClick = async () => {
     userFrom.password = currentPassword.value
   }
   const result:any = await addOrUpdateUser(userFrom)
-  console.log(result,'更新')
   if(result.code === 200){
     ElMessage({
       message: '修改成功',
@@ -469,9 +450,11 @@ const confirmAddClick = async () => {
 }
 
 const handleUserStatusChange = async (row:any) => {
-  // console.log(row)
-  // row.userStatus = row.userStatus !== '1'
-  // row.userStatus = '1'
+  row.userStatus = row.userStatus === '1' ? '0' : '1'
+  await addOrUpdateUser(row)
+  ElMessage({
+    message: '状态修改成功',
+  })
 }
 </script>
 
