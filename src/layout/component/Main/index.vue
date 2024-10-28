@@ -20,7 +20,7 @@ const layoutComponent = computed(()=>{
 })
 
 const isAuthPage = computed(()=>{
-  return route.path === '/auth/user'
+  return route.path === '/auth/user' || '/auth/role'
 })
 </script>
 

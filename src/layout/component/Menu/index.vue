@@ -59,6 +59,7 @@ watch(()=>props.menuList,()=>{
   menuList.value = props.menuList
 })
 const toView = (vc:any) => {
+  console.log(vc,'vc')
   router.push(vc.index)
 }
 </script>

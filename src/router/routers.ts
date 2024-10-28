@@ -140,10 +140,10 @@ export const constantRoute = [
       {
         path: '/auth/role',
         name: 'Role',
-        component: ()=>import('@/views/auth/index.vue'),
+        component: ()=>import('@/views/auth/role.vue'),
         meta: {
-          title: '角色管理',
-          hidden: true,
+          title: '小组管理',
+          hidden: false,
           icon:'role'
         },
       },

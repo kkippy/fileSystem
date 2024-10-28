@@ -149,7 +149,7 @@
     </el-drawer>
 
     <el-dialog title="添加用户" v-model="addUserVisible" width="500px">
-      <el-form ref="addUserFromRef" :model="userFrom" :rules="addRules">
+      <el-form ref="addUserFromRef" status-icon :model="userFrom" :rules="addRules">
         <el-form-item label="姓名"  prop="name" label-width="90px">
           <el-input placeholder="请输入姓名" v-model="userFrom.name" />
         </el-form-item>
@@ -160,7 +160,10 @@
           <el-input placeholder="请输入工号"  v-model="userFrom.number" />
         </el-form-item>
         <el-form-item label="用户密码" prop="password" label-width="90px">
-          <el-input placeholder="请输入用户密码" v-model="userFrom.password" />
+          <el-input type="password" placeholder="请输入用户密码" autocomplete="off" v-model="userFrom.password" />
+        </el-form-item>
+        <el-form-item label="确认密码" prop="confirmPassword" label-width="90px">
+          <el-input type="password" placeholder="请再次输入密码" autocomplete="off" v-model="userFrom.confirmPassword" />
         </el-form-item>
         <el-form-item v-if="canChangeRole" prop="roleName" label="用户角色" label-width="90px">
             <el-select
@@ -227,6 +230,7 @@ export interface IUserForm {
   roleName:string,
   mail:string,
   userStatus?:number | boolean,
+  confirmPassword:string
 }
 
 const currentUser = computed(()=>{
@@ -245,6 +249,7 @@ const userFrom = reactive<IUserForm>({
   phone:"",
   roleName:"",
   mail:"",
+  confirmPassword:""
 })
 
 const validatorUserName = (rule: any, value: any, callback: any) => {
@@ -271,6 +276,14 @@ const validatorNumber = (rule:any,value:any,callBack:any)=>{
   }
 }
 
+const validatorConfirmPassword = (rule:any,value:any,callBack:any)=>{
+  if(value !== userFrom.password){
+    callBack(new Error('两次密码不一致'))
+  }else{
+    callBack()
+  }
+}
+
 const addRules = reactive({
   account:[
     {required:true,trigger:"blur",validator:validatorUserName}
@@ -283,6 +296,9 @@ const addRules = reactive({
   ],
   password:[
     {required:true,trigger:"blur",validator:validatorPassword}
+  ],
+  confirmPassword:[
+    {required:true,trigger:"blur",validator:validatorConfirmPassword}
   ],
   roleName:[
     {
