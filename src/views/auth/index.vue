@@ -1,27 +1,23 @@
 <template>
   <div>
     <el-card style="border-radius: 10px">
-      <div class="header" >
-        <el-button type="primary" style="margin-right: 10px" :icon="Plus" @click="handleAddUser">
-          <span style="margin-left: 5px;">添加用户</span>
-        </el-button>
+      <search-header-component
+        class="myHeader"
+        placeholderTitle="请输入姓名"
+        @onSearch="onSearch"
+        @reset="reset"
+      >
+        <template #searchBtn>
+          <el-button type="primary" style="margin-left: 20px; margin-right: 10px" :icon="Plus" @click="handleAddUser">
+            <span style="margin-left: 5px;">添加用户</span>
+          </el-button>
 
-        <el-button type="danger" :icon="Delete" @click="handleDelete" :disabled="!removeUserIdList.length">
-          <span style="margin-left: 5px;">批量删除</span>
-        </el-button>
+          <el-button type="danger" :icon="Delete" @click="handleDelete" :disabled="!removeUserIdList.length">
+            <span style="margin-left: 5px;">批量删除</span>
+          </el-button>
 
-        <el-form >
-          <el-form-item style="margin-left: 20px;margin-bottom: 0">
-            <el-input id="inputUserField" v-model="searchUserName" @keyup.enter="onSearch" placeholder="请输入姓名" />
-          </el-form-item>
-        </el-form>
-
-        <div style="margin-left: 20px">
-          <el-button type="primary" :icon="Search" @click="onSearch" :disabled="!searchUserName">搜索</el-button>
-          <el-button @click="reset" :icon="Refresh">重置</el-button>
-        </div>
-      </div>
-
+        </template>
+      </search-header-component>
 
       <el-table
         v-loading="loading"
@@ -29,7 +25,7 @@
         :data="userData"
         border
         height="65vh"
-        style="width: 100%;margin-top: 20px">
+        style="width: 100%">
         <el-table-column align="center" type="selection" ></el-table-column>
         <el-table-column align="center" type="index" label="序号" width="80" />
         <el-table-column align="center" show-overflow-tooltip prop="account" label="登录名" />
@@ -199,11 +195,12 @@
 
 <script setup lang="ts">
 import {ref, onMounted, reactive,nextTick,computed} from "vue";
-import { Delete, Edit, Plus, Refresh, Search } from '@element-plus/icons-vue'
+import { Delete, Edit, Plus} from '@element-plus/icons-vue'
 import { ElMessage} from 'element-plus'
 import type {ComponentSize,FormInstance} from "element-plus";
 import {searchUser,addOrUpdateUser,deleteUser} from '@/api/user'
 import {useUserStore} from "@/stores/user"
+import SearchHeaderComponent from '@/components/SearchHeader/index.vue'
 
 let size = ref<ComponentSize>('default')
 let currentPage = ref<number>(1)
@@ -213,7 +210,6 @@ let drawer = ref<boolean>(false)
 let userFromRef = ref<FormInstance>()
 let addUserFromRef = ref<FormInstance>()
 let currentUserName = ref<string>('')
-let searchUserName = ref<string>('')
 const removeUserIdList = ref([])
 const userData = ref([])
 const userStore = useUserStore()
@@ -328,22 +324,14 @@ onMounted(()=>{
   getUser()
 })
 
-const inputField = document.getElementById('inputUserField');
-inputField?.addEventListener('keyup', function(event) {
-  if (event.key === 'Enter') {
-    onSearch()
-  }
-});
-
-const onSearch = async () => {
+const onSearch = async (searchValue:string) => {
   const result:any = await searchUser( currentPage.value,
-    pageSize.value,{name:searchUserName.value} )
+    pageSize.value,{name:searchValue} )
     userData.value = result.items
     total.value = result.counts
 }
 
 const reset = () => {
-  searchUserName.value = ''
   getUser()
 }
 
@@ -482,24 +470,13 @@ const handleUserStatusChange = async (row:any) => {
     type: "success"
   })
 
-  // await getUser()
 }
 </script>
 
 <style scoped lang="scss">
-.header {
-  border-radius: 10px;
-  display: flex;
-  justify-content: start;
-  align-items: center;
-  flex-direction: row;
+.myHeader {
+box-shadow: none;
 
-  .el-card__body {
-    padding: 0;
-  }
 }
 </style>
 
-<style scoped>
-
-</style>

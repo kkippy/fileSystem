@@ -4,23 +4,16 @@
       element-loading-text="正在下载..."
       element-loading-background="rgba(122, 122, 122, 0.8)"
     >
-      <div class="header" >
-        <div class="headerLeft">
-          <el-button style="margin-left: 20px" type="primary" :icon="Plus" @click="beforeAddFolder">新增文件夹</el-button>
-          <el-button type="success" :icon="Upload" @click=" uploadVisible = true" >上传文件</el-button>
-
-          <el-form style="margin-left: 10px">
-            <el-form-item style="margin-top: 18px;margin-left: 20px">
-              <el-input id="inputSearchField" v-model="searchName" @keyup.enter="onSearch" placeholder="请输入文件名" />
-            </el-form-item>
-          </el-form>
-
-          <div style="margin-left: 20px">
-            <el-button type="primary" :icon="Search" @click="onSearch" :disabled="!searchName">搜索</el-button>
-            <el-button @click="reset" :icon="Refresh">重置</el-button>
-          </div>
-        </div>
-      </div>
+      <search-header-component
+        placeholderTitle="请输入文件名"
+        @onSearch="onSearch"
+        @reset="reset"
+      >
+        <template #searchBtn>
+            <el-button style="margin-left: 20px" type="primary" :icon="Plus" @click="beforeAddFolder">新增文件夹</el-button>
+            <el-button type="success" :icon="Upload" @click=" uploadVisible = true" >上传文件</el-button>
+        </template>
+      </search-header-component>
 
       <div class="fileContent" v-loading="fileLoading">
         <ul  v-infinite-scroll="scrollLoad" class="folderList" :infinite-scroll-disabled="disabled">
@@ -116,15 +109,16 @@ import CustomTour from '@/components/Tour/index.vue'
 import ShareDialog from '@/components/ShareDialog/index.vue'
 import ContextMenu from '@imengyu/vue3-context-menu'
 import { useUserStore } from '@/stores/user'
-import { Search,Plus,Upload,Refresh } from '@element-plus/icons-vue'
+import {Plus,Upload } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import type {FormInstance} from "element-plus";
 import { getFileList, uploadFile,createFolder,deleteFolder,
   renameFile,renameFolder,deleteFile,previewFile,shareFile,searchDocument } from '@/api/file'
-import type {fileItem,fileList,fileResponse,searchFileResponse,searchFileItem} from '@/api/file/type'
+import type {fileItem,fileList,fileResponse,searchFileResponse} from '@/api/file/type'
 import type {RouteLocationNormalizedLoaded } from 'vue-router'
 import { SET_PATH,GET_PATH } from '@/utils/path'
 import {downloadFileUtil,isSpecialFileType} from '@/utils/fileTools'
+import SearchHeaderComponent from '@/components/SearchHeader/index.vue'
 
 interface Route extends RouteLocationNormalizedLoaded{
   meta:  {
@@ -153,7 +147,6 @@ let uploadLoading = ref<boolean>(false)
 let addFolderVisible = ref<boolean>(false)
 let shareVisible = ref<boolean>(false)
 let fullscreenLoading = ref(false)
-let searchName = ref<string>('')
 let previewUrl = ref<string>('')
 let shareLink = ref<string>('')
 let timerId: ReturnType<typeof setTimeout> | null = null;
@@ -200,13 +193,6 @@ const inputFolderField = document.getElementById('inputFolderField');
 inputFolderField?.addEventListener('keyup', function(event) {
   if (event.key === 'Enter') {
     handleAddFolder()
-  }
-});
-
-const inputSearchField = document.getElementById('inputSearchField');
-inputSearchField?.addEventListener('keyup', function(event) {
-  if (event.key === 'Enter') {
-    onSearch()
   }
 });
 
@@ -309,15 +295,14 @@ const handleDownloadFile = async (item:fileItem) =>{
   fullscreenLoading.value = false
 }
 
-const onSearch = async () => {
-  const result:searchFileResponse = await searchDocument(bucket as string,userStore.path,searchName.value)
+const onSearch = async (searchValue:string) => {
+  const result:searchFileResponse = await searchDocument(bucket as string,userStore.path,searchValue)
   if(result.code === 200){
     fileListData.value = result.data || []
   }
 }
 
 const reset = () => {
-  searchName.value = ''
   getFiles()
 }
 
@@ -530,38 +515,6 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped lang="scss">
-.header {
-  border-radius: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-direction: row;
-  box-shadow: 0 0 12px rgba(0,0,0,0.12);
-
-  .headerLeft {
-    display: flex;
-    flex: 0 0 90%;
-    align-items: center;
-
-    .back{
-      margin-left: 10px;
-
-      &:hover{
-        cursor: pointer;
-      }
-    }
-  }
-
-  .headerRight {
-    display: flex;
-    flex: 0 0 20%;
-    align-items: center;
-  }
-
-  .el-card__body {
-    padding: 0;
-    }
-}
 
 .fileContent {
     margin-top: 20px;
