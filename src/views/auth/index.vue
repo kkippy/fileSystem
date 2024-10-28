@@ -32,7 +32,7 @@
         style="width: 100%;margin-top: 20px">
         <el-table-column align="center" type="selection" ></el-table-column>
         <el-table-column align="center" type="index" label="序号" width="80" />
-        <el-table-column align="center" show-overflow-tooltip prop="username" label="登录名" />
+        <el-table-column align="center" show-overflow-tooltip prop="account" label="登录名" />
         <el-table-column align="center" show-overflow-tooltip prop="name" label="姓名" />
         <el-table-column align="center" show-overflow-tooltip prop="number" label="工号" />
         <el-table-column align="center" show-overflow-tooltip prop="roleName" label="用户角色" width="100" />
@@ -53,8 +53,8 @@
         </el-table-column>
         <el-table-column align="center" label="操作" width="250">
           <template #default="{row}">
-            <el-button :disabled="(row.roleName === '管理' && (currentUser !== row.username && row.roleName !== '普通用户')) ||
-              (row.roleName === '管理员' && userStore.userRole !== 'admin')"
+            <el-button :disabled="(row.roleName === '管理员' && (currentUser !== row.account && row.roleName !== '普通用户')) ||
+              (row.roleName === '超级管理员' && userStore.userRole !== 'super_admin')"
                        :icon="Edit"
                        type="primary"
                        @click="handleEditUser(row)"
@@ -62,12 +62,12 @@
               编辑
             </el-button>
             <el-popconfirm
-              :title="`确认删除${row.username}?`"
+              :title="`确认删除${row.account}?`"
               width="200px"
               @confirm="handleDelUser(row.id)"
             >
               <template #reference>
-                <el-button :disabled="userStore.userName === row.username" type="danger" :icon="Delete">
+                <el-button :disabled="row.roleName === '管理员' || userStore.userName === row.account  " type="danger" :icon="Delete">
                   删除
                 </el-button>
               </template>
@@ -103,8 +103,8 @@
               <el-input placeholder="请输入姓名" v-model="userFrom.name" />
             </el-form-item>
 
-            <el-form-item label="账号" prop="username" label-width="90px">
-              <el-input placeholder="请输入账号" v-model="userFrom.username" />
+            <el-form-item label="账号" prop="account" label-width="90px">
+              <el-input placeholder="请输入账号" v-model="userFrom.account" />
             </el-form-item>
 
             <el-form-item label="工号" prop="number" label-width="90px">
@@ -153,8 +153,8 @@
         <el-form-item label="姓名"  prop="name" label-width="90px">
           <el-input placeholder="请输入姓名" v-model="userFrom.name" />
         </el-form-item>
-        <el-form-item label="账号" prop="username" label-width="90px">
-          <el-input placeholder="请输入账号"  v-model="userFrom.username" />
+        <el-form-item label="账号" prop="account" label-width="90px">
+          <el-input placeholder="请输入账号"  v-model="userFrom.account" />
         </el-form-item>
         <el-form-item label="工号" prop="number" label-width="90px">
           <el-input placeholder="请输入工号"  v-model="userFrom.number" />
@@ -219,14 +219,14 @@ const currentPassword = ref('')
 const addUserVisible = ref<boolean>(false)
 export interface IUserForm {
   id?:number,
-  username:string,
+  account:string,
   name:string,
   password:string,
   number:number | string,
   phone:string,
   roleName:string,
   mail:string,
-  userStatus?:string,
+  userStatus?:number | boolean,
 }
 
 const currentUser = computed(()=>{
@@ -234,11 +234,11 @@ const currentUser = computed(()=>{
 })
 
 const canChangeRole = computed(()=>{
-  return userStore.userRole === 'admin';
+  return userStore.userRole === 'super_admin';
 })
 
 const userFrom = reactive<IUserForm>({
-  username:"",
+  account:"",
   name:"",
   password:"",
   number:"",
@@ -272,7 +272,7 @@ const validatorNumber = (rule:any,value:any,callBack:any)=>{
 }
 
 const addRules = reactive({
-  username:[
+  account:[
     {required:true,trigger:"blur",validator:validatorUserName}
   ],
   name:[
@@ -299,12 +299,12 @@ const options = [
     label: '普通用户',
   },
   {
-    value: '管理',
-    label: '管理',
-  },
-  {
     value: '管理员',
     label: '管理员',
+  },
+  {
+    value: '超级管理员',
+    label: '超级管理员',
   },
 ]
 
@@ -327,13 +327,14 @@ const onSearch = async () => {
 }
 
 const reset = () => {
+  searchUserName.value = ''
   getUser()
 }
 
 const handleAddUser = () => {
   Object.assign(userFrom,JSON.parse(JSON.stringify(
     {
-      username:"",
+      account:"",
       name:"",
       password:"",
       number:"",
@@ -364,7 +365,7 @@ const handleEditUser = (row:any) => {
   currentPassword.value = row.password
   row.password = ''
   Object.assign(userFrom,row)
-  currentUserName.value = row.username
+  currentUserName.value = row.account
   drawer.value = true
 }
 
@@ -388,7 +389,7 @@ const getUser = async (pager = 1) => {
   currentPage.value = pager
   loading.value = true
   const result:any = await searchUser(currentPage.value,pageSize.value)
-  result.items.forEach((item:any) => item.userStatus = item.userStatus !== '1')
+  result.items.forEach((item:any) => item.userStatus = item.userStatus !== 1)
   loading.value = false
   userData.value = result.items
   total.value = result.counts
@@ -401,6 +402,11 @@ const cancelClick = () => {
 const confirmClick = async () => {
   if(userFromRef.value?.fields[3].fieldValue === '') {
     userFrom.password = currentPassword.value
+  }
+  if(!userFrom.userStatus ) {
+    userFrom.userStatus = 1
+  } else {
+    userFrom.userStatus = 0
   }
   const result:any = await addOrUpdateUser(userFrom)
   if(result.code === 200){
@@ -451,11 +457,16 @@ const confirmAddClick = async () => {
 }
 
 const handleUserStatusChange = async (row:any) => {
-  row.userStatus = row.userStatus === '1' ? '0' : '1'
+  console.log(row.userStatus,'w')
+  row.userStatus = row.userStatus === 1 ? 0 : 1;
   await addOrUpdateUser(row)
+  console.log(row.userStatus,'q')
   ElMessage({
     message: '状态修改成功',
+    type: "success"
   })
+
+  // await getUser()
 }
 </script>
 

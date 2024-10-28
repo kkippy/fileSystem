@@ -2,8 +2,8 @@
   <div class="loginForm">
     <div>
       <el-form ref="loginFormRef" :model="loginFormReactive" :rules="loginRules" label-width="80px">
-        <el-form-item label="用户名" prop="username">
-          <el-input placeholder="admin" v-model="loginFormReactive.username" :prefix-icon="User" />
+        <el-form-item label="用户名" prop="account">
+          <el-input placeholder="admin" v-model="loginFormReactive.account" :prefix-icon="User" />
         </el-form-item>
         <el-form-item label="密码" prop="password">
           <el-input show-password type="password" placeholder="111111" v-model="loginFormReactive.password" :prefix-icon="Lock" />
@@ -29,7 +29,7 @@ import {useRouter,useRoute} from "vue-router";
 import {useUserStore} from "@/stores/user"
 
 export interface LoginForm {
-  username:string,
+  account:string,
   password:string
 }
 
@@ -39,13 +39,13 @@ type FormInstance = InstanceType<typeof ElForm>;
 const loginFormRef = ref<FormInstance>();
 const router = useRouter();
 const loginRules = reactive({
-  username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
+  account: [{ required: true, message: "请输入用户名", trigger: "blur" }],
   password: [{ required: true, message: "请输入密码", trigger: "blur" }]
 });
 
 
 const loginFormReactive = reactive<LoginForm>({
-  username:'ops_caolei',
+  account:'ops_caolei',
   password:'123456'
 })
 

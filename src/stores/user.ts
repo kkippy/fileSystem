@@ -56,8 +56,8 @@ export const useUserStore = defineStore('user', {
       //存储用户信息
       const result:any = await getUserInfo()
       if (result.code === 200) {
-        this.userName = result.data.username
-        SET_USERNAME(result.data.username as string)
+        this.userName = result.data.account
+        SET_USERNAME(result.data.account as string)
         return 'ok'
       } else {
         return Promise.reject(new Error(result.message ))
