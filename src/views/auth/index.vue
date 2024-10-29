@@ -39,7 +39,7 @@
               v-model="row.userStatus"
               :active-value="0"
               :inactive-value="1"
-              @change="handleUserStatusChange(row)"
+              @change="handleChangeUserStatus(row)"
               inline-prompt
               style="--el-switch-on-color: #13ce66;
               --el-switch-off-color: #ff4949"
@@ -463,16 +463,13 @@ const confirmAddClick = async () => {
   }
 }
 
-const handleUserStatusChange = async (row:any) => {
-  console.log(row.userStatus,'w')
-  // row.userStatus = row.userStatus === 1 ? 0 : 1;
+const handleChangeUserStatus = async (row:any) => {
   await addOrUpdateUser(row)
-  // ElMessage({
-  //   message: '状态修改成功',
-  //   type: "success"
-  // })
+  ElMessage({
+    message: '状态修改成功',
+    type: "success"
+  })
   await getUser()
-
 }
 </script>
 

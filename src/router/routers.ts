@@ -114,6 +114,15 @@ export const constantRoute = [
           hidden: true,
         },
       },
+      {
+        path:'/link',
+        name: 'link',
+        component: ()=>import('@/views/file/link.vue'),
+        meta: {
+          title: '共享链接',
+          hidden: false,
+        },
+      },
     ]
   },
   {
