@@ -11,6 +11,21 @@
         </el-button>
       </template>
     </header-component>
+
+    <el-card style="margin-top: 20px;border-radius: 10px">
+      <el-table
+        :data="roleListData"
+        v-loading="loading"
+        border
+        height="65vh"
+        style="width: 100%;
+        margin-top: 10px"
+        row-key="id"
+        @selection-change="selectChange"
+      >
+
+      </el-table>
+    </el-card>
   </div>
 </template>
 
@@ -18,6 +33,9 @@
 import { ref } from 'vue'
 import HeaderComponent from '@/components/SearchHeader/index.vue'
 import { Plus } from '@element-plus/icons-vue'
+
+const loading = ref<boolean>(false)
+const roleListData = ref([])
 
 const onSearch =  (s:string) => {
   console.log(s)

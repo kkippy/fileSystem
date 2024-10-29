@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <el-card style="border-radius: 10px">
+  <div class="main-container">
+    <el-card body-class="cardStyle" style="border-radius: 10px">
       <search-header-component
         class="myHeader"
         placeholderTitle="请输入姓名"
@@ -8,11 +8,11 @@
         @reset="reset"
       >
         <template #searchBtn>
-          <el-button type="primary" style="margin-left: 20px; margin-right: 10px" :icon="Plus" @click="handleAddUser">
+          <el-button type="primary" style="margin-right: 10px" :icon="Plus" @click="handleAddUser">
             <span style="margin-left: 5px;">添加用户</span>
           </el-button>
 
-          <el-button type="danger" :icon="Delete" @click="handleDelete" :disabled="!removeUserIdList.length">
+          <el-button type="danger" style="margin-left: 0" :icon="Delete" @click="handleDelete" :disabled="!removeUserIdList.length">
             <span style="margin-left: 5px;">批量删除</span>
           </el-button>
 
@@ -37,11 +37,13 @@
           <template #default={row}>
             <el-switch
               v-model="row.userStatus"
+              :active-value="0"
+              :inactive-value="1"
               @change="handleUserStatusChange(row)"
               inline-prompt
               style="--el-switch-on-color: #13ce66;
-            --el-switch-off-color: #ff4949"
-              active-text="正常"
+              --el-switch-off-color: #ff4949"
+              active-text="启用"
               inactive-text="禁用"
             />
           </template>
@@ -342,7 +344,8 @@ const handleAddUser = () => {
       name:"",
       password:"",
       number:"",
-      roleCode:'user'
+      roleCode:'user',
+      confirmPassword:''
     }
   )))
   if(addUserFromRef.value) {
@@ -393,7 +396,7 @@ const getUser = async (pager = 1) => {
   currentPage.value = pager
   loading.value = true
   const result:any = await searchUser(currentPage.value,pageSize.value)
-  result.items.forEach((item:any) => item.userStatus = item.userStatus !== 1)
+  // result.items.forEach((item:any) => item.userStatus = item.userStatus !== 1)
   loading.value = false
   userData.value = result.items
   total.value = result.counts
@@ -462,21 +465,28 @@ const confirmAddClick = async () => {
 
 const handleUserStatusChange = async (row:any) => {
   console.log(row.userStatus,'w')
-  row.userStatus = row.userStatus === 1 ? 0 : 1;
+  // row.userStatus = row.userStatus === 1 ? 0 : 1;
   await addOrUpdateUser(row)
-  console.log(row.userStatus,'q')
-  ElMessage({
-    message: '状态修改成功',
-    type: "success"
-  })
+  // ElMessage({
+  //   message: '状态修改成功',
+  //   type: "success"
+  // })
+  await getUser()
 
 }
 </script>
 
 <style scoped lang="scss">
-.myHeader {
-box-shadow: none;
 
+.main-container{
+  :global(.cardStyle){
+    border-radius: 10px;
+    padding-top: 0;
+  }
+  .myHeader {
+    box-shadow: none;
+  }
 }
+
 </style>
 
