@@ -396,7 +396,6 @@ const getUser = async (pager = 1) => {
   currentPage.value = pager
   loading.value = true
   const result:any = await searchUser(currentPage.value,pageSize.value)
-  // result.items.forEach((item:any) => item.userStatus = item.userStatus !== 1)
   loading.value = false
   userData.value = result.items
   total.value = result.counts
@@ -421,7 +420,6 @@ const confirmClick = async () => {
       message: '修改成功',
       type: "success"
     })
-    drawer.value = false
     await getUser(userFrom.id ? currentPage.value : 1)
       if(userStore.userName === currentUserName.value) {
         //若修改的是当前登录的用户，则浏览器自动更新，引发重新登录
@@ -432,7 +430,7 @@ const confirmClick = async () => {
       message: '填写的用户信息有误，请检查',
       type: "error"
     })
-    drawer.value = true
+    drawer.value = false
   }
 }
 

@@ -99,8 +99,8 @@ import SearchHeaderComponent from '@/components/SearchHeader/index.vue'
 import type { ResponseData, linkResponseData, linkListItem,searchResponseData,linkFormFormat } from '@/api/link/type'
 import { Delete, Plus } from '@element-plus/icons-vue'
 import type {ComponentSize} from "element-plus";
-import { ref, onMounted, reactive, nextTick } from 'vue'
-import { uploadLink,getLinks,checkLink,updateLink } from '@/api/link'
+import { ref, onMounted, reactive } from 'vue'
+import { uploadLink,getLinks,checkLink,updateLink,deleteLink } from '@/api/link'
 import { ElMessage } from 'element-plus'
 
 let size = ref<ComponentSize>('default')
@@ -163,6 +163,7 @@ const handleConfirm = async ()=>{
         message: result.code === 200 ? '修改成功' : result.msg,
         type: result.code === 200 ? 'success' : 'error'
       })
+      await getLinkList(linkForm.id ? currentPage.value : 1)
     } else {
       const result:ResponseData = await uploadLink(linkForm.linkName,linkForm.linkAddress)
       ElMessage({
@@ -174,7 +175,6 @@ const handleConfirm = async ()=>{
     console.log(err)
   } finally {
     linkDialogVisible.value = false
-    await getLinkList()
   }
 }
 
@@ -199,8 +199,13 @@ const handleChangeLinkStatus = async (row:any)=>{
   await getLinkList()
 }
 
-const handleDelLink = (id:number)=>{
-  console.log(id)
+const handleDelLink = async (id:number)=>{
+  const result:any = await deleteLink(id)
+  ElMessage({
+    message: result.code === 200 ? '删除成功' : result.msg,
+    type: result.code === 200 ? 'success' : 'error'
+  })
+  await getLinkList()
 }
 
 const onSearch = async (searchValue:string) => {

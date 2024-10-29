@@ -4,7 +4,7 @@ import type { ResponseData,linkResponseData,searchResponseData } from './type'
 enum LINK_API {
   GET_LINK_LIST_URL = '/api/link/list',
   CHECK_LINK_URL = '/api/link/query/',
-  DELETE_LINK_URL = '/api/link/deleteLink',
+  DELETE_LINK_URL = '/api/link/delete',
   UPDATE_LINK_URL = '/api/link/update',
   GET_LINK_URL = '/api/link/getLink',
   UPLOAD_LINK_URL = '/api/link/uploadLink',
@@ -19,3 +19,5 @@ export const checkLink = (id:number)=> request.get<any,searchResponseData>(LINK_
 export const uploadLink = (linkName:string,linkAddress:string)=> request.get<any,ResponseData>(LINK_API.UPLOAD_LINK_URL+ `?linkName=${linkName}&linkAddress=${linkAddress}`)
 
 export const updateLink = (data:any)=> request.post<any>(LINK_API.UPDATE_LINK_URL,data)
+
+export const deleteLink = (id:number)=> request.get<any>(LINK_API.DELETE_LINK_URL+`?id=${id}`)
