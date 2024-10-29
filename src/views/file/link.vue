@@ -99,7 +99,7 @@ import SearchHeaderComponent from '@/components/SearchHeader/index.vue'
 import type { ResponseData, linkResponseData, linkListItem,searchResponseData,linkFormFormat } from '@/api/link/type'
 import { Delete, Plus } from '@element-plus/icons-vue'
 import type {ComponentSize} from "element-plus";
-import { ref, onMounted, reactive } from 'vue'
+import { ref, onMounted, reactive, nextTick } from 'vue'
 import { uploadLink,getLinks,checkLink,updateLink } from '@/api/link'
 import { ElMessage } from 'element-plus'
 
@@ -129,13 +129,13 @@ const getLinkList = async (pager = 1)=>{
   linkListData.value = result.data.items
   total.value = result.data.counts
   loading.value = false
-  console.log(result,'j')
 }
 
 const handleAddLink = ()=>{
-  Object.assign(linkForm,{
-    linkName:'',
-    linkAddress:''
+    Object.assign(linkForm,{
+      id:null,
+      linkName:'',
+      linkAddress:''
   })
   linkDialogVisible.value = true
 }
@@ -147,11 +147,10 @@ const handleEditLink = async (row:any)=>{
   }
   linkForm.linkName = result.data.linkName
   linkForm.linkAddress = result.data.linkAddress as string
-  console.log(row)
+  linkDialogVisible.value = true
 }
 
 const handleConfirm = async ()=>{
-  console.log(linkForm,'linkForm')
   try{
     if(linkForm.id){
       const params = {
