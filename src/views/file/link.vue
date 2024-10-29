@@ -182,6 +182,11 @@ const handleCheckLink = async (row:any)=>{
   const result:searchResponseData = await checkLink(row.id)
   if(result.code === 200){
     window.open(result.data.linkAddress)
+  } else {
+    ElMessage({
+      message: result.msg,
+      type: 'error'
+    })
   }
 }
 
