@@ -72,7 +72,7 @@
 
     </el-card>
 
-    <el-dialog v-model="dialogVisible" :title="linkForm.id ? '编辑链接' : '添加链接'" width="30%">
+    <el-dialog v-model="linkDialogVisible" :title="linkForm.id ? '编辑链接' : '添加链接'" width="30%">
       <el-form label-width="80px">
         <el-form-item label="链接名称">
           <el-input v-model="linkForm.linkName" placeholder="请输入链接名称" />
@@ -84,7 +84,7 @@
 
         <template #footer>
           <span class="dialog-footer">
-            <el-button @click="dialogVisible = false">取 消</el-button>
+            <el-button @click="linkDialogVisible = false">取 消</el-button>
             <el-button type="primary" @click="handleConfirm">确 定</el-button>
           </span>
         </template>
@@ -108,7 +108,7 @@ let currentPage = ref<number>(1)
 let pageSize = ref<number>(10)
 let total = ref<number>(0)
 const loading = ref<boolean>(false)
-const dialogVisible = ref<boolean>(false)
+const linkDialogVisible = ref<boolean>(false)
 
 
 const linkForm = reactive<linkFormFormat>({
@@ -137,7 +137,7 @@ const handleAddLink = ()=>{
     linkName:'',
     linkAddress:''
   })
-  dialogVisible.value = true
+  linkDialogVisible.value = true
 }
 
 const handleEditLink = async (row:any)=>{
@@ -174,7 +174,7 @@ const handleConfirm = async ()=>{
   } catch(err){
     console.log(err)
   } finally {
-    dialogVisible.value = false
+    linkDialogVisible.value = false
     await getLinkList()
   }
 }
