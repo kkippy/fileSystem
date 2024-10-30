@@ -143,17 +143,15 @@ export const constantRoute = [
         meta: {
           title: '用户管理',
           hidden: false,
-          icon:'user'
         },
       },
       {
-        path: '/auth/role',
-        name: 'Role',
-        component: ()=>import('@/views/auth/role.vue'),
+        path: '/auth/group',
+        name: 'Group',
+        component: ()=>import('@/views/auth/group.vue'),
         meta: {
-          title: '小组管理',
+          title: '群组管理',
           hidden: false,
-          icon:'role'
         },
       },
     ]

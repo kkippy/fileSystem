@@ -358,7 +358,7 @@ const handleAddUser = () => {
 }
 
 const selectChange = (value:any) => {
-  removeUserIdList.value = value
+  fremoveUserIdList.value = value
 }
 
 const handleDelete = async () => {
