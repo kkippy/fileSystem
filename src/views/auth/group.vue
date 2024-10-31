@@ -52,7 +52,7 @@
         <el-table-column align="center" prop="status" label="链接状态" width="150" >
           <template #default={row}>
             <el-switch
-              v-model="row.userStatus"
+              v-model="row.status"
               :active-value="0"
               :inactive-value="1"
               @change="handleChangeLinkStatus(row)"
@@ -64,10 +64,10 @@
             />
           </template>
         </el-table-column>
-        <el-table-column align="center" prop="updateTime" label="更新时间" width="150" />
+        <el-table-column align="center" prop="updateTime" label="更新时间" width="200" />
         <el-table-column align="center" label="操作" >
           <template #default="{row}">
-            <el-button type="warning" @click="handleEditGroup">编辑</el-button>
+            <el-button type="primary" :icon="Edit" @click="handleEditGroup">编辑</el-button>
             <el-popconfirm
               :title="`确认删除${row.groupName}?`"
               width="200px"
@@ -86,9 +86,9 @@
     </el-card>
 
     <el-dialog title="新增群组" width="60%" v-model="addGroupVisible">
-        <el-form style="width: 80%;">
-          <el-form-item label="群组名称" >
-            <el-input  v-model="groupName" placeholder="请输入群组名称" />
+        <el-form ref="groupFormRef" style="width: 50%;" :rules="groupRules" :model="groupForm">
+          <el-form-item label="群组名称" prop="groupName">
+            <el-input  v-model="groupForm.groupName" placeholder="请输入群组名称" />
           </el-form-item>
         </el-form>
 
@@ -152,19 +152,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { nextTick, reactive, ref } from 'vue'
 import HeaderComponent from '@/components/SearchHeader/index.vue'
-import { Delete, Plus, Search } from '@element-plus/icons-vue'
+import { Delete, Plus, Search,Edit } from '@element-plus/icons-vue'
 import SvgIcon from '@/components/SvgIcon/index.vue'
+import type {ComponentSize,FormInstance} from "element-plus";
 
 
 const loading = ref<boolean>(false)
 const addGroupVisible = ref<boolean>(false)
 const userVisible = ref<boolean>(false)
 const linkVisible = ref<boolean>(false)
-const groupName = ref<string>('')
 const searchUserName = ref<string>('')
 const searchLinkName = ref<string>('')
+const groupFormRef = ref<FormInstance>()
 const roleListData = ref([
   {
     id: 1,
@@ -173,8 +174,8 @@ const roleListData = ref([
     memberCount: 10,
     fileCount: 20,
     linkCount: 30,
-    createTime: '2023-05-01',
-    updateTime: '2023-05-01'
+    status: 1,
+    updateTime: '2023-05-01 10:20:34'
   },
   {
     id: 2,
@@ -183,8 +184,8 @@ const roleListData = ref([
     memberCount: 0,
     fileCount: 20,
     linkCount: 0,
-    createTime: '2023-05-01',
-    updateTime: '2023-05-01'
+    status: 1,
+    updateTime: '2023-05-01 10:20:34'
   },
   {
     id: 3,
@@ -193,8 +194,8 @@ const roleListData = ref([
     memberCount: 10,
     fileCount: 0,
     linkCount: 30,
-    createTime: '2023-05-01',
-    updateTime: '2023-05-01'
+    status: 1,
+    updateTime: '2023-05-01 10:20:34'
   },
   {
     id: 4,
@@ -203,8 +204,8 @@ const roleListData = ref([
     memberCount: 10,
     fileCount: 20,
     linkCount:3,
-    createTime: '2023-05-01',
-    updateTime: '2023-05-01'
+    status: 0,
+    updateTime: '2023-05-01 10:20:34'
   }
 ])
 const selectUserData = ref([
@@ -287,6 +288,26 @@ const linkData = ref([
     linkName: 'java',
   },
 ])
+
+const groupForm = reactive({
+  groupName: '',
+})
+
+const validatorUserName = (rule:any, value:string, callback:any) => {
+  if(value.trim().length === 0){
+    callback(new Error("群组名不能为空"))
+  }else{
+    callback()
+  }
+}
+
+const groupRules = reactive({
+  groupName: [
+    { required: true, validator: validatorUserName, trigger: 'blur' },
+  ]
+})
+
+
 const onSearch =  (s:string) => {
   console.log(s)
 }
@@ -296,11 +317,15 @@ const reset = () => {
 
 const handleAddGroup = () => {
   console.log('handleAddGroup')
+  nextTick(() => {
+    groupFormRef.value?.resetFields()
+  })
   addGroupVisible.value = true
 }
 
-const submit = () => {
+const submit = async () => {
   console.log('confirmClick')
+  await groupFormRef.value?.validate()
   addGroupVisible.value = false
 }
 
