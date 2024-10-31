@@ -4,9 +4,9 @@
       <div style="display: flex; align-items: center">
         <span>{{ title }}</span>
         <el-input
-          :suffix-icon="searchIcon"
+          :suffix-icon="Search"
           style="margin-left: 10px; width: 40%;"
-          placeholder="请输入{{ placeholder }}"
+          :placeholder="placeholder"
           v-model="searchQuery"
         />
       </div>
@@ -14,7 +14,7 @@
 
     <el-table :data="filteredData" height="40vh" @selection-change="handleSelectionChange">
       <el-table-column align="center" type="selection" width="55" />
-      <el-table-column align="center" v-for="column in columns" :key="column.prop" :label="column.label" :prop="column.prop" />
+      <el-table-column align="center" v-for="(column) in columns" :key="column.prop" :label="column.label" :prop="column.prop" />
     </el-table>
 
     <el-pagination
@@ -42,7 +42,11 @@
 <script setup lang="ts">
 import { ref, computed,watch } from 'vue';
 import type { ComponentSize } from 'element-plus'
-
+import { Search } from '@element-plus/icons-vue'
+interface Column {
+  label: string;
+  prop: string;
+}
 const props = defineProps({
   title: String,
   width: {
@@ -54,24 +58,27 @@ const props = defineProps({
     default:false
   },
   data: Array,
-  columns: Array,
-  total: Number,
-  searchIcon: {
-    type: String,
-    default: 'Search'
+  columns: {
+    type: Array as () => Column[],
+    default: () => []
   },
+  total: Number,
   placeholder: String,
   onClose: Function,
   onCommit: Function,
   onSizeChange: Function,
   onCurrentChange: Function,
 });
+
+
 let size = ref<ComponentSize>('small')
 let currentPage = ref<number>(1)
 let pageSize = ref<number>(10)
 let visible = ref<boolean>(false)
-
-const emit = defineEmits(['update:modelValue']);
+const columns = ref(props.columns)
+const total = ref(props.total)
+const data = ref<Array<any>>(props.data || [])
+const emit = defineEmits(['update:modelValue','onCommit','selectChange','sizeChange','currentChange']);
 
 watch(()=> props.modelValue,()=>{
   visible.value = props.modelValue;
@@ -85,7 +92,7 @@ const searchQuery = ref('');
 
 const filteredData = computed(() => {
   if (!searchQuery.value) return props.data;
-  return props.data.filter(item => {
+  return data.value.filter(item => {
     return Object.values(item).some(value =>
       String(value).toLowerCase().includes(searchQuery.value.toLowerCase())
     );
@@ -98,19 +105,20 @@ const closeDialog = () => {
 };
 
 const commitSelection = () => {
-  if (props.onCommit) props.onCommit();
+  emit('onCommit',false)
+  emit('selectChange', [])
 };
 
-const handleSizeChange = (size) => {
-  if (props.onSizeChange) props.onSizeChange(size);
+const handleSizeChange = (size:number) => {
+  emit('sizeChange', size)
 };
 
-const handleCurrentChange = (page) => {
-  if (props.onCurrentChange) props.onCurrentChange(page);
+const handleCurrentChange = (page:number) => {
+  emit('currentChange', page)
 };
 
-const handleSelectionChange = (selection) => {
-  // Handle selection change logic here if needed
+const handleSelectionChange = (selection:any) => {
+  emit('selectChange', selection)
 };
 </script>
 
