@@ -230,6 +230,7 @@ const fileSelection = ref([])
 const deleteFileSelection = ref([])
 const fileColumns = ref([
   { label: '文件名', prop: 'fileName' },
+  { label: '科室', prop: 'bucket' },
   { label: '文件路径', prop: 'path' },
 ]);
 //存储已选择的链接

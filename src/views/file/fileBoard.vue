@@ -220,13 +220,18 @@ const handleChangeUpload = async(file:any) =>{
         message: '上传成功',
         type: 'success'
       })
-      await getFiles()
+    } else {
+      ElMessage({
+        message: result.msg,
+        type: 'error'
+      })
     }
   } catch (error){
     console.log(error)
   } finally {
     uploadLoading.value = false
     uploadVisible.value = false
+    await getFiles()
   }
 }
 
