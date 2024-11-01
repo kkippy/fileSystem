@@ -124,7 +124,8 @@
             </template>
           </el-dropdown>
           <el-button type="danger" style="margin:0 10px;" @click="handleDelGroupResource" :disabled="deleteFileSelection.length === 0 && deleteLinkSelection.length === 0 ">删除</el-button>
-          <el-input style="width: 50%;" :suffix-icon="Search" :placeholder=" resourceType === 'link' ? '请输入链接名' : '请输入文件名'" v-model="searchLinkName" />
+          <el-input style="width: 50%;" v-if=" resourceType === 'link'" :suffix-icon="Search" placeholder="请输入链接名" v-model="searchLinkName" />
+          <el-input style="width: 50%;" v-if=" resourceType === 'file'" :suffix-icon="Search" placeholder="请输入文件名" v-model="searchFileName" />
           <el-table v-if="resourceType === 'link'"  border :data="linkData" height="40vh" style="margin-top: 10px" @selection-change="handleGroupLinkChange" >
             <el-table-column align="center" type="selection" width="55" />
             <el-table-column align="center" label="链接名" prop="linkName" />
@@ -153,7 +154,6 @@
       :total="userTotal"
       placeholder="请输入用户名称"
       @onCommit="handleCommitUser"
-      @onClose="handleCloseUser"
       @select-change="handleSelectUserChange"
       @size-change="handleUserSizeChange"
       @current-change="getGroupUser"
@@ -167,7 +167,6 @@
       :total="linkTotal"
       placeholder="请输入链接名称"
       @onCommit="handleCommitLink"
-      @onClose="handleCloseLink"
       @select-change="handleSelectLinkChange"
       @size-change="handleLinkSizeChange"
       @current-change="getGroupLink"
@@ -181,7 +180,6 @@
       :total="fileTotal"
       placeholder="请输入文件名称"
       @onCommit="handleCommitFile"
-      @onClose="handleCloseFile"
       @select-change="handleSelectFileChange"
       @size-change="handleFileSizeChange"
       @current-change="getGroupFile"
@@ -197,21 +195,7 @@ import { Delete, Plus, Search,Edit,ArrowDown } from '@element-plus/icons-vue'
 import SvgIcon from '@/components/SvgIcon/index.vue'
 import type {FormInstance} from "element-plus";
 import SelectDialog from "@/components/SelectDialog/index.vue"
-interface User {
-  id: number;
-  name: string;
-  number: number | string;
-  roleName?: string;
-}
-interface Link {
-  id: number;
-  linkName: string;
-}
-interface File {
-  id: number;
-  fileName: string;
-  path: string;
-}
+import type {IUser,ILink,IFile} from "@/api/group/type"
 let currentPage = ref<number>(1)
 let pageSize = ref<number>(10)
 let total = ref<number>(0)
@@ -228,6 +212,7 @@ const fileVisible = ref<boolean>(false)
 const linkVisible = ref<boolean>(false)
 const searchUserName = ref<string>('')
 const searchLinkName = ref<string>('')
+const searchFileName = ref<string>('')
 const resourceType = ref<string>('file')
 const groupFormRef = ref<FormInstance>()
 //存储已选择的用户
@@ -239,6 +224,8 @@ const userColumns = ref([
   { label: '工号', prop: 'number' },
   { label: '角色', prop: 'roleName' },
 ]);
+//存储已选择的文件
+const fileSelection = ref([])
 //存储选择删除文件的信息
 const deleteFileSelection = ref([])
 const fileColumns = ref([
@@ -247,8 +234,6 @@ const fileColumns = ref([
 ]);
 //存储已选择的链接
 const linkSelection = ref([])
-//存储已选择的文件
-const fileSelection = ref([])
 //存储选择删除链接的信息
 const deleteLinkSelection = ref([])
 const linkColumns = ref([
@@ -298,7 +283,7 @@ const groupListData = ref([
   }
 ])
 //选择用户对话框所用的数据
-const selectUserData = ref<User[]>([
+const selectUserData = ref<IUser[]>([
   {
     id: 1,
     name: 'admin',
@@ -313,7 +298,7 @@ const selectUserData = ref<User[]>([
   },
 ])
 //选择链接对话框所用的数据
-const selectLinkData = ref<Link[]>([
+const selectLinkData = ref<ILink[]>([
   {
     id: 1,
     linkName: 'vue',
@@ -332,7 +317,7 @@ const selectLinkData = ref<Link[]>([
   },
 ])
 //选择文件对话框所用的数据
-const selectFileData = ref<File[]>([
+const selectFileData = ref<IFile[]>([
   {
     id: 1,
     fileName: 'vue',
@@ -350,11 +335,11 @@ const selectFileData = ref<File[]>([
   },
 ])
 //群组成员
-const userData = ref<User[]>([])
+const userData = ref<IUser[]>([])
 //群组链接
-const linkData = ref<Link[]>([])
+const linkData = ref<ILink[]>([])
 //群组文件
-const fileData = ref<File[]>([])
+const fileData = ref<IFile[]>([])
 
 const groupForm = reactive({
   groupName: '',
@@ -452,15 +437,15 @@ const handleDelGroupResource = () => {
   const dataToFilter = resourceType.value === 'link' ? linkData.value : fileData.value;
   const deleteSelection = resourceType.value === 'link' ? deleteLinkSelection.value : deleteFileSelection.value;
 
-  const filteredData:(Link | File)[] = dataToFilter.filter((item:any) =>
+  const filteredData:(ILink | IFile)[] = dataToFilter.filter((item:any) =>
     !deleteSelection.some((deleteItem:any) => deleteItem.id === item.id)
   );
 
   if (resourceType.value === 'link') {
-    linkData.value = filteredData as Link[];
+    linkData.value = filteredData as ILink[];
     deleteLinkSelection.value = [];
   } else {
-    fileData.value = filteredData as File[];
+    fileData.value = filteredData as IFile[];
     deleteFileSelection.value = [];
   }
 }
@@ -470,8 +455,8 @@ const handleCommitUser = () => {
   userVisible.value = false
 }
 
-const handleCloseUser = (val:boolean) => {
-  userVisible.value = val
+const handleSearchUser = (val:string) => {
+  console.log(val,'handleSearchUser')
 }
 
 const handleCommitLink = (val:boolean) => {
@@ -479,17 +464,9 @@ const handleCommitLink = (val:boolean) => {
   linkVisible.value = val
 }
 
-const handleCloseLink = (val:boolean) => {
-  linkVisible.value = val
-}
-
 const handleCommitFile = () => {
   fileData.value = fileSelection.value
   fileVisible.value = false
-}
-
-const handleCloseFile = (val:boolean) => {
-  fileVisible.value = val
 }
 
 const getGroupUser = async (pager = 1) => {

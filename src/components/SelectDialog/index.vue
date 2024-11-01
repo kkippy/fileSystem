@@ -43,6 +43,7 @@
 import { ref, computed,watch } from 'vue';
 import type { ComponentSize } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
+import _ from 'lodash';
 interface Column {
   label: string;
   prop: string;
@@ -64,10 +65,6 @@ const props = defineProps({
   },
   total: Number,
   placeholder: String,
-  onClose: Function,
-  onCommit: Function,
-  onSizeChange: Function,
-  onCurrentChange: Function,
 });
 
 
@@ -78,30 +75,38 @@ let visible = ref<boolean>(false)
 const columns = ref(props.columns)
 const total = ref(props.total)
 const data = ref<Array<any>>(props.data || [])
-const emit = defineEmits(['update:modelValue','onCommit','selectChange','sizeChange','currentChange']);
+const searchQuery = ref('')
+const debouncedSearchQuery = ref('');
+const emit = defineEmits(['update:modelValue','onCommit','selectChange',
+  'sizeChange','currentChange','onClose']);
 
 watch(()=> props.modelValue,()=>{
   visible.value = props.modelValue;
 })
 
-watch(()=>visible.value,(newval)=>{
-  emit('update:modelValue', visible.value = newval);
+watch(()=>visible.value,(newVal)=>{
+  emit('update:modelValue', newVal);
 })
+const updateSearchQuery = _.debounce((query:string) => {
+  debouncedSearchQuery.value = query;
+}, 300);
 
-const searchQuery = ref('');
+watch(searchQuery, (newValue) => {
+  updateSearchQuery(newValue);
+});
 
 const filteredData = computed(() => {
-  if (!searchQuery.value) return props.data;
+  if (!debouncedSearchQuery.value) return props.data;
+  const query = debouncedSearchQuery.value.trim().toLowerCase();
   return data.value.filter(item => {
-    return Object.values(item).some(value =>
-      String(value).toLowerCase().includes(searchQuery.value.toLowerCase())
+    return Object.values(item.name).some(value =>
+     String(value).toLowerCase().includes(query)
     );
   });
 });
 
 const closeDialog = () => {
   emit('update:modelValue', false);
-  // if (props.onClose) props.onClose();
 };
 
 const commitSelection = () => {
@@ -122,6 +127,3 @@ const handleSelectionChange = (selection:any) => {
 };
 </script>
 
-<style scoped>
-/* Add any necessary styles here */
-</style>

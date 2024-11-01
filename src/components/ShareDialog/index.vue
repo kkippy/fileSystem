@@ -49,12 +49,8 @@ watch(
 watch(
   () => [visible.value, shareLink.value],
   ([newVisible, newShareLink]) => {
-    if (newVisible !== undefined) {
       emit('update:modelValue', newVisible);
-    }
-    if (newShareLink !== undefined) {
       emit('update:shareLink', newShareLink);
-    }
   }
 );
 
