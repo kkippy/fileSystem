@@ -6,7 +6,6 @@ enum LINK_API {
   CHECK_LINK_URL = '/api/link/query/',
   DELETE_LINK_URL = '/api/link/delete',
   UPDATE_LINK_URL = '/api/link/update',
-  GET_LINK_URL = '/api/link/getLink',
   UPLOAD_LINK_URL = '/api/link/uploadLink',
 }
 export const getLinks = (pageNo:number, pageSize:number,data?:any)=> {

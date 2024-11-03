@@ -30,16 +30,27 @@ export interface groupListItem {
   updateTime: string;
   userId: number;
   userName: string;//创建人
-  userNumber: number;
-  fileNumber: number;
-  linkNumber: number;
+  userNumber: number | null;
+  fileNumber: number | null;
+  linkNumber: number | null;
 }
 
 export type groupList = groupListItem[];
 
  export interface groupResponseData extends ResponseData {
-  data: groupList;
-  counts: number;
-  pageNo: number;
-  pageSize: number;
+  data: {
+    items: groupList;
+    counts: number;
+    pageNo: number;
+    pageSize: number;
+  };
+ }
+
+ export interface addGroupResponseData extends ResponseData {
+  data: groupListItem
+ }
+
+ export interface IGroupForm{
+   id?: number | null;
+   groupName: string;
  }

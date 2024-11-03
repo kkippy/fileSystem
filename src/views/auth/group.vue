@@ -24,28 +24,28 @@
       >
         <el-table-column align="center" type="index" label="序号" width="80" />
         <el-table-column align="center" prop="groupName" label="群组名称" />
-        <el-table-column align="center" prop="leader" label="创建人" width="150" />
-        <el-table-column align="center" prop="memberCount" label="成员数量" width="110" >
+        <el-table-column align="center" prop="userName" label="创建人" width="150" />
+        <el-table-column align="center" prop="userNumber" label="成员数量" width="110" >
           <template #default="{row}">
             <div style="display: flex; align-items: center">
               <SvgIcon :name="row.memberCount === 0 ? 'userInvalid' : 'userValid'" :width="45" :height="30" />
-              <span style="margin-left: 10px">{{ row.memberCount }}</span>
+              <span style="margin-left: 10px">{{ row.userNumber }}</span>
             </div>
           </template>
         </el-table-column>
-        <el-table-column align="center" prop="fileCount" label="文件数量" width="110" >
+        <el-table-column align="center" prop="fileNumber" label="文件数量" width="110" >
           <template #default="{row}">
             <div style="display: flex; align-items: center;margin: 0 auto">
               <SvgIcon :name="row.fileCount === 0 ? 'fileInvalid' : 'fileValid'" :width="45" :height="30" />
-              <span style="margin-left: 10px">{{ row.fileCount }}</span>
+              <span style="margin-left: 10px">{{ row.fileNumber }}</span>
             </div>
           </template>
         </el-table-column>
-        <el-table-column align="center" prop="linkCount" label="链接数量" width="110" >
+        <el-table-column align="center" prop="linkNumber" label="链接数量" width="110" >
           <template #default="{row}">
             <div style="display: flex; align-items: center;margin: 0 auto">
               <SvgIcon :name="row.fileCount === 0 ? 'linkInvalid' : 'linkValid'" :width="45" :height="30" />
-              <span style="margin-left: 10px">{{ row.linkCount }}</span>
+              <span style="margin-left: 10px">{{ row.linkNumber }}</span>
             </div>
           </template>
         </el-table-column>
@@ -67,7 +67,7 @@
         <el-table-column align="center" prop="updateTime" label="更新时间" width="200" />
         <el-table-column align="center" label="操作" width="200">
           <template #default="{row}">
-            <el-button type="primary" :icon="Edit" @click="handleEditGroup">编辑</el-button>
+            <el-button type="primary" :icon="Edit" @click="handleEditGroup(row)">编辑</el-button>
             <el-popconfirm
               :title="`确认删除${row.groupName}?`"
               width="200px"
@@ -95,7 +95,7 @@
       />
     </el-card>
 
-    <el-dialog title="新增群组" width="60%" v-model="addGroupVisible">
+    <el-dialog :title="groupForm.id ? '编辑群组' : '新增群组'" width="60%" v-model="groupVisible">
         <el-form ref="groupFormRef" style="width: 52%;" :rules="groupRules" :model="groupForm">
           <el-form-item label="群组名称" prop="groupName">
             <el-input  v-model="groupForm.groupName" placeholder="请输入群组名称" />
@@ -114,18 +114,24 @@
           </el-table>
         </div>
         <div class="rightTable">
-          <el-dropdown @command="handleCommand">
-            <el-button type="success" >添加<el-icon class="el-icon--right"><ArrowDown /></el-icon></el-button>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="file">文件</el-dropdown-item>
-                <el-dropdown-item command="link">链接</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
+          <el-cascader placeholder="选择资产类型"
+                       :options="options"
+                       style="width: 9vw"
+                       v-model="selectBucket"
+                       :show-all-levels="false"
+                       @change="cascaderChange" />
+<!--          <el-dropdown @command="handleCommand">-->
+<!--            <el-button type="success" >添加<el-icon class="el-icon&#45;&#45;right"><ArrowDown /></el-icon></el-button>-->
+<!--            <template #dropdown>-->
+<!--              <el-dropdown-menu>-->
+<!--                <el-dropdown-item command="file">文件</el-dropdown-item>-->
+<!--                <el-dropdown-item command="link">链接</el-dropdown-item>-->
+<!--              </el-dropdown-menu>-->
+<!--            </template>-->
+<!--          </el-dropdown>-->
           <el-button type="danger" style="margin:0 10px;" @click="handleDelGroupResource" :disabled="deleteFileSelection.length === 0 && deleteLinkSelection.length === 0 ">删除</el-button>
           <el-input style="width: 50%;" v-if=" resourceType === 'link'" :suffix-icon="Search" placeholder="请输入链接名" v-model="searchLinkName" />
-          <el-input style="width: 50%;" v-if=" resourceType === 'file'" :suffix-icon="Search" placeholder="请输入文件名" v-model="searchFileName" />
+          <el-input style="width: 40%;" v-if=" resourceType === 'file'" :suffix-icon="Search" placeholder="请输入文件名" v-model="searchFileName" />
           <el-table v-if="resourceType === 'link'"  border :data="linkData" height="40vh" style="margin-top: 10px" @selection-change="handleGroupLinkChange" >
             <el-table-column align="center" type="selection" width="55" />
             <el-table-column align="center" label="链接名" prop="linkName" />
@@ -140,7 +146,7 @@
 
       <template #footer>
         <div style="flex: auto">
-          <el-button @click="addGroupVisible = false">取消</el-button>
+          <el-button @click="groupVisible = false">取消</el-button>
           <el-button type="primary" @click="submit">提交</el-button>
         </div>
       </template>
@@ -157,6 +163,8 @@
       @select-change="handleSelectUserChange"
       @size-change="handleUserSizeChange"
       @current-change="getGroupUser"
+      :current-page="groupUserCurrentPage"
+      :page-size="groupUserPageSize"
     />
 
     <select-dialog
@@ -170,6 +178,8 @@
       @select-change="handleSelectLinkChange"
       @size-change="handleLinkSizeChange"
       @current-change="getGroupLink"
+      :current-page="groupLinkCurrentPage"
+      :page-size="groupLinkPageSize"
     />
 
     <select-dialog
@@ -183,6 +193,8 @@
       @select-change="handleSelectFileChange"
       @size-change="handleFileSizeChange"
       @current-change="getGroupFile"
+      :current-page="groupFileCurrentPage"
+      :page-size="groupFilePageSize"
     />
 
   </div>
@@ -193,11 +205,23 @@ import { nextTick, reactive, ref,onMounted } from 'vue'
 import HeaderComponent from '@/components/SearchHeader/index.vue'
 import { Delete, Plus, Search,Edit,ArrowDown } from '@element-plus/icons-vue'
 import SvgIcon from '@/components/SvgIcon/index.vue'
-import type {FormInstance} from "element-plus";
+import { ElMessage, type FormInstance } from 'element-plus'
 import SelectDialog from "@/components/SelectDialog/index.vue"
-import type {IUser,ILink,IFile} from "@/api/group/type"
+import type { IUser, ILink, IFile, groupListItem, groupResponseData, addGroupResponseData,IGroupForm } from '@/api/group/type'
+import {getGroupList,addGroup,deleteGroup,addGroupUser,addGroupFile,addGroupLink} from "@/api/group"
+import {searchUser} from "@/api/user"
+import {getLinks} from "@/api/link"
+import {getFileList} from "@/api/file"
+import type { linkResponseData } from '@/api/link/type'
+import type { fileResponse } from '@/api/file/type'
 let currentPage = ref<number>(1)
+let groupUserCurrentPage = ref<number>(1)
+let groupLinkCurrentPage = ref<number>(1)
+let groupFileCurrentPage = ref<number>(1)
 let pageSize = ref<number>(10)
+let groupUserPageSize = ref<number>(10)
+let groupLinkPageSize = ref<number>(10)
+let groupFilePageSize = ref<number>(10)
 let total = ref<number>(0)
 //选择用户对话框的分页
 let userTotal = ref<number>(0)
@@ -206,7 +230,7 @@ let linkTotal = ref<number>(0)
 //选择文件对话框的分页
 let fileTotal = ref<number>(0)
 const loading = ref<boolean>(false)
-const addGroupVisible = ref<boolean>(false)
+const groupVisible = ref<boolean>(false)
 const userVisible = ref<boolean>(false)
 const fileVisible = ref<boolean>(false)
 const linkVisible = ref<boolean>(false)
@@ -215,6 +239,7 @@ const searchLinkName = ref<string>('')
 const searchFileName = ref<string>('')
 const resourceType = ref<string>('file')
 const groupFormRef = ref<FormInstance>()
+const selectBucket = ref([])
 //存储已选择的用户
 const userSelection = ref([])
 //存储选择删除用户的信息
@@ -241,110 +266,54 @@ const linkColumns = ref([
   { label: '链接名', prop: 'linkName' },
 ]);
 //群组信息
-const groupListData = ref([
-  {
-    id: 1,
-    groupName: '测试小组',
-    leader: 'admin',
-    memberCount: 10,
-    fileCount: 20,
-    linkCount: 30,
-    status: 1,
-    updateTime: '2023-05-01 10:20:34'
-  },
-  {
-    id: 2,
-    groupName: '测试小组',
-    leader: 'admin',
-    memberCount: 0,
-    fileCount: 20,
-    linkCount: 0,
-    status: 1,
-    updateTime: '2023-05-01 10:20:34'
-  },
-  {
-    id: 3,
-    groupName: '测试小组',
-    leader: 'admin',
-    memberCount: 10,
-    fileCount: 0,
-    linkCount: 30,
-    status: 1,
-    updateTime: '2023-05-01 10:20:34'
-  },
-  {
-    id: 4,
-    groupName: '测试小组',
-    leader: 'admin',
-    memberCount: 10,
-    fileCount: 20,
-    linkCount:3,
-    status: 0,
-    updateTime: '2023-05-01 10:20:34'
-  }
-])
+const groupListData = ref<groupListItem[]>([])
 //选择用户对话框所用的数据
-const selectUserData = ref<IUser[]>([
-  {
-    id: 1,
-    name: 'admin',
-    number: '123456',
-    roleName: '管理员',
-  },
-  {
-    id: 2,
-    name: 'ops1',
-    number: '123456',
-    roleName: '管理员',
-  },
-])
+const selectUserData = ref<IUser[]>([])
 //选择链接对话框所用的数据
-const selectLinkData = ref<ILink[]>([
-  {
-    id: 1,
-    linkName: 'vue',
-  },
-  {
-    id: 2,
-    linkName: 'java',
-  },
-  {
-    id: 3,
-    linkName: 'php',
-  },
-  {
-    id: 4,
-    linkName: 'c++',
-  },
-])
+const selectLinkData = ref<ILink[]>([])
 //选择文件对话框所用的数据
-const selectFileData = ref<IFile[]>([
-  {
-    id: 1,
-    fileName: 'vue',
-    path: 'D:/vue'
-  },
-  {
-    id: 2,
-    fileName: 'java',
-    path: 'D:/java'
-  },
-  {
-    id: 3,
-    fileName: 'php',
-    path: 'D:/php'
-  },
-])
+const selectFileData = ref<IFile[]>([])
 //群组成员
 const userData = ref<IUser[]>([])
 //群组链接
 const linkData = ref<ILink[]>([])
 //群组文件
 const fileData = ref<IFile[]>([])
-
-const groupForm = reactive({
+const groupForm = reactive<IGroupForm>({
   groupName: '',
 })
+const options =[
+  {
+    value: 'file',
+    label: '文件',
+    children:[
+      {
+        value: 'section1',
+        label: '信息化一室',
+      },
+      {
+        value: 'section2',
+        label: '信息化二室',
+      },
+      {
+        value: 'basic',
+        label: '基础架构室',
+      },
+      {
+        value: 'support',
+        label: '开发支持室',
+      },
+      {
+        value: 'manage',
+        label: '综合管理室',
+      }
+    ]
+  },
+  {
+    value: 'link',
+    label: '链接',
+  },
+]
 
 const validatorUserName = (rule:any, value:string, callback:any) => {
   if(value.trim().length === 0){
@@ -364,34 +333,72 @@ onMounted(() => {
   getGroup()
 })
 
-const getGroup = () => {
+const getGroup = async (pager = 1) => {
+  currentPage.value = pager
+  const {data}:groupResponseData = await getGroupList(currentPage.value,pageSize.value)
+  groupListData.value = data.items
+  total.value = data.counts
 }
 
-const onSearch =  (s:string) => {
-  console.log(s)
+const onSearch = async (searchValue:string) => {
+  const {data}:groupResponseData = await getGroupList( currentPage.value,
+    pageSize.value,{groupName:searchValue} )
+  groupListData.value = data.items
+  total.value = data.counts
 }
 
 const reset = () => {
+  getGroup()
 }
 
 const handleAddGroup = () => {
   nextTick(() => {
     groupFormRef.value?.resetFields()
+    userData.value = []
+    linkData.value = []
+    fileData.value = []
+    selectBucket.value = []
   })
-  addGroupVisible.value = true
+  groupVisible.value = true
 }
 
 const submit = async () => {
-  console.log('confirmClick')
   await groupFormRef.value?.validate()
-  console.log(userData.value,fileData.value,linkData.value,"userData,fileData,linkData")
-  addGroupVisible.value = false
+  const result: addGroupResponseData =await addGroup(groupForm.groupName)
+  const groupId = result.data.id
+  const userParams = userData.value.map(item => {
+    return item.id
+  })
+  const fileParams = fileData.value.map(item => {
+    return item.id
+  })
+  const linkParams = linkData.value.map(item => {
+    return item.id
+  })
+  const userRes:any = await addGroupUser(groupId, userParams)
+  const fileRes:any = await addGroupFile(groupId, fileParams)
+  const linkRes:any = await addGroupLink(groupId, linkParams)
+  groupVisible.value = false
+  ElMessage({
+    message: '添加成功',
+    type:'success'
+  })
+  await getGroup()
 }
 
-const handleEditGroup = () => {
+const handleEditGroup = (row:any) => {
+  console.log(row,'row')
+  Object.assign(groupForm,row)
+  groupVisible.value = true
 }
 
-const handleDelGroup = (id:number) => {
+const handleDelGroup = async (id:number) => {
+  const result:any = await deleteGroup(id)
+  ElMessage({
+    message: result.msg,
+    type: result.code === 200 ? 'success' : 'error'
+  })
+  await getGroup()
 }
 
 const handleChangeLinkStatus = (row:any) => {
@@ -402,11 +409,15 @@ const handleSizeChange = () => {
   getGroup()
 }
 
-const handleAddGroupUser = () => {
+const handleAddGroupUser = async () => {
   userVisible.value = true
+  const result:any = await searchUser(groupUserCurrentPage.value,groupUserPageSize.value)
+  console.log(result,'result')
+  selectUserData.value = result.items
+  userTotal.value = result.counts
 }
 
-const handleDelGroupUser = () => {
+const handleDelGroupUser = async () => {
   userData.value = userData.value.filter(item=> {
     return  !deleteUserSelection.value.some((deleteItem:any)  =>{
       return  deleteItem.id === item.id
@@ -426,12 +437,35 @@ const handleCommand = (command: string)=>{
   }
 }
 
-const handleAddGroupFile = () => {
-  fileVisible.value = true
+const cascaderChange = async (value:any) => {
+  if(selectBucket.value.length > 1){
+    resourceType.value = 'file'
+    const bucket = selectBucket.value[selectBucket.value.length - 1]
+    const result:fileResponse = await getFileList(bucket,'/')
+    fileVisible.value = true
+    console.log(result,'result')
+    selectFileData.value = result.data
+    // fileTotal.value = result.data.counts
+
+  } else {
+    resourceType.value = 'link'
+    await handleAddGroupLink()
+  }
 }
 
-const handleAddGroupLink = () => {
+const handleAddGroupFile = async () => {
+  // selectBucket.value = []
+  fileVisible.value = true
+  // const result:any = await addGroupFile(groupFileCurrentPage.value,groupFilePageSize.value)
+  // selectFileData.value = result.data.items
+  // fileTotal.value = result.data.counts
+}
+
+const handleAddGroupLink = async () => {
   linkVisible.value = true
+  const result:linkResponseData = await getLinks(groupLinkCurrentPage.value,groupLinkPageSize.value)
+  selectLinkData.value = result.data.items
+  linkTotal.value = result.data.counts
 }
 
 const handleDelGroupResource = () => {
@@ -470,12 +504,20 @@ const handleCommitFile = () => {
   fileVisible.value = false
 }
 
-const getGroupUser = async (pager = 1) => {
-  currentPage.value = pager
+const getGroupUser = async (page = 1) => {
+  console.log(page,'1')
+  groupUserCurrentPage.value = page
+  const result:any = await searchUser(groupUserCurrentPage.value,groupUserPageSize.value)
+  console.log(result,'2')
+  selectUserData.value = result.items
+  userTotal.value = result.counts
 }
 
 const getGroupLink = async (pager = 1) => {
-  currentPage.value = pager
+  groupLinkCurrentPage.value = pager
+  const result:linkResponseData = await getLinks(groupLinkCurrentPage.value,groupLinkPageSize.value)
+  selectLinkData.value = result.data.items
+  linkTotal.value = result.data.counts
 }
 
 const getGroupFile = async (pager = 1) => {
@@ -494,7 +536,7 @@ const handleGroupFileChange = (val:any) => {
   deleteFileSelection.value = val
 }
 
-const handleUserSizeChange = (size:number) => {
+const handleUserSizeChange = () => {
   currentPage.value = 1
   getGroupUser()
 }

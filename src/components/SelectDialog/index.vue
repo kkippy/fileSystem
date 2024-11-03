@@ -63,29 +63,43 @@ const props = defineProps({
     type: Array as () => Column[],
     default: () => []
   },
-  total: Number,
+  total: {
+    type: Number,
+    default: 0
+  },
+  currentPage:{
+    type: Number,
+    default: 1
+  },
+  pageSize:{
+    type: Number,
+    default: 10
+  },
   placeholder: String,
 });
 
 
 let size = ref<ComponentSize>('small')
-let currentPage = ref<number>(1)
-let pageSize = ref<number>(10)
+let currentPage = ref<number>(props.currentPage)
+let pageSize = ref<number>(props.pageSize)
 let visible = ref<boolean>(false)
 const columns = ref(props.columns)
-const total = ref(props.total)
+const total = ref<number>(props.total)
 const data = ref<Array<any>>(props.data || [])
 const searchQuery = ref('')
 const debouncedSearchQuery = ref('');
 const emit = defineEmits(['update:modelValue','onCommit','selectChange',
   'sizeChange','currentChange','onClose']);
 
-watch(()=> props.modelValue,()=>{
+watch(()=> [props.modelValue,props.pageSize,props.total],()=>{
   visible.value = props.modelValue;
+  pageSize.value = props.pageSize;
+  total.value = props.total;
 })
 
-watch(()=>visible.value,(newVal)=>{
+watch(()=>[visible.value,pageSize.value,total.value],([newVal, newPageSize])=>{
   emit('update:modelValue', newVal);
+  emit('sizeChange', newPageSize);
 })
 const updateSearchQuery = _.debounce((query:string) => {
   debouncedSearchQuery.value = query;
