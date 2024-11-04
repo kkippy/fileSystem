@@ -46,7 +46,7 @@ export const deleteFolder = (fileId:string)=>request.get<any>(FILE_API.DELETE_FO
 
 export const searchDocument = (bucket:string,path:string,searchName:string)=>request.get<any,searchFileResponse>(FILE_API.SEARCH_DOCUMENT_URL+`?bucket=${bucket}&path=${path}&searchName=${searchName}`)
 
-export const searchFile = (bucket:string,pageNo:number,pageSize:number,body?:any)=>{
+export const searchFile = (bucket:string,pageNo:number,pageSize:number,data?:any)=>{
   const url = `${FILE_API.SEARCH_FILE_URL}?bucket=${bucket}&pageNo=${pageNo}&pageSize=${pageSize}`
-  return request.post<any>(url,body)
+  return request.post<any>(url,data)
 }

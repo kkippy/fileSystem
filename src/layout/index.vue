@@ -39,7 +39,6 @@ const menuRoutes = [...constantRoute,anyRoute]
 let route = useRoute();
 const defaultComponent = ref<string>('GridComponent')
 const changeLayout = (isGridLayout:boolean)=>{
-  console.log(isGridLayout)
   defaultComponent.value = isGridLayout ? 'GridComponent' : 'ListComponent'
 }
 </script>

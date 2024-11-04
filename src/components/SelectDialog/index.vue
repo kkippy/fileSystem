@@ -1,18 +1,21 @@
 <template>
   <el-dialog :width="width" v-model="visible">
     <template #header>
-      <div style="display: flex; align-items: center">
-        <span>{{ title }}</span>
-        <el-input
-          :suffix-icon="Search"
-          style="margin-left: 10px; width: 40%;"
-          :placeholder="placeholder"
-          v-model="searchQuery"
-        />
+      <div style="display: flex; align-items: center;justify-content: space-between">
+        <div>
+          <span>{{ title }}</span>
+          <el-input
+            :suffix-icon="Search"
+            style="margin-left: 10px; width: 60%;"
+            :placeholder="placeholder"
+            v-model="searchQuery"
+          />
+        </div>
+        <span>已选择{{selectLength}}条</span>
       </div>
     </template>
 
-    <el-table :data="filteredData" height="40vh" @selection-change="handleSelectionChange">
+    <el-table :data="props.data" height="40vh" @selection-change="handleSelectionChange">
       <el-table-column align="center" type="selection" width="55" />
       <el-table-column align="center" v-for="(column) in columns" :key="column.prop" :label="column.label" :prop="column.prop" />
     </el-table>
@@ -58,7 +61,10 @@ const props = defineProps({
     type:Boolean,
     default:false
   },
-  data: Array,
+  data: {
+    type: Array,
+    default: () => []
+  },
   columns: {
     type: Array as () => Column[],
     default: () => []
@@ -76,6 +82,10 @@ const props = defineProps({
     default: 10
   },
   placeholder: String,
+  searchQuery:{
+    type: String,
+    default: ''
+  }
 });
 
 
@@ -83,13 +93,13 @@ let size = ref<ComponentSize>('small')
 let currentPage = ref<number>(props.currentPage)
 let pageSize = ref<number>(props.pageSize)
 let visible = ref<boolean>(false)
+let selectLength = ref<number>(0)
 const columns = ref(props.columns)
 const total = ref<number>(props.total)
-const data = ref<Array<any>>(props.data || [])
-const searchQuery = ref('')
+const searchQuery = ref<string>(props.searchQuery)
 const debouncedSearchQuery = ref('');
 const emit = defineEmits(['update:modelValue','onCommit','selectChange',
-  'sizeChange','currentChange','onClose']);
+  'sizeChange','currentChange','onClose','searchChange']);
 
 watch(()=> [props.modelValue,props.pageSize,props.total],()=>{
   visible.value = props.modelValue;
@@ -97,26 +107,17 @@ watch(()=> [props.modelValue,props.pageSize,props.total],()=>{
   total.value = props.total;
 })
 
-watch(()=>[visible.value,pageSize.value,total.value],([newVal, newPageSize])=>{
+watch(()=>[visible.value,pageSize.value],([newVal, newPageSize])=>{
   emit('update:modelValue', newVal);
   emit('sizeChange', newPageSize);
 })
 const updateSearchQuery = _.debounce((query:string) => {
   debouncedSearchQuery.value = query;
+  emit('searchChange', query);
 }, 300);
 
 watch(searchQuery, (newValue) => {
   updateSearchQuery(newValue);
-});
-
-const filteredData = computed(() => {
-  if (!debouncedSearchQuery.value) return props.data;
-  const query = debouncedSearchQuery.value.trim().toLowerCase();
-  return data.value.filter(item => {
-    return Object.values(item.name).some(value =>
-     String(value).toLowerCase().includes(query)
-    );
-  });
 });
 
 const closeDialog = () => {
@@ -137,6 +138,7 @@ const handleCurrentChange = (page:number) => {
 };
 
 const handleSelectionChange = (selection:any) => {
+  selectLength.value = selection.length
   emit('selectChange', selection)
 };
 </script>

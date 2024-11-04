@@ -125,7 +125,7 @@
         <div class="rightTable">
           <el-cascader placeholder="选择资产类型"
                        :options="options"
-                       style="width: 9vw"
+                       style="width: 8vw"
                        v-model="selectBucket"
                        :show-all-levels="false"
                        @change="cascaderChange" />
@@ -177,6 +177,7 @@
       :total="userTotal"
       placeholder="请输入用户名称"
       @onCommit="handleCommitUser"
+      @search-change="handleSearchUser"
       @select-change="handleSelectUserChange"
       @size-change="handleUserSizeChange"
       @current-change="getGroupUser"
@@ -192,6 +193,7 @@
       :total="linkTotal"
       placeholder="请输入链接名称"
       @onCommit="handleCommitLink"
+      @search-change="handleSearchLink"
       @select-change="handleSelectLinkChange"
       @size-change="handleLinkSizeChange"
       @current-change="getGroupLink"
@@ -207,6 +209,7 @@
       :total="fileTotal"
       placeholder="请输入文件名称"
       @onCommit="handleCommitFile"
+      @search-change="handleSearchFile"
       @select-change="handleSelectFileChange"
       @size-change="handleFileSizeChange"
       @current-change="getGroupFile"
@@ -251,9 +254,8 @@ import {
 } from '@/api/group'
 import {searchUser} from "@/api/user"
 import {getLinks} from "@/api/link"
-import {getFileList,searchFile} from "@/api/file"
+import {searchFile} from "@/api/file"
 import type { linkResponseData } from '@/api/link/type'
-import type { fileResponse } from '@/api/file/type'
 import { options,userColumns,fileColumns,linkColumns } from '@/utils/groupTools'
 let currentPage = ref<number>(1)
 let groupUserCurrentPage = ref<number>(1)
@@ -313,6 +315,7 @@ const originFileData = ref<IFile[]>([])
 const groupForm = reactive<IGroupForm>({
   groupName: '',
 })
+const bucketName = ref<string>('')
 
 const validatorUserName = (rule:any, value:string, callback:any) => {
   if(value.trim().length === 0){
@@ -366,12 +369,36 @@ const onSearchUser = async ()=>{
   userData.value = userData.value.filter(item => item.name.includes(searchUserName.value))
 }
 
+const handleSearchUser = async (searchValue:string) => {
+  const result:any = await searchUser(groupUserCurrentPage.value,groupUserPageSize.value,{
+    name:searchValue
+  })
+  selectUserData.value = result.items
+  userTotal.value = result.counts
+}
+
 const onSearchLink = async () => {
   linkData.value = linkData.value.filter(item => item.linkName.includes(searchLinkName.value))
 }
 
+const handleSearchLink = async (searchValue:string) => {
+  const { data }:linkResponseData = await getLinks(groupLinkCurrentPage.value,groupLinkPageSize.value,{
+    linkName:searchValue
+  })
+  selectLinkData.value = data.items
+  linkTotal.value = data.counts
+}
+
 const onSearchFile = async () => {
   fileData.value = fileData.value.filter(item => item.fileName.includes(searchFileName.value))
+}
+
+const handleSearchFile = async (searchValue:string) => {
+  const result:any = await searchFile(bucketName.value,groupFileCurrentPage.value,groupFilePageSize.value,{
+    fileName:searchValue
+  })
+  selectFileData.value = result.data.items
+  fileTotal.value = result.data.counts
 }
 
 const resetSearchUser = ()=>{
@@ -394,65 +421,58 @@ const handleAddGroup = () => {
     fileData.value = []
     selectBucket.value = []
     groupForm.id = null
+    groupForm.groupName = ''
   })
   groupVisible.value = true
 }
 
 const submit = async () => {
-
-  await groupFormRef.value?.validate()
-  const result: addGroupResponseData =await addGroup(groupForm.groupName)
-  const groupId = result.data.id
-  const userParams = userData.value.map(item => {
-    return item.id
-  })
-  const fileParams = fileData.value.map(item => {
-    return item.id
-  })
-  const linkParams = linkData.value.map(item => {
-    return item.id
-  })
-  const userRes:any = addGroupUser(groupId, userParams)
-  const fileRes:any = addGroupFile(groupId, fileParams)
-  const linkRes:any = addGroupLink(groupId, linkParams)
-  if(groupForm.id){
-    const userEditRes:any = addGroupUser(groupForm.id, userParams)
-    const fileEditRes:any = addGroupFile(groupForm.id, fileParams)
-    const linkEditRes:any = addGroupLink(groupForm.id, linkParams)
-    await Promise.any([userEditRes,fileEditRes,linkEditRes])
-    await updateGroup({
-      id:groupForm.id,
-      groupName:groupForm.groupName
-    })
-    groupVisible.value = false
-    ElMessage({
-      message: '修改成功',
-      type:'success'
-    })
-  }
-  const promises = [userRes,fileRes,linkRes]
+  const userParams = userData.value.map(item => item.id)
+  const fileParams = fileData.value.map(item => item.id)
+  const linkParams = linkData.value.map(item => item.id)
   try{
-    await Promise.any(promises)
-    groupVisible.value = false
-    ElMessage({
-      message: '添加成功',
-      type:'success'
-    })
-  }catch(e){
+    if(groupForm.id){
+      await Promise.all([
+        addGroupUser(groupForm.id, userParams),
+        addGroupFile(groupForm.id, fileParams),
+        addGroupLink(groupForm.id, linkParams)
+      ])
+      await updateGroup({
+        id: groupForm.id,
+        groupName: groupForm.groupName
+      });
+      ElMessage({
+        message: '修改成功',
+        type: 'success'
+      });
+    } else {
+      await groupFormRef.value?.validate()
+      const result: addGroupResponseData =await addGroup(groupForm.groupName)
+      const groupId = result.data.id
+      await Promise.all([
+        addGroupUser(groupId, userParams),
+        addGroupFile(groupId, fileParams),
+        addGroupLink(groupId, linkParams)
+      ])
+      ElMessage({
+        message: '添加成功',
+        type: 'success'
+      })
+    }
+  } catch (e){
     console.log(e,'e')
   } finally {
     await getGroup()
+    groupVisible.value = false
   }
 }
 
 const handleEditGroup = async (row:any) => {
-  console.log(row,'row')
   Object.assign(groupForm,row)
   const result:searchGroupResponseData = await searchGroup(row.id)
   userData.value = result.data.userList
   linkData.value = result.data.linkList as unknown as searchLinkListItem[]
   fileData.value = result.data.fileInfoList as unknown as searchFileListItem[]
-  console.log(result,'result')
   groupVisible.value = true
 }
 
@@ -483,7 +503,9 @@ const handleSizeChange = () => {
 }
 
 const handleAddGroupUser = async () => {
-  userVisible.value = true
+  await nextTick(() => {
+    userVisible.value = true
+  })
   const result:any = await searchUser(groupUserCurrentPage.value,groupUserPageSize.value)
   selectUserData.value = result.items
   userTotal.value = result.counts
@@ -500,17 +522,14 @@ const handleDelGroupUser = async () => {
   deleteUserSelection.value = []
 }
 
-const cascaderChange = async (value:any) => {
+const cascaderChange = async () => {
   if(selectBucket.value.length > 1){
     resourceType.value = 'file'
-    const bucket = selectBucket.value[selectBucket.value.length - 1]
-    // const result:fileResponse = await getFileList(bucket,'/')
-    const result:any = await searchFile(bucket,groupFileCurrentPage.value,groupFilePageSize.value)
+    bucketName.value = selectBucket.value[selectBucket.value.length - 1]
+    const result:any = await searchFile(bucketName.value,groupFileCurrentPage.value,groupFilePageSize.value)
     fileVisible.value = true
-    console.log(result,'result')
-    selectFileData.value = result.data
-    // fileTotal.value = result.data.counts
-
+    selectFileData.value = result.data.items
+    fileTotal.value = result.data.counts
   } else {
     resourceType.value = 'link'
     await handleAddGroupLink()
