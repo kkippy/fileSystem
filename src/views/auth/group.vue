@@ -105,7 +105,10 @@
       <div class="tableContainer">
         <div class="leftTable">
           <el-button type="success" @click="handleAddGroupUser">添加用户</el-button>
-          <el-button type="danger" style="margin-right: 10px;" @click="handleDelGroupUser" :disabled="deleteUserSelection.length === 0">删除</el-button>
+          <el-button type="danger"
+                     style="margin-right: 10px;"
+                     @click="handleDelGroupUser"
+                     :disabled="deleteUserSelection.length === 0">删除</el-button>
           <el-input style="width: 50%;"
                     :suffix-icon="Search"
                     placeholder="请输入用户名"
@@ -126,7 +129,10 @@
                        v-model="selectBucket"
                        :show-all-levels="false"
                        @change="cascaderChange" />
-          <el-button type="danger" style="margin:0 10px;" @click="handleDelGroupResource" :disabled="deleteFileSelection.length === 0 && deleteLinkSelection.length === 0 ">删除</el-button>
+          <el-button type="danger"
+                     style="margin:0 10px;"
+                     @click="handleDelGroupResource"
+                     :disabled="deleteFileSelection.length === 0 && deleteLinkSelection.length === 0 ">删除</el-button>
           <el-input style="width: 50%;"
                     v-if=" resourceType === 'link'"
                     :suffix-icon="Search"
@@ -218,11 +224,34 @@ import { Delete, Plus, Search,Edit } from '@element-plus/icons-vue'
 import SvgIcon from '@/components/SvgIcon/index.vue'
 import { ElMessage, type FormInstance } from 'element-plus'
 import SelectDialog from "@/components/SelectDialog/index.vue"
-import type { IUser, ILink, IFile, groupListItem, groupResponseData, addGroupResponseData,IGroupForm } from '@/api/group/type'
-import {getGroupList,addGroup,deleteGroup,addGroupUser,addGroupFile,addGroupLink} from "@/api/group"
+import type {
+  IUser,
+  ILink,
+  IFile,
+  groupListItem,
+  groupResponseData,
+  addGroupResponseData,
+  IGroupForm,
+  searchGroupResponseData,
+  searchLinkListItem,
+  searchFileListItem
+} from '@/api/group/type'
+import {
+  getGroupList,
+  addGroup,
+  searchGroup,
+  updateGroup,
+  deleteGroup,
+  addGroupUser,
+  addGroupFile,
+  addGroupLink,
+  deleteGroupUser,
+  deleteGroupFile,
+  deleteGroupLink
+} from '@/api/group'
 import {searchUser} from "@/api/user"
 import {getLinks} from "@/api/link"
-import {getFileList} from "@/api/file"
+import {getFileList,searchFile} from "@/api/file"
 import type { linkResponseData } from '@/api/link/type'
 import type { fileResponse } from '@/api/file/type'
 import { options,userColumns,fileColumns,linkColumns } from '@/utils/groupTools'
@@ -364,11 +393,13 @@ const handleAddGroup = () => {
     linkData.value = []
     fileData.value = []
     selectBucket.value = []
+    groupForm.id = null
   })
   groupVisible.value = true
 }
 
 const submit = async () => {
+
   await groupFormRef.value?.validate()
   const result: addGroupResponseData =await addGroup(groupForm.groupName)
   const groupId = result.data.id
@@ -384,6 +415,21 @@ const submit = async () => {
   const userRes:any = addGroupUser(groupId, userParams)
   const fileRes:any = addGroupFile(groupId, fileParams)
   const linkRes:any = addGroupLink(groupId, linkParams)
+  if(groupForm.id){
+    const userEditRes:any = addGroupUser(groupForm.id, userParams)
+    const fileEditRes:any = addGroupFile(groupForm.id, fileParams)
+    const linkEditRes:any = addGroupLink(groupForm.id, linkParams)
+    await Promise.any([userEditRes,fileEditRes,linkEditRes])
+    await updateGroup({
+      id:groupForm.id,
+      groupName:groupForm.groupName
+    })
+    groupVisible.value = false
+    ElMessage({
+      message: '修改成功',
+      type:'success'
+    })
+  }
   const promises = [userRes,fileRes,linkRes]
   try{
     await Promise.any(promises)
@@ -399,9 +445,14 @@ const submit = async () => {
   }
 }
 
-const handleEditGroup = (row:any) => {
+const handleEditGroup = async (row:any) => {
   console.log(row,'row')
   Object.assign(groupForm,row)
+  const result:searchGroupResponseData = await searchGroup(row.id)
+  userData.value = result.data.userList
+  linkData.value = result.data.linkList as unknown as searchLinkListItem[]
+  fileData.value = result.data.fileInfoList as unknown as searchFileListItem[]
+  console.log(result,'result')
   groupVisible.value = true
 }
 
@@ -414,7 +465,16 @@ const handleDelGroup = async (id:number) => {
   await getGroup()
 }
 
-const handleChangeLinkStatus = (row:any) => {
+const handleChangeLinkStatus = async (row:any) => {
+  const result:any = await updateGroup({
+    id:row.id,
+    status:row.status
+  })
+  ElMessage({
+    message: '状态修改成功',
+    type: result.code === 200 ? 'success' : 'error'
+  })
+  await getGroup()
 }
 
 const handleSizeChange = () => {
@@ -425,12 +485,13 @@ const handleSizeChange = () => {
 const handleAddGroupUser = async () => {
   userVisible.value = true
   const result:any = await searchUser(groupUserCurrentPage.value,groupUserPageSize.value)
-  console.log(result,'result')
   selectUserData.value = result.items
   userTotal.value = result.counts
 }
 
 const handleDelGroupUser = async () => {
+  const delUserIds = deleteUserSelection.value.map((item:any) => item.id)
+  await deleteGroupUser(groupForm.id as number,delUserIds)
   userData.value = userData.value.filter(item=> {
     return  !deleteUserSelection.value.some((deleteItem:any)  =>{
       return  deleteItem.id === item.id
@@ -443,7 +504,8 @@ const cascaderChange = async (value:any) => {
   if(selectBucket.value.length > 1){
     resourceType.value = 'file'
     const bucket = selectBucket.value[selectBucket.value.length - 1]
-    const result:fileResponse = await getFileList(bucket,'/')
+    // const result:fileResponse = await getFileList(bucket,'/')
+    const result:any = await searchFile(bucket,groupFileCurrentPage.value,groupFilePageSize.value)
     fileVisible.value = true
     console.log(result,'result')
     selectFileData.value = result.data
@@ -455,14 +517,6 @@ const cascaderChange = async (value:any) => {
   }
 }
 
-const handleAddGroupFile = async () => {
-  // selectBucket.value = []
-  fileVisible.value = true
-  // const result:any = await addGroupFile(groupFileCurrentPage.value,groupFilePageSize.value)
-  // selectFileData.value = result.data.items
-  // fileTotal.value = result.data.counts
-}
-
 const handleAddGroupLink = async () => {
   linkVisible.value = true
   const result:linkResponseData = await getLinks(groupLinkCurrentPage.value,groupLinkPageSize.value)
@@ -470,7 +524,7 @@ const handleAddGroupLink = async () => {
   linkTotal.value = result.data.counts
 }
 
-const handleDelGroupResource = () => {
+const handleDelGroupResource = async () => {
   const dataToFilter = resourceType.value === 'link' ? linkData.value : fileData.value;
   const deleteSelection = resourceType.value === 'link' ? deleteLinkSelection.value : deleteFileSelection.value;
 
@@ -479,9 +533,13 @@ const handleDelGroupResource = () => {
   );
 
   if (resourceType.value === 'link') {
+    const delLinkIds = deleteLinkSelection.value.map((item:any) => item.id);
+    await deleteGroupLink(groupForm.id as number, delLinkIds);
     linkData.value = filteredData as ILink[];
     deleteLinkSelection.value = [];
   } else {
+    const delFileIds = deleteFileSelection.value.map((item:any) => item.id);
+    await deleteGroupFile(groupForm.id as number, delFileIds);
     fileData.value = filteredData as IFile[];
     deleteFileSelection.value = [];
   }

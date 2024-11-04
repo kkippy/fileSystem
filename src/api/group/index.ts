@@ -1,8 +1,9 @@
 import request from "@/utils/request"
-import type {groupResponseData,addGroupResponseData} from './type'
+import type {groupResponseData,addGroupResponseData,searchGroupResponseData} from './type'
 
 enum GROUP_API {
   GET_GROUP_LIST_URL = '/api/group/list',
+  SEARCH_GROUP_URL = '/api/group/query/',
   ADD_GROUP_URL = '/api/group/create',
   DELETE_GROUP_URL = '/api/group/delete',
   ADD_GROUP_USER_URL = '/api/group/addUser',
@@ -11,6 +12,7 @@ enum GROUP_API {
   DELETE_GROUP_FILE_URL = '/api/group/removeFile',
   ADD_GROUP_LINK_URL = '/api/group/addLink',
   DELETE_GROUP_LINK_URL = '/api/group/removeLink',
+  UPDATE_GROUP_URL = '/api/group/update'
 
 }
 
@@ -19,7 +21,11 @@ export const getGroupList = (pageNo:number, pageSize:number,data?:any)=> {
   return request.post<any,groupResponseData>(url,data)
 }
 
+export const searchGroup = (groupId:number)=>request.get<any,searchGroupResponseData>(GROUP_API.SEARCH_GROUP_URL+`${groupId}`)
+
 export const addGroup = (groupName:string)=>request.get<any,addGroupResponseData>(GROUP_API.ADD_GROUP_URL+`?groupName=${groupName}`)
+
+export const updateGroup = (data:any)=>request.post<any>(GROUP_API.UPDATE_GROUP_URL,data)
 
 export const deleteGroup = (groupId:number)=>request.get<any>(GROUP_API.DELETE_GROUP_URL+`?groupId=${groupId}`)
 

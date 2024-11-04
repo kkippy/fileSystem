@@ -14,12 +14,51 @@ export interface ILink {
 export interface IFile {
   id: number;
   fileName: string;
-  path: string;
+  path?: string;
 }
 
 export interface ResponseData {
   code: number;
   msg: string;
+}
+
+export interface searchUserListItem {
+  id: number;
+  number: number | string;
+  account: string;
+  name: string;
+  userStatus: number;
+  createTime: string;
+  updateTime: string;
+}
+
+export interface searchLinkListItem {
+  id: number;
+  linkName: string;
+  linkAddress: string;
+  status: number;
+  hasGroup: number;
+  userId: number;
+  createTime: string;
+  updateTime: string;
+}
+
+export interface searchFileListItem {
+  id: number;
+  parentId: number;
+  bucket: string;
+  fileName: string;
+  timeName: string;
+  suffixName: string;
+  isDir: number;
+  isImg: number;
+  fileSize: string;
+  fileDepth: number;
+  status: number;
+  hasGroup: number;
+  createTime: string;
+  updateTime: string;
+  userId: number;
 }
 
 export interface groupListItem {
@@ -34,6 +73,12 @@ export interface groupListItem {
   fileNumber: number | null;
   linkNumber: number | null;
 }
+
+export interface searchGroupItem extends groupListItem {
+  userList: searchUserListItem[];
+  fileInfoList: searchLinkListItem[];
+  linkList: searchFileListItem[];
+ }
 
 export type groupList = groupListItem[];
 
@@ -53,4 +98,8 @@ export type groupList = groupListItem[];
  export interface IGroupForm{
    id?: number | null;
    groupName: string;
+ }
+
+ export interface searchGroupResponseData extends ResponseData {
+  data: searchGroupItem
  }
