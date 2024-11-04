@@ -106,7 +106,13 @@
         <div class="leftTable">
           <el-button type="success" @click="handleAddGroupUser">添加用户</el-button>
           <el-button type="danger" style="margin-right: 10px;" @click="handleDelGroupUser" :disabled="deleteUserSelection.length === 0">删除</el-button>
-          <el-input style="width: 50%;"  :suffix-icon="Search" placeholder="请输入用户名" v-model="searchUserName"></el-input>
+          <el-input style="width: 50%;"
+                    :suffix-icon="Search"
+                    placeholder="请输入用户名"
+                    v-model="searchUserName"
+                    @keyup.enter="onSearchUser"
+                    @clear="resetSearchUser"
+                    clearable />
           <el-table  border :data="userData" height="40vh" style="margin-top: 10px" @selection-change="handleGroupUserChange">
             <el-table-column align="center" type="selection" width="55" />
             <el-table-column align="center" label="姓名" prop="name" />
@@ -120,18 +126,23 @@
                        v-model="selectBucket"
                        :show-all-levels="false"
                        @change="cascaderChange" />
-<!--          <el-dropdown @command="handleCommand">-->
-<!--            <el-button type="success" >添加<el-icon class="el-icon&#45;&#45;right"><ArrowDown /></el-icon></el-button>-->
-<!--            <template #dropdown>-->
-<!--              <el-dropdown-menu>-->
-<!--                <el-dropdown-item command="file">文件</el-dropdown-item>-->
-<!--                <el-dropdown-item command="link">链接</el-dropdown-item>-->
-<!--              </el-dropdown-menu>-->
-<!--            </template>-->
-<!--          </el-dropdown>-->
           <el-button type="danger" style="margin:0 10px;" @click="handleDelGroupResource" :disabled="deleteFileSelection.length === 0 && deleteLinkSelection.length === 0 ">删除</el-button>
-          <el-input style="width: 50%;" v-if=" resourceType === 'link'" :suffix-icon="Search" placeholder="请输入链接名" v-model="searchLinkName" />
-          <el-input style="width: 40%;" v-if=" resourceType === 'file'" :suffix-icon="Search" placeholder="请输入文件名" v-model="searchFileName" />
+          <el-input style="width: 50%;"
+                    v-if=" resourceType === 'link'"
+                    :suffix-icon="Search"
+                    placeholder="请输入链接名"
+                    v-model="searchLinkName"
+                    @keyup.enter="onSearchLink"
+                    clearable
+                    @clear="resetSearchLink" />
+          <el-input style="width: 40%;"
+                    v-if=" resourceType === 'file'"
+                    :suffix-icon="Search"
+                    placeholder="请输入文件名"
+                    v-model="searchFileName"
+                    @keyup.enter="onSearchFile"
+                    clearable
+                    @clear="resetSearchFile" />
           <el-table v-if="resourceType === 'link'"  border :data="linkData" height="40vh" style="margin-top: 10px" @selection-change="handleGroupLinkChange" >
             <el-table-column align="center" type="selection" width="55" />
             <el-table-column align="center" label="链接名" prop="linkName" />
@@ -201,9 +212,9 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, reactive, ref,onMounted } from 'vue'
+import { nextTick, reactive, ref, onMounted, watch } from 'vue'
 import HeaderComponent from '@/components/SearchHeader/index.vue'
-import { Delete, Plus, Search,Edit,ArrowDown } from '@element-plus/icons-vue'
+import { Delete, Plus, Search,Edit } from '@element-plus/icons-vue'
 import SvgIcon from '@/components/SvgIcon/index.vue'
 import { ElMessage, type FormInstance } from 'element-plus'
 import SelectDialog from "@/components/SelectDialog/index.vue"
@@ -214,6 +225,7 @@ import {getLinks} from "@/api/link"
 import {getFileList} from "@/api/file"
 import type { linkResponseData } from '@/api/link/type'
 import type { fileResponse } from '@/api/file/type'
+import { options,userColumns,fileColumns,linkColumns } from '@/utils/groupTools'
 let currentPage = ref<number>(1)
 let groupUserCurrentPage = ref<number>(1)
 let groupLinkCurrentPage = ref<number>(1)
@@ -244,27 +256,14 @@ const selectBucket = ref([])
 const userSelection = ref([])
 //存储选择删除用户的信息
 const deleteUserSelection = ref([])
-const userColumns = ref([
-  { label: '姓名', prop: 'name' },
-  { label: '工号', prop: 'number' },
-  { label: '角色', prop: 'roleName' },
-]);
 //存储已选择的文件
 const fileSelection = ref([])
 //存储选择删除文件的信息
 const deleteFileSelection = ref([])
-const fileColumns = ref([
-  { label: '文件名', prop: 'fileName' },
-  { label: '科室', prop: 'bucket' },
-  { label: '文件路径', prop: 'path' },
-]);
 //存储已选择的链接
 const linkSelection = ref([])
 //存储选择删除链接的信息
 const deleteLinkSelection = ref([])
-const linkColumns = ref([
-  { label: '链接名', prop: 'linkName' },
-]);
 //群组信息
 const groupListData = ref<groupListItem[]>([])
 //选择用户对话框所用的数据
@@ -275,45 +274,16 @@ const selectLinkData = ref<ILink[]>([])
 const selectFileData = ref<IFile[]>([])
 //群组成员
 const userData = ref<IUser[]>([])
+const originUserData = ref<IUser[]>([])
 //群组链接
 const linkData = ref<ILink[]>([])
+const originLinkData = ref<ILink[]>([])
 //群组文件
 const fileData = ref<IFile[]>([])
+const originFileData = ref<IFile[]>([])
 const groupForm = reactive<IGroupForm>({
   groupName: '',
 })
-const options =[
-  {
-    value: 'file',
-    label: '文件',
-    children:[
-      {
-        value: 'section1',
-        label: '信息化一室',
-      },
-      {
-        value: 'section2',
-        label: '信息化二室',
-      },
-      {
-        value: 'basic',
-        label: '基础架构室',
-      },
-      {
-        value: 'support',
-        label: '开发支持室',
-      },
-      {
-        value: 'manage',
-        label: '综合管理室',
-      }
-    ]
-  },
-  {
-    value: 'link',
-    label: '链接',
-  },
-]
 
 const validatorUserName = (rule:any, value:string, callback:any) => {
   if(value.trim().length === 0){
@@ -322,6 +292,18 @@ const validatorUserName = (rule:any, value:string, callback:any) => {
     callback()
   }
 }
+
+watch([searchUserName,searchLinkName,searchFileName],()=>{
+  if(searchUserName.value === ''){
+    resetSearchUser()
+  }
+  if(searchLinkName.value === ''){
+    resetSearchLink()
+  }
+  if(searchFileName.value === ''){
+    resetSearchFile()
+  }
+})
 
 const groupRules = reactive({
   groupName: [
@@ -351,6 +333,30 @@ const reset = () => {
   getGroup()
 }
 
+const onSearchUser = async ()=>{
+  userData.value = userData.value.filter(item => item.name.includes(searchUserName.value))
+}
+
+const onSearchLink = async () => {
+  linkData.value = linkData.value.filter(item => item.linkName.includes(searchLinkName.value))
+}
+
+const onSearchFile = async () => {
+  fileData.value = fileData.value.filter(item => item.fileName.includes(searchFileName.value))
+}
+
+const resetSearchUser = ()=>{
+  userData.value = [...originUserData.value]
+}
+
+const resetSearchLink = ()=>{
+  linkData.value = [...originLinkData.value]
+}
+
+const resetSearchFile = ()=>{
+  fileData.value = [...originFileData.value]
+}
+
 const handleAddGroup = () => {
   nextTick(() => {
     groupFormRef.value?.resetFields()
@@ -375,15 +381,22 @@ const submit = async () => {
   const linkParams = linkData.value.map(item => {
     return item.id
   })
-  const userRes:any = await addGroupUser(groupId, userParams)
-  const fileRes:any = await addGroupFile(groupId, fileParams)
-  const linkRes:any = await addGroupLink(groupId, linkParams)
-  groupVisible.value = false
-  ElMessage({
-    message: '添加成功',
-    type:'success'
-  })
-  await getGroup()
+  const userRes:any = addGroupUser(groupId, userParams)
+  const fileRes:any = addGroupFile(groupId, fileParams)
+  const linkRes:any = addGroupLink(groupId, linkParams)
+  const promises = [userRes,fileRes,linkRes]
+  try{
+    await Promise.any(promises)
+    groupVisible.value = false
+    ElMessage({
+      message: '添加成功',
+      type:'success'
+    })
+  }catch(e){
+    console.log(e,'e')
+  } finally {
+    await getGroup()
+  }
 }
 
 const handleEditGroup = (row:any) => {
@@ -424,17 +437,6 @@ const handleDelGroupUser = async () => {
     })
   })
   deleteUserSelection.value = []
-}
-
-const handleCommand = (command: string)=>{
-  if(command === 'file'){
-    resourceType.value = 'file'
-    handleAddGroupFile()
-  }
-  if(command === 'link'){
-    resourceType.value = 'link'
-    handleAddGroupLink()
-  }
 }
 
 const cascaderChange = async (value:any) => {
@@ -485,30 +487,27 @@ const handleDelGroupResource = () => {
   }
 }
 
-const handleCommitUser = () => {
+const handleCommitUser = (val:boolean) => {
   userData.value = userSelection.value
-  userVisible.value = false
-}
-
-const handleSearchUser = (val:string) => {
-  console.log(val,'handleSearchUser')
+  originUserData.value =[...userSelection.value]
+  userVisible.value = val
 }
 
 const handleCommitLink = (val:boolean) => {
   linkData.value = linkSelection.value
+  originLinkData.value = [...linkSelection.value]
   linkVisible.value = val
 }
 
-const handleCommitFile = () => {
+const handleCommitFile = (val:boolean) => {
   fileData.value = fileSelection.value
-  fileVisible.value = false
+  originFileData.value = [...fileSelection.value]
+  fileVisible.value = val
 }
 
 const getGroupUser = async (page = 1) => {
-  console.log(page,'1')
   groupUserCurrentPage.value = page
   const result:any = await searchUser(groupUserCurrentPage.value,groupUserPageSize.value)
-  console.log(result,'2')
   selectUserData.value = result.items
   userTotal.value = result.counts
 }
@@ -541,7 +540,7 @@ const handleUserSizeChange = () => {
   getGroupUser()
 }
 
-const handleLinkSizeChange = (size:number) => {
+const handleLinkSizeChange = () => {
   currentPage.value = 1
   getGroupLink()
 }
