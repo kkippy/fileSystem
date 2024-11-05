@@ -357,7 +357,7 @@ const updateDocumentName = async (item: fileItem) => {
       }
       await getFiles();
     } else {
-      const result: any = await renameFile(bucket as string, item.path, {
+      const result: any = await renameFile(bucket as string, item.path,item.id, {
         id: item.id,
         fileName: item.fileName,
         status: item.status,

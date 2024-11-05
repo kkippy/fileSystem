@@ -437,7 +437,7 @@ const submit = async () => {
         addGroupFile(groupForm.id, fileParams),
         addGroupLink(groupForm.id, linkParams)
       ])
-      await updateGroup({
+      await updateGroup(groupForm.id,{
         id: groupForm.id,
         groupName: groupForm.groupName
       });
@@ -486,12 +486,12 @@ const handleDelGroup = async (id:number) => {
 }
 
 const handleChangeLinkStatus = async (row:any) => {
-  const result:any = await updateGroup({
+  const result:any = await updateGroup(row.id as number,{
     id:row.id,
     status:row.status
   })
   ElMessage({
-    message: '状态修改成功',
+    message: result.code === 200 ? '状态修改成功': result.msg,
     type: result.code === 200 ? 'success' : 'error'
   })
   await getGroup()

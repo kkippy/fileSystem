@@ -22,14 +22,12 @@ export const searchUser = (pageNo:number, pageSize:number,data?:any)=>{
    return request.post<any>(url,data)
 }
 
-export const addOrUpdateUser = (data :any)=>{
+export const addOrUpdateUser = (userId: any = null,data:any)=>{
   if(data.id){
-    return request.post<any>(USER_API.UPDATE_USER_URL,data)
+    const url = USER_API.UPDATE_USER_URL+`?userId=${userId}`
+    return request.post<any>(url,data)
   } else {
     return request.post<any>(USER_API.ADD_USER_URL,data )
-
   }
 }
-
-export const updateUser = (userVo :any)=>request.post<any>(USER_API.UPDATE_USER_URL,userVo )
-export const deleteUser = (id:number)=>request.get<any>(USER_API.DELETE_USER_URL+`?id=${id}`)
+export const deleteUser = (userId:number)=>request.get<any>(USER_API.DELETE_USER_URL+`?userId=${userId}`)

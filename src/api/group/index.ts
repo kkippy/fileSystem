@@ -25,7 +25,10 @@ export const searchGroup = (groupId:number)=>request.get<any,searchGroupResponse
 
 export const addGroup = (groupName:string)=>request.get<any,addGroupResponseData>(GROUP_API.ADD_GROUP_URL+`?groupName=${groupName}`)
 
-export const updateGroup = (data:any)=>request.post<any>(GROUP_API.UPDATE_GROUP_URL,data)
+export const updateGroup = (groupId:number,data:any)=>{
+  const url = `${GROUP_API.UPDATE_GROUP_URL}?groupId=${groupId}`
+  return request.post<any>(url,data)
+}
 
 export const deleteGroup = (groupId:number)=>request.get<any>(GROUP_API.DELETE_GROUP_URL+`?groupId=${groupId}`)
 

@@ -28,7 +28,7 @@
         style="width: 100%">
         <el-table-column align="center" type="selection" ></el-table-column>
         <el-table-column align="center" type="index" label="序号" width="80" />
-        <el-table-column align="center" show-overflow-tooltip prop="account" label="登录名" />
+        <el-table-column align="center" show-overflow-tooltip prop="account" label="账号" />
         <el-table-column align="center" show-overflow-tooltip prop="name" label="姓名" />
         <el-table-column align="center" show-overflow-tooltip prop="number" label="工号" />
         <el-table-column align="center" show-overflow-tooltip prop="roleName" label="用户角色" width="100" />
@@ -406,30 +406,30 @@ const cancelClick = () => {
 }
 
 const confirmClick = async () => {
-  if(userFromRef.value?.fields[3].fieldValue === '') {
-    userFrom.password = currentPassword.value
-  }
-  if(!userFrom.userStatus ) {
-    userFrom.userStatus = 1
-  } else {
-    userFrom.userStatus = 0
-  }
-  const result:any = await addOrUpdateUser(userFrom)
-  if(result.code === 200){
-    ElMessage({
-      message: '修改成功',
-      type: "success"
-    })
-    await getUser(userFrom.id ? currentPage.value : 1)
+  try{
+    if(userFromRef.value?.fields[3].fieldValue === '') {
+      userFrom.password = currentPassword.value
+    }
+    const result:any = await addOrUpdateUser(userFrom.id,userFrom)
+    if(result.code === 200){
+      ElMessage({
+        message: '修改成功',
+        type: "success"
+      })
+      await getUser(userFrom.id ? currentPage.value : 1)
       if(userStore.userName === currentUserName.value) {
         //若修改的是当前登录的用户，则浏览器自动更新，引发重新登录
         window.location.reload()
       }
-  } else {
-    ElMessage({
-      message: '填写的用户信息有误，请检查',
-      type: "error"
-    })
+    } else {
+      ElMessage({
+        message: '填写的用户信息有误，请检查',
+        type: "error"
+      })
+    }
+  } catch (error) {
+    console.log(error)
+  } finally {
     drawer.value = false
   }
 }
@@ -437,35 +437,26 @@ const confirmClick = async () => {
 const confirmAddClick = async () => {
   try {
     await addUserFromRef.value?.validate()
-    const result: any = await addOrUpdateUser(userFrom)
-    if (result.code === 200) {
-      ElMessage({
-        message: '添加成功',
-        type: "success"
-      })
-      addUserVisible.value = false
-      await getUser()
-    } else {
-      if( result.msg === '用户已存在' ){
-        ElMessage({
-          message: '用户已存在',
-          type: "error"
-        })
-      }
-    }
-  } catch (error){
+    console.log(userFrom,'3')
+    const result: any = await addOrUpdateUser(null,userFrom)
+    console.log(result,'2')
     ElMessage({
-      message: '添加失败',
-      type: "error"
+      message: result.code === 200 ? '添加成功': result.msg,
+      type: result.code === 200 ? 'success' : 'error'
     })
+  } catch (error){
+    console.log(error)
+  } finally {
+    addUserVisible.value = false
+    await getUser()
   }
 }
 
 const handleChangeUserStatus = async (row:any) => {
-  await addOrUpdateUser(row)
+  const result:any = await addOrUpdateUser(row.id,row)
   ElMessage({
-    message: '状态修改成功',
-    type: "success"
+    message: result.code === 200 ? '状态修改成功': result.msg,
+    type: result.code === 200 ? 'success' : 'error'
   })
   await getUser()
 }

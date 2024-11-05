@@ -29,8 +29,8 @@ export const deleteFile = (bucket:string,fileId:number,objectName:string)=>reque
 
 export const getFileList = (bucket:string,path :string)=>request.get<any, fileResponse>(FILE_API.GET_FILE_URL + `?bucket=${bucket}&path=${path}`)
 
-export const renameFile = (bucket:string,path:string,body:any)=> {
-  const url:string = FILE_API.RENAME_FILE_URL + `?bucket=${bucket}&path=${path}`
+export const renameFile = (bucket:string,path:string,fileId:number,body:any)=> {
+  const url:string = FILE_API.RENAME_FILE_URL + `?bucket=${bucket}&path=${path}&fileId=${fileId}`
   return request.post<any>(url,body)
 }
 

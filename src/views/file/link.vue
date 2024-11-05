@@ -145,6 +145,13 @@ const handleEditLink = async (row:any)=>{
   if(row.id){
     Object.assign(linkForm,row)
   }
+  if(result.code !== 200) {
+    ElMessage({
+      message: result.msg,
+      type: 'error'
+    })
+    return
+  }
   linkForm.linkName = result.data.linkName
   linkForm.linkAddress = result.data.linkAddress as string
   linkDialogVisible.value = true
@@ -158,12 +165,11 @@ const handleConfirm = async ()=>{
         linkName:linkForm.linkName,
         linkAddress:linkForm.linkAddress
       }
-      const result:any = await updateLink(params)
+      const result:any = await updateLink(linkForm.id,params)
       ElMessage({
         message: result.code === 200 ? '修改成功' : result.msg,
         type: result.code === 200 ? 'success' : 'error'
       })
-      await getLinkList(linkForm.id ? currentPage.value : 1)
     } else {
       const result:ResponseData = await uploadLink(linkForm.linkName,linkForm.linkAddress)
       ElMessage({
@@ -175,6 +181,7 @@ const handleConfirm = async ()=>{
     console.log(err)
   } finally {
     linkDialogVisible.value = false
+    await getLinkList(linkForm.id ? currentPage.value : 1)
   }
 }
 
@@ -191,7 +198,7 @@ const handleCheckLink = async (row:any)=>{
 }
 
 const handleChangeLinkStatus = async (row:any)=>{
-  await updateLink({id:row.id,status:row.status})
+  await updateLink(row.id,{id:row.id,status:row.status})
   ElMessage({
     message: '状态修改成功',
     type: "success"
