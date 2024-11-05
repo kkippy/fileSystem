@@ -43,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed,watch } from 'vue';
+import { ref,watch } from 'vue';
 import type { ComponentSize } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
 import _ from 'lodash';
@@ -87,7 +87,6 @@ const props = defineProps({
     default: ''
   }
 });
-
 
 let size = ref<ComponentSize>('small')
 let currentPage = ref<number>(props.currentPage)

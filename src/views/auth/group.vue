@@ -437,13 +437,13 @@ const submit = async () => {
         addGroupFile(groupForm.id, fileParams),
         addGroupLink(groupForm.id, linkParams)
       ])
-      await updateGroup(groupForm.id,{
+      const result:any = await updateGroup(groupForm.id,{
         id: groupForm.id,
         groupName: groupForm.groupName
       });
       ElMessage({
-        message: '修改成功',
-        type: 'success'
+        message: result.code === 200 ? '修改成功' : result.msg,
+        type: result.code === 200 ? 'success' :'error'
       });
     } else {
       await groupFormRef.value?.validate()
@@ -455,8 +455,8 @@ const submit = async () => {
         addGroupLink(groupId, linkParams)
       ])
       ElMessage({
-        message: '添加成功',
-        type: 'success'
+        message: result.code === 200 ? '添加成功' : result.msg,
+        type: result.code === 200 ? 'success' : 'error'
       })
     }
   } catch (e){

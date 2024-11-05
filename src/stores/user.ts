@@ -19,6 +19,7 @@ export interface storeState {
   layoutStatus:boolean,
   help:boolean,
   path:string,
+  permissionList: string[]
 }
 
 export const useUserStore = defineStore('user', {
@@ -31,7 +32,8 @@ export const useUserStore = defineStore('user', {
       userId: '',
       layoutStatus:false, //true代表列表模式，false代表图标模式
       help:false,//漫游式引导
-      path:GET_PATH() || '/' //用于面包屑导航
+      path:GET_PATH() || '/' ,//用于面包屑导航
+      permissionList:[] // 用户权限
     }
   },
   actions: {

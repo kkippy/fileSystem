@@ -215,17 +215,10 @@ const handleChangeUpload = async(file:any) =>{
   try {
     uploadLoading.value = true
     const result:any = await uploadFile({ bucket: bucket, path:userStore.path, uploadFile: file.raw })
-    if(result.code === 200){
-      ElMessage({
-        message: '上传成功',
-        type: 'success'
-      })
-    } else {
-      ElMessage({
-        message: result.msg,
-        type: 'error'
-      })
-    }
+    ElMessage({
+      message: result.code === 200 ? '上传成功' : result.msg,
+      type: result.code === 200 ? 'success' : 'error'
+    })
   } catch (error){
     console.log(error)
   } finally {
@@ -279,16 +272,11 @@ const beforeAddFolder = () =>{
 const handleAddFolder = async ()=>{
   await addFolderRef.value?.validate()
   const result:any = await createFolder(bucket as string,addFolder.folderName,userStore.path)
-  if(result.code === 500){
-    ElMessage({
-      message: result.msg,
-      type:'error'
-    })
-  }else{
-    ElMessage({
-      message: '创建成功',
-      type: 'success'
-    })
+  ElMessage({
+    message: result.code === 200 ? '创建成功' : result.msg,
+    type:  result.code === 200 ? 'success' : 'error'
+  })
+  if( result.code === 200 ){
     addFolderVisible.value = false
     await getFiles()
   }
@@ -341,79 +329,52 @@ const handleRename = (item: fileItem) => {
 
 const updateDocumentName = async (item: fileItem) => {
   let newName = item.fileName;
+  let result:any
   try {
     if (item.isDir === 1) {
-      const result: any = await renameFolder(bucket as string, item.fileName, item.path, String(item.id));
-      if (result.code === 200) {
-        ElMessage({
-          message: '重命名成功',
-          type: 'success'
-        });
-      } else {
-        ElMessage({
-          message: item.fileName === newName ? '已取消' : '重命名失败',
-          type: item.fileName === newName ? 'warning' : 'error'
-        });
-      }
-      await getFiles();
+     result = await renameFolder(bucket as string, item.fileName, item.path, String(item.id));
     } else {
-      const result: any = await renameFile(bucket as string, item.path,item.id, {
+      result= await renameFile(bucket as string, item.path,item.id, {
         id: item.id,
         fileName: item.fileName,
         status: item.status,
       });
-      if (result.code === 200) {
-        ElMessage({
-          message: '重命名成功',
-          type: 'success'
-        });
-      } else {
-        ElMessage({
-          message: item.fileName === newName ? '已取消' : '重命名失败',
-          type: item.fileName === newName ? 'warning' : 'error'
-        });
-      }
     }
-  } catch (error) {
-    ElMessage({
-      message: `${error}`,
-      type: 'error'
-    });
-  }
 
+    if(result.code === 200){
+      ElMessage({
+        message: '重命名成功',
+        type: 'success'
+      });
+    } else {
+      ElMessage({
+        message: item.fileName === newName ? '已取消' : '重命名失败',
+        type: item.fileName === newName ? 'warning' : 'error'
+      });
+    }
+    await getFiles();
+  } catch (error) {
+    console.log(error)
+  }
   item.isEditing = false;
   isEdit.value = false;
 }
 
 const handleDeleteFolder = async(item:any) => {
   const result:any =await deleteFolder(item.id)
-  if(result.code === 200) {
-    ElMessage({
-      message: '删除成功',
-      type: 'success'
-    })
-  } else {
-    ElMessage({
-      message: result.msg,
-      type: 'error'
-    })
-  }
+  ElMessage({
+    message: result.code === 200 ? '删除成功' : result.msg,
+    type: result.code === 200 ? 'success' : 'error'
+  })
   await getFiles()
 }
 
 const handleDeleteFile = async(item:any) => {
   const result:any =await deleteFile(bucket as string,item.id,item.path+item.fileName)
-  if(result.code === 200){
-    ElMessage({
-      message: '删除成功',
-      type: 'success'
-    })
-  } else {
-    ElMessage({
-      message: result.msg,
-      type: 'error'
-    })
-  }
+  ElMessage({
+    message: result.code === 200 ? '删除成功' : result.msg,
+    type: result.code === 200 ? 'success' : 'error'
+  })
   await getFiles()
 }
 

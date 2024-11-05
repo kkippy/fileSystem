@@ -18,7 +18,10 @@ import './assets/iconfont/iconfont.css'
 // 引入鉴权文件
 import './permission'
 
+// 自定义指令
+import {hasPermission} from '@/directive/hasPermission'
 const app = createApp(App)
+hasPermission(app)
 
 app.use(router)
 app.use(pinia)

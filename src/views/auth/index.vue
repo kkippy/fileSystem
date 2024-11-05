@@ -411,21 +411,16 @@ const confirmClick = async () => {
       userFrom.password = currentPassword.value
     }
     const result:any = await addOrUpdateUser(userFrom.id,userFrom)
+    ElMessage({
+      message: result.code === 200 ? '修改成功' : '填写的用户信息有误，请检查',
+      type: result.code === 200  ? "success" : 'error'
+    })
     if(result.code === 200){
-      ElMessage({
-        message: '修改成功',
-        type: "success"
-      })
       await getUser(userFrom.id ? currentPage.value : 1)
       if(userStore.userName === currentUserName.value) {
         //若修改的是当前登录的用户，则浏览器自动更新，引发重新登录
         window.location.reload()
       }
-    } else {
-      ElMessage({
-        message: '填写的用户信息有误，请检查',
-        type: "error"
-      })
     }
   } catch (error) {
     console.log(error)
