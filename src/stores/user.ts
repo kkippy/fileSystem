@@ -40,13 +40,13 @@ export const useUserStore = defineStore('user', {
     async userLogin(userData: LoginForm) {
       const result: any = await userLogin(userData)
       if (result.code == 200) {
+        this.path = '/'
         this.token = (result.data.tokenValue as string)
         this.userRole = result.data.roleList[0]
         this.userId = parseInt(result.data.loginId)
         SET_USER(this.userRole as string)
         SET_TOKEN(this.token as string)
         SET_PATH(this.path as string)
-        // await getAllBuckets()
         return 'ok'
       } else {
         return Promise.reject(new Error(result.data))

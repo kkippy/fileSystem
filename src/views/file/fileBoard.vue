@@ -159,6 +159,10 @@ const validatorFolderName = (rule:any,value:any,callBack:any)=>{
   }
 }
 
+// const hasPermission = computed(()=>{
+//
+// })
+
 const addRules = reactive({
   folderName:[
     {required:true,trigger:"blur",validator:validatorFolderName}
@@ -241,6 +245,12 @@ const handleCancelPreview = (item:fileItem) =>{
 const handlePreviewFile = async (item:fileItem) =>{
   previewUrl.value = ''
   const result:any = await previewFile(bucket as string,item.path + item.fileName,item.id)
+  if(result.code !== 200){
+    return ElMessage({
+      message: result.msg,
+      type: 'error'
+    })
+  }
   previewUrl.value = result.data.previewUrl
   previewDialog.value = true
 }

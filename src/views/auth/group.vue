@@ -526,9 +526,21 @@ const cascaderChange = async () => {
   if(selectBucket.value.length > 1){
     resourceType.value = 'file'
     bucketName.value = selectBucket.value[selectBucket.value.length - 1]
+    const bucketTranslations:Record<string, string> = {
+      'basic': '基础架构室',
+      'support': '开发支持室',
+      'section1': '信息化一室',
+      'section2': '信息化二室',
+      'manage': '综合管理室',
+    }
     const result:any = await searchFile(bucketName.value,groupFileCurrentPage.value,groupFilePageSize.value)
     fileVisible.value = true
-    selectFileData.value = result.data.items
+    selectFileData.value = result.data.items.map((item:any) => {
+      if(bucketTranslations[item.bucket]){
+        item.bucket = bucketTranslations[item.bucket]
+      }
+      return item
+    })
     fileTotal.value = result.data.counts
   } else {
     resourceType.value = 'link'

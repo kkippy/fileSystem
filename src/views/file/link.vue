@@ -40,7 +40,7 @@
         <el-table-column align="center" show-overflow-tooltip prop="updateTime" label="更新时间"  />
         <el-table-column align="center" label="操作">
           <template #default="{row}">
-            <el-button type="primary" @click="handleCheckLink(row)">跳转</el-button>
+            <el-button type="primary" @click="handleCheckLink(row)">查看</el-button>
             <el-button type="warning" @click="handleEditLink(row)">编辑</el-button>
             <el-popconfirm
               :title="`确认删除${row.linkName}?`"

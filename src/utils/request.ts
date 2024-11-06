@@ -48,6 +48,21 @@ request.interceptors.response.use( res=>{
       message: "用户已禁用，请联系管理员",
     });
   }
+
+  if(message === '密码不正确'){
+    ElMessage({
+      type: 'error',
+      message: "密码不正确",
+    });
+  }
+
+  if(message === '用户不存在'){
+    ElMessage({
+      type: 'error',
+      message: "用户不存在",
+    });
+  }
+
     return res.data
 },async error=>{
     //失败的回调
