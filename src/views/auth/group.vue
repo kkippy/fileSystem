@@ -281,6 +281,8 @@ const searchUserName = ref<string>('')
 const searchLinkName = ref<string>('')
 const searchFileName = ref<string>('')
 const resourceType = ref<string>('file')
+const delUserIds = ref<any[]>([])
+const addUserIds = ref<any[]>([])
 const groupFormRef = ref<FormInstance>()
 const selectBucket = ref([])
 //存储已选择的用户
@@ -433,10 +435,17 @@ const submit = async () => {
   try{
     if(groupForm.id){
       await Promise.all([
-        addGroupUser(groupForm.id, userParams),
+        // addGroupUser(groupForm.id, userParams),
         addGroupFile(groupForm.id, fileParams),
         addGroupLink(groupForm.id, linkParams)
       ])
+      if(delUserIds.value.length && delUserIds.value  ){
+        console.log(delUserIds.value,'1')
+        await deleteGroupUser(groupForm.id,delUserIds.value)
+      }
+      if(addUserIds.value.length && addUserIds.value  ){
+        await addGroupUser(groupForm.id,addUserIds.value)
+      }
       const result:any = await updateGroup(groupForm.id,{
         id: groupForm.id,
         groupName: groupForm.groupName
@@ -462,6 +471,8 @@ const submit = async () => {
   } catch (e){
     console.log(e,'e')
   } finally {
+    delUserIds.value = []
+    addUserIds.value = []
     await getGroup()
     groupVisible.value = false
   }
@@ -506,14 +517,20 @@ const handleAddGroupUser = async () => {
   await nextTick(() => {
     userVisible.value = true
   })
-  const result:any = await searchUser(groupUserCurrentPage.value,groupUserPageSize.value)
-  selectUserData.value = result.items
+  const result:any = await searchUser(groupUserCurrentPage.value,groupUserPageSize.value,{
+    roleName:'普通用户'
+  })
+  selectUserData.value = result.items.filter((item:any) => !userData.value.some(userItem => userItem.id === item.id))
   userTotal.value = result.counts
 }
 
 const handleDelGroupUser = async () => {
-  const delUserIds = deleteUserSelection.value.map((item:any) => item.id)
-  await deleteGroupUser(groupForm.id as number,delUserIds)
+   originUserData.value = userData.value
+  deleteUserSelection.value.map((item:any) => item.id).forEach(id => {
+    if(originUserData.value.map(item => item.id).includes(id)){
+      delUserIds.value.push(id)
+    }
+  })
   userData.value = userData.value.filter(item=> {
     return  !deleteUserSelection.value.some((deleteItem:any)  =>{
       return  deleteItem.id === item.id
@@ -577,8 +594,16 @@ const handleDelGroupResource = async () => {
 }
 
 const handleCommitUser = (val:boolean) => {
-  userData.value = userSelection.value
-  originUserData.value =[...userSelection.value]
+  originUserData.value = userData.value
+  const merge = [...userData.value,...userSelection.value]
+  userData.value = Array.from(new Set(merge.map(item => item.id))).map(id => merge.find(item => item.id === id)) as unknown as IUser[]
+  console.log(originUserData.value,'originUserData')
+  userSelection.value.map((item:any) => item.id).forEach(id => {
+    if(userData.value.map(item => item.id).includes(id)){
+      addUserIds.value.push(id)
+    }
+  })
+  // addUserIds.value = userSelection.value.map((item:any) => item.id)
   userVisible.value = val
 }
 
@@ -586,18 +611,22 @@ const handleCommitLink = (val:boolean) => {
   linkData.value = linkSelection.value
   originLinkData.value = [...linkSelection.value]
   linkVisible.value = val
+  selectBucket.value = []
 }
 
 const handleCommitFile = (val:boolean) => {
   fileData.value = fileSelection.value
   originFileData.value = [...fileSelection.value]
   fileVisible.value = val
+  selectBucket.value = []
 }
 
 const getGroupUser = async (page = 1) => {
   groupUserCurrentPage.value = page
-  const result:any = await searchUser(groupUserCurrentPage.value,groupUserPageSize.value)
-  selectUserData.value = result.items
+  const result:any = await searchUser(groupUserCurrentPage.value,groupUserPageSize.value,{
+    roleName:'普通用户'
+  })
+  selectUserData.value = result.items.filter((item:any) => !userData.value.some(userItem => userItem.id === item.id))
   userTotal.value = result.counts
 }
 

@@ -15,7 +15,7 @@
       </div>
     </template>
 
-    <el-table :data="props.data" height="40vh" @selection-change="handleSelectionChange">
+    <el-table :data="data" height="40vh" @selection-change="handleSelectionChange">
       <el-table-column align="center" type="selection" width="55" />
       <el-table-column align="center" v-for="(column) in columns" :key="column.prop" :label="column.label" :prop="column.prop" />
     </el-table>
@@ -97,13 +97,15 @@ const columns = ref(props.columns)
 const total = ref<number>(props.total)
 const searchQuery = ref<string>(props.searchQuery)
 const debouncedSearchQuery = ref('');
+const data = ref(props.data)
 const emit = defineEmits(['update:modelValue','onCommit','selectChange',
   'sizeChange','currentChange','onClose','searchChange']);
 
-watch(()=> [props.modelValue,props.pageSize,props.total],()=>{
+watch(()=> [props.modelValue,props.pageSize,props.total,props.data],()=>{
   visible.value = props.modelValue;
   pageSize.value = props.pageSize;
   total.value = props.total;
+  data.value = props.data
 })
 
 watch(()=>[visible.value,pageSize.value],([newVal, newPageSize])=>{

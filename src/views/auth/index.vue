@@ -344,7 +344,7 @@ const handleAddUser = () => {
       name:"",
       password:"",
       number:"",
-      roleCode:'user',
+      roleCode: canChangeRole.value ? '': 'user',
       confirmPassword:''
     }
   )))
