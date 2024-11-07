@@ -188,6 +188,7 @@
     <select-dialog
       v-model="linkVisible"
       title="选择链接"
+      @on-close="handleCloseDialog"
       :data="selectLinkData"
       :columns="linkColumns"
       :total="linkTotal"
@@ -204,6 +205,7 @@
     <select-dialog
       v-model="fileVisible"
       title="选择文件"
+      @on-close="handleCloseDialog"
       :data="selectFileData"
       :columns="fileColumns"
       :total="fileTotal"
@@ -256,7 +258,7 @@ import {searchUser} from "@/api/user"
 import {getLinks} from "@/api/link"
 import {searchFile} from "@/api/file"
 import type { linkResponseData } from '@/api/link/type'
-import { options,userColumns,fileColumns,linkColumns } from '@/utils/groupTools'
+import { options,userColumns,fileColumns,linkColumns,resetIfEmpty } from '@/utils/groupTools'
 let currentPage = ref<number>(1)
 let groupUserCurrentPage = ref<number>(1)
 let groupLinkCurrentPage = ref<number>(1)
@@ -328,15 +330,9 @@ const validatorUserName = (rule:any, value:string, callback:any) => {
 }
 
 watch([searchUserName,searchLinkName,searchFileName],()=>{
-  if(searchUserName.value === ''){
-    resetSearchUser()
-  }
-  if(searchLinkName.value === ''){
-    resetSearchLink()
-  }
-  if(searchFileName.value === ''){
-    resetSearchFile()
-  }
+  resetIfEmpty(searchUserName, resetSearchUser);
+  resetIfEmpty(searchLinkName, resetSearchLink);
+  resetIfEmpty(searchFileName, resetSearchFile);
 })
 
 const groupRules = reactive({
@@ -435,15 +431,13 @@ const submit = async () => {
   try{
     if(groupForm.id){
       await Promise.all([
-        // addGroupUser(groupForm.id, userParams),
         addGroupFile(groupForm.id, fileParams),
         addGroupLink(groupForm.id, linkParams)
       ])
-      if(delUserIds.value.length && delUserIds.value  ){
-        console.log(delUserIds.value,'1')
+      if(delUserIds.value && delUserIds.value.length  ){
         await deleteGroupUser(groupForm.id,delUserIds.value)
       }
-      if(addUserIds.value.length && addUserIds.value  ){
+      if(addUserIds.value && addUserIds.value.length ){
         await addGroupUser(groupForm.id,addUserIds.value)
       }
       const result:any = await updateGroup(groupForm.id,{
@@ -481,9 +475,9 @@ const submit = async () => {
 const handleEditGroup = async (row:any) => {
   Object.assign(groupForm,row)
   const result:searchGroupResponseData = await searchGroup(row.id)
-  userData.value = result.data.userList
-  linkData.value = result.data.linkList as unknown as searchLinkListItem[]
-  fileData.value = result.data.fileInfoList as unknown as searchFileListItem[]
+  userData.value = originUserData.value = result.data.userList
+  linkData.value = originLinkData.value = result.data.linkList as unknown as searchLinkListItem[]
+  fileData.value = originFileData.value = result.data.fileInfoList as unknown as searchFileListItem[]
   groupVisible.value = true
 }
 
@@ -521,7 +515,7 @@ const handleAddGroupUser = async () => {
     roleName:'普通用户'
   })
   selectUserData.value = result.items.filter((item:any) => !userData.value.some(userItem => userItem.id === item.id))
-  userTotal.value = result.counts
+  userTotal.value = selectUserData.value.length
 }
 
 const handleDelGroupUser = async () => {
@@ -597,13 +591,11 @@ const handleCommitUser = (val:boolean) => {
   originUserData.value = userData.value
   const merge = [...userData.value,...userSelection.value]
   userData.value = Array.from(new Set(merge.map(item => item.id))).map(id => merge.find(item => item.id === id)) as unknown as IUser[]
-  console.log(originUserData.value,'originUserData')
   userSelection.value.map((item:any) => item.id).forEach(id => {
     if(userData.value.map(item => item.id).includes(id)){
       addUserIds.value.push(id)
     }
   })
-  // addUserIds.value = userSelection.value.map((item:any) => item.id)
   userVisible.value = val
 }
 
@@ -621,13 +613,17 @@ const handleCommitFile = (val:boolean) => {
   selectBucket.value = []
 }
 
+const handleCloseDialog = ()=>{
+  selectBucket.value = []
+}
+
 const getGroupUser = async (page = 1) => {
   groupUserCurrentPage.value = page
   const result:any = await searchUser(groupUserCurrentPage.value,groupUserPageSize.value,{
     roleName:'普通用户'
   })
   selectUserData.value = result.items.filter((item:any) => !userData.value.some(userItem => userItem.id === item.id))
-  userTotal.value = result.counts
+  userTotal.value = selectUserData.value.length
 }
 
 const getGroupLink = async (pager = 1) => {

@@ -166,6 +166,7 @@
         <el-form-item v-if="canChangeRole" prop="roleName" label="用户角色" label-width="90px">
             <el-select
               v-model="userFrom.roleName"
+              @change="handleSelectChange"
               placeholder="请选择用户角色"
             >
               <el-option
@@ -227,6 +228,7 @@ export interface IUserForm {
   phone:string,
   roleName:string,
   mail:string,
+  roleCode?:string,
   userStatus?:number | boolean,
   confirmPassword:string
 }
@@ -337,6 +339,17 @@ const reset = () => {
   getUser()
 }
 
+const handleSelectChange = (val:string) =>{
+  if(val === '普通用户'){
+    userFrom.roleCode = 'user'
+  }else if(val === '管理员'){
+    userFrom.roleCode = 'admin'
+  }else if(val === '超级管理员'){
+    userFrom.roleCode = 'super_admin'
+  }
+
+}
+
 const handleAddUser = () => {
   Object.assign(userFrom,JSON.parse(JSON.stringify(
     {
@@ -344,8 +357,9 @@ const handleAddUser = () => {
       name:"",
       password:"",
       number:"",
-      roleCode: canChangeRole.value ? '': 'user',
-      confirmPassword:''
+      confirmPassword:'',
+      roleCode:'',
+      roleName:''
     }
   )))
   if(addUserFromRef.value) {
@@ -432,9 +446,7 @@ const confirmClick = async () => {
 const confirmAddClick = async () => {
   try {
     await addUserFromRef.value?.validate()
-    console.log(userFrom,'3')
     const result: any = await addOrUpdateUser(null,userFrom)
-    console.log(result,'2')
     ElMessage({
       message: result.code === 200 ? '添加成功': result.msg,
       type: result.code === 200 ? 'success' : 'error'

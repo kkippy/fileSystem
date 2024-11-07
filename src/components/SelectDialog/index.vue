@@ -1,5 +1,5 @@
 <template>
-  <el-dialog :width="width" v-model="visible">
+  <el-dialog :width="width" v-model="visible" :before-close="closeDialog">
     <template #header>
       <div style="display: flex; align-items: center;justify-content: space-between">
         <div>
@@ -123,10 +123,11 @@ watch(searchQuery, (newValue) => {
 
 const closeDialog = () => {
   emit('update:modelValue', false);
+  emit('onClose')
 };
 
 const commitSelection = () => {
-  emit('onCommit',false)
+  emit('onCommit')
   emit('selectChange', [])
 };
 

@@ -46,3 +46,9 @@ export const fileColumns = [
 export const linkColumns  = [
   { label: '链接名', prop: 'linkName' },
 ]
+
+export function  resetIfEmpty(input:any, resetFunction:Function):void {
+  if (input.value === '') {
+    resetFunction();
+  }
+}
