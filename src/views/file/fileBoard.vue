@@ -258,6 +258,12 @@ const handlePreviewFile = async (item:fileItem) =>{
 const handleShareFile = async (item:fileItem) =>{
   try{
     const result:any = await shareFile(bucket as string,item.path + item.fileName,item.id)
+    if(result.code !== 200){
+      return ElMessage({
+        message: result.msg,
+        type: 'error'
+      })
+    }
     shareLink.value = result.data.presignedUrl
     shareVisible.value = true
   } catch (error){

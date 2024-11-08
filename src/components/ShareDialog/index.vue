@@ -47,10 +47,9 @@ watch(
 );
 
 watch(
-  () => [visible.value, shareLink.value],
-  ([newVisible, newShareLink]) => {
+  () => [visible.value],
+  (newVisible) => {
       emit('update:modelValue', newVisible);
-      emit('update:shareLink', newShareLink);
   }
 );
 

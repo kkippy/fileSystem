@@ -38,10 +38,10 @@
         </el-table-column>
         <el-table-column align="center" show-overflow-tooltip prop="createTime" label="上传时间"  />
         <el-table-column align="center" show-overflow-tooltip prop="updateTime" label="更新时间"  />
-        <el-table-column align="center" label="操作">
+        <el-table-column align="center" label="操作" width="340" >
           <template #default="{row}">
-            <el-button type="primary" @click="handleCheckLink(row)">查看</el-button>
-            <el-button type="warning" @click="handleEditLink(row)">编辑</el-button>
+            <el-button type="primary" @click="handleCheckLink(row)" :icon="View">查看</el-button>
+            <el-button type="warning" @click="handleEditLink(row)" :icon="Edit">编辑</el-button>
             <el-popconfirm
               :title="`确认删除${row.linkName}?`"
               width="200px"
@@ -97,7 +97,7 @@
 <script setup lang="ts">
 import SearchHeaderComponent from '@/components/SearchHeader/index.vue'
 import type { ResponseData, linkResponseData, linkListItem,searchResponseData,linkFormFormat } from '@/api/link/type'
-import { Delete, Plus } from '@element-plus/icons-vue'
+import { Delete, Plus,View,Edit } from '@element-plus/icons-vue'
 import type {ComponentSize} from "element-plus";
 import { ref, onMounted, reactive } from 'vue'
 import { uploadLink,getLinks,checkLink,updateLink,deleteLink } from '@/api/link'

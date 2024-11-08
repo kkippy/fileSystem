@@ -51,7 +51,7 @@
         </el-table-column>
         <el-table-column align="center" label="操作" width="250">
           <template #default="{row}">
-            <el-button :disabled="(row.roleName === '管理员' && (currentUser !== row.account && row.roleName !== '普通用户')) ||
+            <el-button :disabled="userStore.userRole !== 'super_admin' && (row.roleName === '管理员' && (currentUser !== row.account && row.roleName !== '普通用户')) ||
               (row.roleName === '超级管理员' && userStore.userRole !== 'super_admin')"
                        :icon="Edit"
                        type="primary"
@@ -65,7 +65,7 @@
               @confirm="handleDelUser(row.id)"
             >
               <template #reference>
-                <el-button :disabled="row.roleName === '管理员' || userStore.userName === row.account  " type="danger" :icon="Delete">
+                <el-button :disabled="userStore.userRole !== 'super_admin' && (row.roleName === '管理员' || row.roleName === '超级管理员' || userStore.userName === row.account)  " type="danger" :icon="Delete">
                   删除
                 </el-button>
               </template>
