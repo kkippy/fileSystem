@@ -85,7 +85,10 @@ request.interceptors.response.use( res=>{
             message = '服务器请求失败'
             break
         case 403:
-            break
+          break
+        case 600:
+          message = '抱歉！您没有相应的权限！'
+          return status
 
         default:
             message = '未知错误'

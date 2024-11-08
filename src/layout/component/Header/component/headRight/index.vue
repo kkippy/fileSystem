@@ -1,6 +1,6 @@
 <template>
   <SvgIcon class="help"  :width="35" :height="35" name="help" @click="getHelp"/>
-  <SvgIcon class="changeLayout" :width="45" :height="35" name="layout" @click="handleChangeLayout"/>
+<!--  <SvgIcon class="changeLayout" :width="45" :height="35" name="layout" @click="handleChangeLayout"/>-->
   <SvgIcon class="fullScreen"
            :width="isFullScreen ? 40 : 35"
            :height="isFullScreen ? 39 : 23"

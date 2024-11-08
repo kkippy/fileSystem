@@ -1,7 +1,7 @@
 <template>
   <div class="loginForm">
     <div>
-      <el-form ref="loginFormRef" :model="loginFormReactive" :rules="loginRules" label-width="80px">
+      <el-form ref="loginFormRef" :model="loginFormReactive" :rules="loginRules" label-width="80px" @keyup.enter.native="login">
         <el-form-item label="用户名" prop="account">
           <el-input placeholder="admin" v-model="loginFormReactive.account" :prefix-icon="User" />
         </el-form-item>

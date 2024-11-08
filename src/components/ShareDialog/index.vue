@@ -33,8 +33,6 @@ const props = defineProps({
     }
 })
 
-const emit = defineEmits(['update:modelValue','update:shareLink'])
-
 const visible = ref(props.modelValue)
 const shareLink = ref(props.shareLink)
 
@@ -43,13 +41,6 @@ watch(
   () => {
       visible.value = props.modelValue;
       shareLink.value = props.shareLink;
-  }
-);
-
-watch(
-  () => [visible.value],
-  (newVisible) => {
-      emit('update:modelValue', newVisible);
   }
 );
 

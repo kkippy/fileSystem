@@ -1,4 +1,5 @@
 import { downloadFile } from '@/api/file'
+import { ElMessage } from 'element-plus'
 const pictureType:string[] = ['png','jpg','jpeg','psd','gif','bmp','webp','svg']
 const compressType:string[] = ['zip','rar','7z','jar','gzip','tar']
 const videoType:string[] = ['mp4','mov','flv','avi','wav']
@@ -13,6 +14,13 @@ const excelType:string[] = ['xlsx','xlsm','xlsb','xltx','csv','tsv','xla','xls']
 
 export const downloadFileUtil  = async (bucket:string,objectName:string,fileId:number,fileName:string) =>{
   const result:any = await downloadFile(bucket,objectName,fileId)
+  console.log('result',result)
+  if(result === 600){
+    return ElMessage({
+      type: 'error',
+      message: "抱歉！您没有相应的权限！"
+    })
+  }
   const url = window.URL.createObjectURL(new Blob([result]));
   const link = document.createElement('a');
   link.href = url;

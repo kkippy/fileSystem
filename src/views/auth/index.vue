@@ -284,6 +284,14 @@ const validatorConfirmPassword = (rule:any,value:any,callBack:any)=>{
   }
 }
 
+const validatorConfirmRole = (rule:any,value:any,callBack:any)=>{
+  if(value === ''){
+    callBack(new Error('请选择用户角色'))
+  }else{
+    callBack()
+  }
+}
+
 const addRules = reactive({
   account:[
     {required:true,trigger:"blur",validator:validatorUserName}
@@ -303,7 +311,7 @@ const addRules = reactive({
   roleName:[
     {
       required:true,
-      message: '请选择用户角色',
+      validator:validatorConfirmRole,
       trigger: 'change',
     }
   ]
@@ -363,10 +371,10 @@ const handleAddUser = () => {
     }
   )))
   if(addUserFromRef.value) {
-    addUserFromRef.value.clearValidate()
+    addUserFromRef.value.resetFields()
   }
   nextTick(() => {
-    addUserFromRef.value?.clearValidate()
+    addUserFromRef.value?.resetFields()
   })
   addUserVisible.value = true
 }

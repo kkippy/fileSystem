@@ -4,7 +4,7 @@
 
     <el-form>
       <el-form-item style="margin-top: 18px;margin-left: 10px">
-        <el-input id="inputGroupField" v-model="model" @keyup.enter="onSearch" :placeholder="searchTitle" />
+        <el-input clearable id="inputGroupField" v-model="model" @keyup.enter="onSearch" :placeholder="searchTitle" />
       </el-form-item>
     </el-form>
 
@@ -32,6 +32,7 @@ const searchTitle = ref<string>(props.placeholderTitle)
 const groupField = document.getElementById('inputGroupField');
 groupField?.addEventListener('keyup', function(event) {
   if (event.key === 'Enter') {
+    event.preventDefault();//阻止默认行为
     onSearch()
   }
 });
@@ -47,10 +48,15 @@ watch(()=>props.placeholderTitle,(newVal)=>{
   deep:true
 })
 
+watch(()=> model.value,(newVal)=>{
+  if(newVal === ''){
+    emit('reset')
+  }
+})
+
 
 const onSearch = () => {
   emit('onSearch',model.value)
-  model.value = ''
 }
 const reset = () => {
   model.value = ''
