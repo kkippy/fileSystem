@@ -21,43 +21,42 @@ request.interceptors.request.use(config =>{
 )
 let showMessage = true
 
-// 定义业务状态码
-const errorCode:Record<number, ()=>void> ={
-  500:()=>{
-    ElMessage({
-      type: 'error',
-      message: "登录过期，请重新登录",
-    });
-    // logout()
-  },
-  400:()=>{
-    ElMessage({
-      type: 'error',
-      message: "用户名或密码不正确",
-    });
-  }
-}
-
-//定义http状态码
-const httpStatus:Record<number, string> ={
-  400: '请求错误(400)',
-  401: '未授权，请重新登录(401)',
-  403: '拒绝访问(403)',
-  404: '请求出错(404)',
-  408: '请求超时(408)',
-  500: '服务器错误(500)',
-
-}
+// // 定义业务状态码
+// const errorCode:Record<number, ()=>void> ={
+//   500:()=>{
+//     ElMessage({
+//       type: 'error',
+//       message: "登录过期，请重新登录",
+//     });
+//     // logout()
+//   },
+//   400:()=>{
+//     ElMessage({
+//       type: 'error',
+//       message: "用户名或密码不正确",
+//     });
+//   }
+// }
+//
+// //定义http状态码
+// const httpStatus:Record<number, string> ={
+//   400: '请求错误(400)',
+//   401: '未授权，请重新登录(401)',
+//   403: '拒绝访问(403)',
+//   404: '请求出错(404)',
+//   408: '请求超时(408)',
+//   500: '服务器错误(500)',
+// }
 
 //响应拦截器
 request.interceptors.response.use( res=>{
   const message = res.data.msg
-  const {code} = res.data
+  // const {code} = res.data
   // 对文件响应的处理
-  if(res.data instanceof Blob){
-    return res.data
-  }
-  errorCode[code]?.()
+  // if(res.data instanceof Blob){
+  //   return res.data
+  // }
+  // errorCode[code]?.()
   if(message === '未能读取到有效 token') {
     if(showMessage) {
       showMessage = false
