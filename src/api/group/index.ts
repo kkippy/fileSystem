@@ -2,17 +2,17 @@ import request from "@/utils/request"
 import type {groupResponseData,addGroupResponseData,searchGroupResponseData} from './type'
 
 enum GROUP_API {
-  GET_GROUP_LIST_URL = '/api/group/list',
-  SEARCH_GROUP_URL = '/api/group/query/',
-  ADD_GROUP_URL = '/api/group/create',
-  DELETE_GROUP_URL = '/api/group/delete',
-  ADD_GROUP_USER_URL = '/api/group/addUser',
-  DELETE_GROUP_USER_URL = '/api/group/removeUser',
-  ADD_GROUP_FILE_URL = '/api/group/addFile',
-  DELETE_GROUP_FILE_URL = '/api/group/removeFile',
-  ADD_GROUP_LINK_URL = '/api/group/addLink',
-  DELETE_GROUP_LINK_URL = '/api/group/removeLink',
-  UPDATE_GROUP_URL = '/api/group/update'
+  GET_GROUP_LIST_URL = '/group/list',
+  SEARCH_GROUP_URL = '/group/query/',
+  ADD_GROUP_URL = '/group/create',
+  DELETE_GROUP_URL = '/group/delete',
+  ADD_GROUP_USER_URL = '/group/addUser',
+  DELETE_GROUP_USER_URL = '/group/removeUser',
+  ADD_GROUP_FILE_URL = '/group/addFile',
+  DELETE_GROUP_FILE_URL = '/group/removeFile',
+  ADD_GROUP_LINK_URL = '/group/addLink',
+  DELETE_GROUP_LINK_URL = '/group/removeLink',
+  UPDATE_GROUP_URL = '/group/update'
 
 }
 

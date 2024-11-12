@@ -1,13 +1,13 @@
 import request from "@/utils/request"
 import type {LoginForm,ResponseData } from './type'
 enum USER_API {
-  LOGIN_URL = '/api/user/doLogin',
-  LOGOUT_URL = '/api/user/logout',
-  GET_USER_INFO = '/api/user/query',
-  SEARCH_USER_URL = '/api/user/list',
-  ADD_USER_URL = '/api/user/add',
-  DELETE_USER_URL = '/api/user/delete',
-  UPDATE_USER_URL = '/api/user/update'
+  LOGIN_URL = '/user/doLogin',
+  LOGOUT_URL = '/user/logout',
+  GET_USER_INFO = '/user/query',
+  SEARCH_USER_URL = '/user/list',
+  ADD_USER_URL = '/user/add',
+  DELETE_USER_URL = '/user/delete',
+  UPDATE_USER_URL = '/user/update'
 
 }
 

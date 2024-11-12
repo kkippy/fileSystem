@@ -1,18 +1,18 @@
 import request from "@/utils/request"
 import type {fileResponse,searchFileResponse} from './type'
 enum FILE_API {
-  UPLOAD_FILE_URL = '/api/file/uploadFile', //上传文件
-  DOWNLOAD_FILE_URL = '/api/file/downloadFile', //下载文件
-  RENAME_FILE_URL = '/api/file/updateFile',
-  DELETE_FILE_URL = '/api/file/deleteFile', //删除文件
-  GET_FILE_URL = '/api/file/list',//查询桶中的文件
-  SHARE_FILE_URL = '/api/file/presignedUrl',//分享文件(即直接获取文件下载链接)
-  CREATE_FOLDER_URL = '/api/file/createFolder',
-  RENAME_FOLDER_URL = '/api/file/updateFolder',
-  DELETE_FOLDER_URL = '/api/file/deleteFolder',
-  PREVIEW_FILE_URL = '/api/file/preview',
-  SEARCH_DOCUMENT_URL = '/api/file/search',
-  SEARCH_FILE_URL = '/api/file/listFile'
+  UPLOAD_FILE_URL = '/file/uploadFile', //上传文件
+  DOWNLOAD_FILE_URL = '/file/downloadFile', //下载文件
+  RENAME_FILE_URL = '/file/updateFile',
+  DELETE_FILE_URL = '/file/deleteFile', //删除文件
+  GET_FILE_URL = '/file/list',//查询桶中的文件
+  SHARE_FILE_URL = '/file/presignedUrl',//分享文件(即直接获取文件下载链接)
+  CREATE_FOLDER_URL = '/file/createFolder',
+  RENAME_FOLDER_URL = '/file/updateFolder',
+  DELETE_FOLDER_URL = '/file/deleteFolder',
+  PREVIEW_FILE_URL = '/file/preview',
+  SEARCH_DOCUMENT_URL = '/file/search',
+  SEARCH_FILE_URL = '/file/listFile'
 }
 
 export const uploadFile = (data:any)=>{

@@ -1,7 +1,7 @@
 import { downloadFile } from '@/api/file'
 import { ElMessage } from 'element-plus'
 const pictureType:string[] = ['png','jpg','jpeg','psd','gif','bmp','webp','svg']
-const compressType:string[] = ['zip','rar','7z','jar','gzip','tar']
+const compressType:string[] = ['zip','rar','7z','jar','gzip','tar','gz']
 const videoType:string[] = ['mp4','mov','flv','avi','wav']
 const documentType:string[] = ['txt','doc','docx','avi','dotx','wps','dps']
 const excelType:string[] = ['xlsx','xlsm','xlsb','xltx','csv','tsv','xla','xls']

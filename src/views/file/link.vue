@@ -102,6 +102,13 @@ import type {ComponentSize} from "element-plus";
 import { ref, onMounted, reactive } from 'vue'
 import { uploadLink,getLinks,checkLink,updateLink,deleteLink } from '@/api/link'
 import { ElMessage } from 'element-plus'
+import { type RouteLocationNormalizedLoaded, useRoute } from 'vue-router'
+
+interface Route extends RouteLocationNormalizedLoaded{
+  meta:  {
+    section?: string;
+  }
+}
 
 let size = ref<ComponentSize>('default')
 let currentPage = ref<number>(1)
@@ -109,6 +116,8 @@ let pageSize = ref<number>(10)
 let total = ref<number>(0)
 const loading = ref<boolean>(false)
 const linkDialogVisible = ref<boolean>(false)
+const route = useRoute() as Route
+let section: string | undefined = route.meta.section ||  route.fullPath
 
 
 const linkForm = reactive<linkFormFormat>({

@@ -14,7 +14,7 @@ export const constantRoute = [
     redirect: '/section1',
     component:  ()=> import('@/layout/index.vue'),
     meta: {
-      title: '信息化部',
+      title: '科室文件',
       hidden: false,
       icon:''
     },
@@ -120,6 +120,64 @@ export const constantRoute = [
         component: ()=>import('@/views/file/link.vue'),
         meta: {
           title: '共享链接',
+          hidden: false,
+        },
+      },
+    ]
+  },
+  {
+    path:'/link',
+    name: 'link',
+    component:  ()=> import('@/layout/index.vue'),
+    meta: {
+      title: '共享链接',
+      hidden: false,//路由的标题在菜单中隐藏
+      icon:'auth'
+    },
+    redirect: '/link/section1',
+    children: [
+      {
+        path: '/link/section1',
+        component: ()=>import('@/views/file/link.vue'),
+        meta: {
+          title: '信息化一室',
+          section: 'section1',
+          hidden: false,
+        },
+      },
+      {
+        path: '/link/section2',
+        component: ()=>import('@/views/file/link.vue'),
+        meta: {
+          title: '信息化二室',
+          section: 'section2',
+          hidden: false,
+        },
+      },
+      {
+        path: '/link/basic',
+        component: ()=>import('@/views/file/link.vue'),
+        meta: {
+          title: '基础架构室',
+          section: 'basic',
+          hidden: false,
+        },
+      },
+      {
+        path: '/link/support',
+        component: ()=>import('@/views/file/link.vue'),
+        meta: {
+          title: '开发支持室',
+          section: 'support',
+          hidden: false,
+        },
+      },
+      {
+        path: '/link/manage',
+        component: ()=>import('@/views/file/link.vue'),
+        meta: {
+          title: '综合管理室',
+          section: 'manage',
           hidden: false,
         },
       },

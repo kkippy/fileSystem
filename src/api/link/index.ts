@@ -2,11 +2,11 @@ import request from "@/utils/request"
 import type { ResponseData,linkResponseData,searchResponseData } from './type'
 
 enum LINK_API {
-  GET_LINK_LIST_URL = '/api/link/list',
-  CHECK_LINK_URL = '/api/link/query',
-  DELETE_LINK_URL = '/api/link/delete',
-  UPDATE_LINK_URL = '/api/link/update',
-  UPLOAD_LINK_URL = '/api/link/uploadLink',
+  GET_LINK_LIST_URL = '/link/list',
+  CHECK_LINK_URL = '/link/query',
+  DELETE_LINK_URL = '/link/delete',
+  UPDATE_LINK_URL = '/link/update',
+  UPLOAD_LINK_URL = '/link/uploadLink',
 }
 export const getLinks = (pageNo:number, pageSize:number,data?:any)=> {
   const url = `${LINK_API.GET_LINK_LIST_URL}?pageNo=${pageNo}&pageSize=${pageSize}`
