@@ -80,6 +80,22 @@
         <el-form-item label="链接地址">
           <el-input v-model="linkForm.linkAddress" placeholder="请输入链接地址"/>
         </el-form-item>
+<!--        <el-form-item label="所属科室">-->
+<!--          <el-input v-model="linkForm.department" placeholder="请输入链接地址"/>-->
+<!--          <el-select-->
+<!--            v-model="linkForm.department"-->
+<!--            @change="handleSelectChange"-->
+<!--            placeholder="请选择所属科室"-->
+<!--          >-->
+<!--            <el-option-->
+<!--              v-for="item in options"-->
+<!--              :key="item.value"-->
+<!--              :label="item.label"-->
+<!--              :value="item.value"-->
+<!--            />-->
+<!--          </el-select>-->
+<!--        </el-form-item>-->
+
       </el-form>
 
         <template #footer>
@@ -99,14 +115,14 @@ import SearchHeaderComponent from '@/components/SearchHeader/index.vue'
 import type { ResponseData, linkResponseData, linkListItem,searchResponseData,linkFormFormat } from '@/api/link/type'
 import { Delete, Plus,View,Edit } from '@element-plus/icons-vue'
 import type {ComponentSize} from "element-plus";
-import { ref, onMounted, reactive } from 'vue'
+import { ref, onMounted, reactive, watchEffect } from 'vue'
 import { uploadLink,getLinks,checkLink,updateLink,deleteLink } from '@/api/link'
 import { ElMessage } from 'element-plus'
 import { type RouteLocationNormalizedLoaded, useRoute } from 'vue-router'
 
 interface Route extends RouteLocationNormalizedLoaded{
   meta:  {
-    section?: string;
+    department?: string;
   }
 }
 
@@ -117,12 +133,42 @@ let total = ref<number>(0)
 const loading = ref<boolean>(false)
 const linkDialogVisible = ref<boolean>(false)
 const route = useRoute() as Route
-let section: string | undefined = route.meta.section ||  route.fullPath
+let department: string | undefined = route.meta.department ||  route.fullPath
 
+watchEffect( ()=>{
+  if(department !== route.meta.department){
+    department = route.meta.department
+    getLinkList()
+  }
+})
+
+const options = [
+  {
+    value: 'section1',
+    label: '信息化一室',
+  },
+  {
+    value: 'section2',
+    label: '信息化二室',
+  },
+  {
+    value: 'basic',
+    label: '基础架构室',
+  },
+  {
+    value: 'support',
+    label: '开发支持室',
+  },
+  {
+    value: 'manage',
+    label: '综合管理室',
+  },
+]
 
 const linkForm = reactive<linkFormFormat>({
   linkName:'',
-  linkAddress:''
+  linkAddress:'',
+  department:''
 })
 
 const linkListData = ref<linkListItem>([])
@@ -134,7 +180,7 @@ onMounted(()=>{
 const getLinkList = async (pager = 1)=>{
   currentPage.value = pager
   loading.value = true
-  const result:linkResponseData = await getLinks(currentPage.value,pageSize.value)
+  const result:linkResponseData = await getLinks(currentPage.value,pageSize.value,department as string)
   linkListData.value = result.data.items
   total.value = result.data.counts
   loading.value = false
@@ -144,10 +190,25 @@ const handleAddLink = ()=>{
     Object.assign(linkForm,{
       id:null,
       linkName:'',
-      linkAddress:''
+      linkAddress:'',
+      department:''
   })
   linkDialogVisible.value = true
 }
+
+// const handleSelectChange = (val:string) =>{
+//   if(val === '信息化一室'){
+//     linkForm.department = 'section1'
+//   }else if(val === '信息化二室'){
+//     linkForm.department = 'section2'
+//   } else if(val === '基础架构室'){
+//     linkForm.department = 'basic'
+//   }else if(val === '开发支持室'){
+//     linkForm.department = 'support'
+//   } else {
+//     linkForm.department = 'manage'
+//   }
+// }
 
 const handleEditLink = async (row:any)=>{
   const result:searchResponseData = await checkLink(row.id)
@@ -180,7 +241,7 @@ const handleConfirm = async ()=>{
         type: result.code === 200 ? 'success' : 'error'
       })
     } else {
-      const result:ResponseData = await uploadLink(linkForm.linkName,linkForm.linkAddress)
+      const result:ResponseData = await uploadLink(linkForm.linkName,linkForm.linkAddress,department as string)
       ElMessage({
         message: result.msg,
         type:result.code === 200 ? 'success' : 'error'
@@ -226,7 +287,7 @@ const handleDelLink = async (id:number)=>{
 
 const onSearch = async (searchValue:string) => {
   const result:linkResponseData = await getLinks( currentPage.value,
-    pageSize.value,{linkName:searchValue} )
+    pageSize.value,department as string,{linkName:searchValue} )
     linkListData.value = result.data.items
     total.value = result.data.counts
 }

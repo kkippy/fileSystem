@@ -5,29 +5,51 @@ export const options = [
     children:[
       {
         value: 'section1',
-        label: '信息化一室',
+        label: '信息化一室文件',
       },
       {
         value: 'section2',
-        label: '信息化二室',
+        label: '信息化二室文件',
       },
       {
         value: 'basic',
-        label: '基础架构室',
+        label: '基础架构室文件',
       },
       {
         value: 'support',
-        label: '开发支持室',
+        label: '开发支持室文件',
       },
       {
         value: 'manage',
-        label: '综合管理室',
+        label: '综合管理室文件',
       }
     ]
   },
   {
     value: 'link',
     label: '链接',
+    children:[
+      {
+        value: 'section1',
+        label: '信息化一室链接',
+      },
+      {
+        value: 'section2',
+        label: '信息化二室链接',
+      },
+      {
+        value: 'basic',
+        label: '基础架构室链接',
+      },
+      {
+        value: 'support',
+        label: '开发支持室链接',
+      },
+      {
+        value: 'manage',
+        label: '综合管理室链接',
+      },
+    ]
   },
 ]
 

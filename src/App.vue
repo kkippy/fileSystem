@@ -3,9 +3,31 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue'
+
+const  updateTheme = () => {
+  if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    document.body.style.color = 'white'; // 深色模式
+  } else {
+    document.body.style.color = 'black'; // 浅色模式
+  }
+}
+onMounted(()=>{
+  console.log(window.matchMedia("(prefers-color-scheme: dark)").matches)
+})
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateTheme);
 </script>
 
 <style scoped>
+@media (prefers-color-scheme: dark) {
+  body {
+    color: white; /* 深色模式下的字体颜色 */
+  }
+}
+/* 浅色模式 */
+@media (prefers-color-scheme: light) {
+  body {color: #000; }
+}
 body{
   width: 100%;
   height: 100%;

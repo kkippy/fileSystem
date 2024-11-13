@@ -114,15 +114,15 @@ export const constantRoute = [
           hidden: true,
         },
       },
-      {
-        path:'/link',
-        name: 'link',
-        component: ()=>import('@/views/file/link.vue'),
-        meta: {
-          title: '共享链接',
-          hidden: false,
-        },
-      },
+      // {
+      //   path:'/link',
+      //   name: 'link',
+      //   component: ()=>import('@/views/file/link.vue'),
+      //   meta: {
+      //     title: '共享链接',
+      //     hidden: false,
+      //   },
+      // },
     ]
   },
   {
@@ -141,7 +141,7 @@ export const constantRoute = [
         component: ()=>import('@/views/file/link.vue'),
         meta: {
           title: '信息化一室',
-          section: 'section1',
+          department: 'section1',
           hidden: false,
         },
       },
@@ -150,7 +150,7 @@ export const constantRoute = [
         component: ()=>import('@/views/file/link.vue'),
         meta: {
           title: '信息化二室',
-          section: 'section2',
+          department: 'section2',
           hidden: false,
         },
       },
@@ -159,7 +159,7 @@ export const constantRoute = [
         component: ()=>import('@/views/file/link.vue'),
         meta: {
           title: '基础架构室',
-          section: 'basic',
+          department: 'basic',
           hidden: false,
         },
       },
@@ -168,7 +168,7 @@ export const constantRoute = [
         component: ()=>import('@/views/file/link.vue'),
         meta: {
           title: '开发支持室',
-          section: 'support',
+          department: 'support',
           hidden: false,
         },
       },
@@ -177,7 +177,7 @@ export const constantRoute = [
         component: ()=>import('@/views/file/link.vue'),
         meta: {
           title: '综合管理室',
-          section: 'manage',
+          department: 'manage',
           hidden: false,
         },
       },

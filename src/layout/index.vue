@@ -34,13 +34,29 @@ import MainComponent from "./component/Main/index.vue"
 import HeaderComponent from "./component/Header/index.vue"
 import {constantRoute,anyRoute} from "@/router/routers";
 import {useRoute} from "vue-router";
-import { ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 const menuRoutes = [...constantRoute,anyRoute]
 let route = useRoute();
 const defaultComponent = ref<string>('GridComponent')
 const changeLayout = (isGridLayout:boolean)=>{
   defaultComponent.value = isGridLayout ? 'GridComponent' : 'ListComponent'
 }
+onMounted(()=>{
+  window.addEventListener('resize', updateDimensions);
+})
+const width = ref(window.innerWidth);
+const height = ref(window.innerHeight);
+
+const updateDimensions = () => {
+  width.value = window.innerWidth;
+  height.value = window.innerHeight;
+  console.log(width.value,height.value)
+};
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateDimensions);
+});
+
 </script>
 
 
@@ -51,6 +67,9 @@ export default {
 </script>
 
 <style scoped lang="scss">
+//@media screen and min-width() {
+//
+//}
   .layout_container{
     height: 100vh;
     width: 100%;

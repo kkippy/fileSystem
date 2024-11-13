@@ -46,6 +46,11 @@ export default {
 
 
 <style scoped lang="scss">
+@media (prefers-color-scheme: dark) {
+  body {
+    color: white; /* 深色模式下的字体颜色 */
+  }
+}
 .breadcrumb {
   &:hover{
     cursor: pointer;

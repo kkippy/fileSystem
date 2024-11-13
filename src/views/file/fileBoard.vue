@@ -33,6 +33,7 @@
               <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.suffixName as string),'compress')" :width="98" :height="150" name="compress" />
               <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.suffixName as string),'video')" :width="98" :height="150" name="video" />
               <SvgIcon v-else-if="!item.isPreview && isSpecialFileType((item.suffixName as string),'excel')" :width="106" :height="150" name="excel" />
+              <SvgIcon v-else-if="!item.isPreview" :width="106" :height="150" name="normalFile" />
             </div>
 
             <div class="objectName">
@@ -561,6 +562,7 @@ onBeforeUnmount(() => {
           text-align: center;
           white-space: nowrap;        /* 不换行 */
           overflow: hidden;          /* 隐藏超出部分 */
+          color: #000;
           text-overflow: ellipsis;   /* 使用省略号表示溢出部分 */
         }
       }

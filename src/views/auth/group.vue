@@ -320,6 +320,7 @@ const groupForm = reactive<IGroupForm>({
   groupName: '',
 })
 const bucketName = ref<string>('')
+const departmentName = ref<string>('')
 
 const validatorUserName = (rule:any, value:string, callback:any) => {
   if(value.trim().length === 0){
@@ -380,7 +381,7 @@ const onSearchLink = async () => {
 }
 
 const handleSearchLink = async (searchValue:string) => {
-  const { data }:linkResponseData = await getLinks(groupLinkCurrentPage.value,groupLinkPageSize.value,{
+  const { data }:linkResponseData = await getLinks(groupLinkCurrentPage.value,groupLinkPageSize.value,departmentName.value,{
     linkName:searchValue
   })
   selectLinkData.value = data.items
@@ -533,8 +534,9 @@ const handleDelGroupUser = async () => {
   deleteUserSelection.value = []
 }
 
-const cascaderChange = async () => {
-  if(selectBucket.value.length > 1){
+const cascaderChange = async (val:any) => {
+  console.log(val,'val')
+  if(selectBucket.value[0] === 'file'){
     resourceType.value = 'file'
     bucketName.value = selectBucket.value[selectBucket.value.length - 1]
     const bucketTranslations:Record<string, string> = {
@@ -554,17 +556,28 @@ const cascaderChange = async () => {
     })
     fileTotal.value = result.data.counts
   } else {
+    const linkTranslations:Record<string, string>  = {
+      'basic': '基础架构室',
+      'support': '开发支持室',
+      'section1': '信息化一室',
+      'section2': '信息化二室',
+      'manage': '综合管理室',
+    }
     resourceType.value = 'link'
-    await handleAddGroupLink()
+    departmentName.value = selectBucket.value[selectBucket.value.length - 1]
+    linkVisible.value = true
+    const result:linkResponseData = await getLinks(groupLinkCurrentPage.value,groupLinkPageSize.value,departmentName.value)
+    selectLinkData.value = result.data.items
+    linkTotal.value = result.data.counts
   }
 }
 
-const handleAddGroupLink = async () => {
-  linkVisible.value = true
-  const result:linkResponseData = await getLinks(groupLinkCurrentPage.value,groupLinkPageSize.value)
-  selectLinkData.value = result.data.items
-  linkTotal.value = result.data.counts
-}
+// const handleAddGroupLink = async () => {
+//   linkVisible.value = true
+//   const result:linkResponseData = await getLinks(groupLinkCurrentPage.value,groupLinkPageSize.value)
+//   selectLinkData.value = result.data.items
+//   linkTotal.value = result.data.counts
+// }
 
 const handleDelGroupResource = async () => {
   const dataToFilter = resourceType.value === 'link' ? linkData.value : fileData.value;
@@ -628,7 +641,7 @@ const getGroupUser = async (page = 1) => {
 
 const getGroupLink = async (pager = 1) => {
   groupLinkCurrentPage.value = pager
-  const result:linkResponseData = await getLinks(groupLinkCurrentPage.value,groupLinkPageSize.value)
+  const result:linkResponseData = await getLinks(groupLinkCurrentPage.value,groupLinkPageSize.value,departmentName.value)
   selectLinkData.value = result.data.items
   linkTotal.value = result.data.counts
 }

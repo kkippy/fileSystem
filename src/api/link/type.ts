@@ -20,7 +20,8 @@ export type linkListItem = Item[];
 export interface linkFormFormat {
   id?: number;
   linkName:string;
-  linkAddress:string
+  linkAddress:string,
+  department:string
 }
 
 
