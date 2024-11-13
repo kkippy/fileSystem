@@ -31,6 +31,7 @@
 import {useRouter} from "vue-router";
 import {useUserStore} from "@/stores/user"
 import { ref,computed,watch } from 'vue'
+import { SET_PATH } from '@/utils/path'
 
 interface MenuItem {
   path: string;
@@ -60,6 +61,8 @@ watch(()=>props.menuList,()=>{
 })
 const toView = (vc:any) => {
   router.push(vc.index)
+  userStore.path = '/'
+  SET_PATH(userStore.path)
 }
 </script>
 
