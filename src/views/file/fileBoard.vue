@@ -62,7 +62,7 @@
         <el-empty v-if="fileListData.length === 0" description="暂无数据" />
       </div>
 
-      <el-dialog top="7vh" style="height:85vh" v-model="previewDialog" width="80%" >
+      <el-dialog top="2vh" style="height:90vh" v-model="previewDialog" width="85%"  >
         <iframe style="width: 100%;height: 80vh" :src="previewUrl"></iframe>
       </el-dialog>
 

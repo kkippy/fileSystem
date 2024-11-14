@@ -11,6 +11,7 @@
               class="el-menu-vertical-demo"
               :default-active="route.path"
               background-color="#1e80ff"
+            :unique-opened="true"
           >
             <MenuComponent :menuList="menuRoutes" />
           </el-menu>
