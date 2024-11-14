@@ -8,7 +8,6 @@ enum USER_API {
   ADD_USER_URL = '/user/add',
   DELETE_USER_URL = '/user/delete',
   UPDATE_USER_URL = '/user/update'
-
 }
 
 export const userLogin = (data:LoginForm)=>request.post<any>(USER_API.LOGIN_URL,data)

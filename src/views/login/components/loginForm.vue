@@ -45,8 +45,8 @@ const loginRules = reactive({
 
 
 const loginFormReactive = reactive<LoginForm>({
-  account:'ops_caolei',
-  password:'123456'
+  account:'',
+  password:''
 })
 
 const resetForm = (formEl: FormInstance | undefined)=> {
