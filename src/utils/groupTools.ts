@@ -82,3 +82,20 @@ export const handleCommitResource = async (
     const result1:searchGroupResponseData = await searchGroup(groupId)
     data.value = result1.data.fileInfoList
 }
+
+export const handleDelete = (
+  data:{value: any[] },
+  originData:{value: any[] },
+  selection: {value: any[] },
+  delIds: {value: any[] }
+) =>{
+  originData.value = data.value;
+  selection.value.map((item:any)=> item.id).forEach(id =>{
+    if(originData.value.map(item => item.id).includes(id)){
+      delIds.value.push(id)
+    }
+  })
+  data.value = data.value.filter(item => {
+    return !selection.value.some(selectedItem => selectedItem.id === item.id);
+  })
+}

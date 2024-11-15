@@ -282,7 +282,7 @@ import {searchUser} from "@/api/user"
 import {getLinks} from "@/api/link"
 import {searchFile} from "@/api/file"
 import type { linkResponseData } from '@/api/link/type'
-import {userColumns,fileColumns,linkColumns,resetIfEmpty,handleCommit,handleCommitResource } from '@/utils/groupTools'
+import {userColumns,fileColumns,linkColumns,resetIfEmpty,handleCommit,handleDelete } from '@/utils/groupTools'
 let currentPage = ref<number>(1)
 let groupUserCurrentPage = ref<number>(1)
 let groupLinkCurrentPage = ref<number>(1)
@@ -308,6 +308,10 @@ const searchLinkName = ref<string>('')
 const searchFileName = ref<string>('')
 const delUserIds = ref<any[]>([])
 const addUserIds = ref<any[]>([])
+const delFileIds = ref<any[]>([])
+const addFileIds = ref<any[]>([])
+const delLinkIds = ref<any[]>([])
+const addLinkIds = ref<any[]>([])
 const groupFormRef = ref<FormInstance>()
 //存储已选择的用户
 const userSelection = ref([])
@@ -461,6 +465,19 @@ const submit = async () => {
       if(addUserIds.value.length ){
         await addGroupUser(groupForm.id,addUserIds.value)
       }
+      if(delFileIds.value.length ){
+        await deleteGroupFile(groupForm.id,delFileIds.value)
+      }
+      if(addFileIds.value.length ){
+        await addGroupFile(groupForm.id,addFileIds.value)
+      }
+      if(delLinkIds.value.length ){
+        await deleteGroupLink(groupForm.id,delLinkIds.value)
+      }
+      if(addLinkIds.value.length){
+        await addGroupLink(groupForm.id,addLinkIds.value)
+      }
+
       const result:any = await updateGroup(groupForm.id,{
         id: groupForm.id,
         groupName: groupForm.groupName
@@ -488,6 +505,10 @@ const submit = async () => {
   } finally {
     delUserIds.value = []
     addUserIds.value = []
+    delFileIds.value = []
+    addFileIds.value = []
+    delLinkIds.value = []
+    addLinkIds.value = []
     await getGroup()
     groupVisible.value = false
   }
@@ -540,25 +561,13 @@ const handleAddGroupUser = async () => {
 }
 
 const handleDelGroupUser = async () => {
-   originUserData.value = userData.value
-  deleteUserSelection.value.map((item:any) => item.id).forEach(id => {
-    if(originUserData.value.map(item => item.id).includes(id)){
-      delUserIds.value.push(id)
-    }
-  })
-  userData.value = userData.value.filter(item=> {
-    return  !deleteUserSelection.value.some((deleteItem:any)  =>{
-      return  deleteItem.id === item.id
-    })
-  })
-  deleteUserSelection.value = []
+  handleDelete(userData, originUserData, deleteUserSelection, delUserIds)
 }
 
 const handleFileCommand = async (command: string) =>{
   const result:any = await searchFile(command,groupFileCurrentPage.value,groupFilePageSize.value)
   fileVisible.value = true
-  selectFileData.value = result.data.items
-  console.log(result.data.items,'result.data.items')
+  selectFileData.value = result.data.items.filter((item:any) => !fileData.value.some(fileItem => fileItem.id === item.id))
   fileTotal.value = result.data.counts
 }
 
@@ -566,35 +575,16 @@ const handleLinkCommand = async (command: string) =>{
   departmentName.value = command
   const result:linkResponseData = await getLinks(groupLinkCurrentPage.value,groupLinkPageSize.value,departmentName.value)
   linkVisible.value = true
-  selectLinkData.value = result.data.items
+    selectLinkData.value = result.data.items.filter(item => !linkData.value.some(linkItem => linkItem.id === item.id))
   linkTotal.value = result.data.counts
 }
 
-const handleDelGroupResource = async (val:string) => {
-  const dataToFilter = val === 'link' ? linkData.value : fileData.value;
-  const deleteSelection = val === 'link' ? deleteLinkSelection.value : deleteFileSelection.value;
-
-  const filteredData:(ILink | IFile)[] = dataToFilter.filter((item:any) =>
-    !deleteSelection.some((deleteItem:any) => deleteItem.id === item.id)
-  );
-
-  let result:any
-
-  if (val === 'link') {
-    const delLinkIds = deleteLinkSelection.value.map((item:any) => item.id);
-    result = await deleteGroupLink(groupForm.id as number, delLinkIds);
-    linkData.value = filteredData as ILink[];
-    deleteLinkSelection.value = [];
+const handleDelGroupResource = (val:string) => {
+  if(val === 'file'){
+    handleDelete(fileData, originFileData, deleteFileSelection, delFileIds)
   } else {
-    const delFileIds = deleteFileSelection.value.map((item:any) => item.id);
-    result = await deleteGroupFile(groupForm.id as number, delFileIds);
-    fileData.value = filteredData as IFile[];
-    deleteFileSelection.value = [];
+    handleDelete(linkData, originLinkData, deleteLinkSelection, delLinkIds)
   }
-  ElMessage({
-    message: result.code === 200 ? '删除4成功' : result.msg,
-    type: result.code === 200 ? 'success' : 'error'
-  });
 }
 
 const handleCommitUser = (val:boolean) => {
@@ -602,15 +592,11 @@ const handleCommitUser = (val:boolean) => {
 }
 
 const handleCommitLink = async (val:boolean) => {
-   await handleCommitResource(
-     groupForm.id as number, val,'link',
-     linkData,linkSelection.value,linkVisible)
+  handleCommit(val, linkData, linkSelection, originLinkData, addLinkIds, linkVisible);
 }
 
 const handleCommitFile = async (val:boolean) => {
-  await handleCommitResource(
-    groupForm.id as number, val,'file',
-    fileData, fileSelection.value,fileVisible)
+  handleCommit(val, fileData, fileSelection, originFileData, addFileIds, fileVisible);
 }
 
 const getGroupUser = async (page = 1) => {
