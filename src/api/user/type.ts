@@ -1,5 +1,5 @@
 export interface LoginForm {
-  account:string,
+  number:string,
   password:string
 }
 

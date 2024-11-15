@@ -345,7 +345,6 @@ const handleRename = (item: fileItem) => {
 }
 
 const updateDocumentName = async (item: fileItem) => {
-  let newName = item.fileName;
   let result:any
   try {
     if (item.isDir === 1) {
@@ -358,17 +357,10 @@ const updateDocumentName = async (item: fileItem) => {
       });
     }
 
-    if(result.code === 200){
-      ElMessage({
-        message: '重命名成功',
-        type: 'success'
-      });
-    } else {
-      ElMessage({
-        message: item.fileName === newName ? '已取消' : '重命名失败',
-        type: item.fileName === newName ? 'warning' : 'error'
-      });
-    }
+    ElMessage({
+      message: result.code === 200 ? '重命名成功' : result.msg,
+      type: result.code === 200 ? 'success' : 'error'
+    })
     await getFiles();
   } catch (error) {
     console.log(error)

@@ -1,18 +1,12 @@
 <template>
+  <span>{{userStore.userName}}</span>
   <SvgIcon class="help"  :width="35" :height="35" name="help" @click="getHelp"/>
-<!--  <SvgIcon class="changeLayout" :width="45" :height="35" name="layout" @click="handleChangeLayout"/>-->
   <SvgIcon class="fullScreen"
            :width="isFullScreen ? 40 : 35"
            :height="isFullScreen ? 39 : 23"
            :name="isFullScreen ? 'normalScreen' : 'fullScreen' "
            @click="handleFullscreen" />
   <el-dropdown trigger="click" style="margin-left: 12px" @command="handleCommand">
-<!--      <span class="el-dropdown-link">-->
-<!--        {{ userStore.userName }}-->
-<!--        <el-icon class="el-icon&#45;&#45;right">-->
-<!--          <arrow-down />-->
-<!--        </el-icon>-->
-<!--      </span>-->
     <div class="avatar" >
       <img :src=userImg alt="" />
     </div>
@@ -65,11 +59,6 @@ const handleCommand = async (command: string | number | object) => {
   }
 }
 
-const handleChangeLayout = () => {
-ElMessage.success('切换成功')
-  userStore.layoutStatus = !userStore.layoutStatus
-}
-
 </script>
 
 <script  lang="ts">
@@ -88,6 +77,7 @@ name: "HeadRight"
 }
 
 .help{
+  margin-left: 10px;
   &:hover{
     cursor: pointer;
   }

@@ -33,7 +33,7 @@ router.beforeEach(async (to:any, from:any, next:any) => {
         //如果没有用户信息则在此发请求获取到用户信息后再放行,以实现用户信息的变相持久化
         try {
           await userStore.getInfo()
-          next({...to,replace:true})
+          next()
         } catch (e){
           //token过期或手动修改token
           ElMessage.error('登录过期，请重新登录')

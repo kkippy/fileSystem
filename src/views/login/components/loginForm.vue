@@ -1,9 +1,9 @@
 <template>
   <div class="loginForm">
     <div>
-      <el-form ref="loginFormRef" :model="loginFormReactive" :rules="loginRules" label-width="80px" @keyup.enter.native="login">
-        <el-form-item label="用户名" prop="account">
-          <el-input v-model="loginFormReactive.account" :prefix-icon="User" />
+      <el-form ref="loginFormRef" :model="loginFormReactive" :rules="loginRules" label-width="80px" @keyup.enter="login">
+        <el-form-item label="工号" prop="number">
+          <el-input v-model="loginFormReactive.number" :prefix-icon="User" />
         </el-form-item>
         <el-form-item label="密码" prop="password">
           <el-input show-password type="password" v-model="loginFormReactive.password" :prefix-icon="Lock" />
@@ -25,28 +25,27 @@ import { reactive, ref } from 'vue'
 import type { ElForm } from "element-plus";
 import { CircleClose, UserFilled,User, Lock } from "@element-plus/icons-vue";
 import { ElMessage } from 'element-plus'
-import {useRouter,useRoute} from "vue-router";
+import {useRouter} from "vue-router";
 import {useUserStore} from "@/stores/user"
 
 export interface LoginForm {
-  account:string,
+  number:string,
   password:string
 }
 
 const userStore = useUserStore()
-
 type FormInstance = InstanceType<typeof ElForm>;
 const loginFormRef = ref<FormInstance>();
 const router = useRouter();
 const loginRules = reactive({
-  account: [{ required: true, message: "请输入用户名", trigger: "blur" }],
+  number: [{ required: true, message: "请输入用户名", trigger: "blur" }],
   password: [{ required: true, message: "请输入密码", trigger: "blur" }]
 });
 
 
 const loginFormReactive = reactive<LoginForm>({
-  account:'',
-  password:''
+  number:'028128',
+  password:'123456'
 })
 
 const resetForm = (formEl: FormInstance | undefined)=> {

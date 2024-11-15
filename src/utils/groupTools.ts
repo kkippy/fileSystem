@@ -1,16 +1,8 @@
-import type {IUser,ILink,IFile} from '@/api/group/type'
+import type { IUser, ILink, IFile, searchGroupResponseData, searchFileListItem } from '@/api/group/type'
 import {
-  getGroupList,
-  addGroup,
   searchGroup,
-  updateGroup,
-  deleteGroup,
-  addGroupUser,
   addGroupFile,
   addGroupLink,
-  deleteGroupUser,
-  deleteGroupFile,
-  deleteGroupLink
 } from '@/api/group'
 import { ElMessage } from 'element-plus'
 
@@ -34,14 +26,6 @@ export function  resetIfEmpty(input:any, resetFunction:Function):void {
   if (input.value === '') {
     resetFunction();
   }
-}
-
-export const bucketTranslations:Record<string, string> = {
-  'basic': '基础架构室',
-  'support': '开发支持室',
-  'section1': '信息化一室',
-  'section2': '信息化二室',
-  'manage': '综合管理室',
 }
 
 export const handleCommit = (
@@ -71,9 +55,16 @@ export const handleCommit = (
   visible.value = val;
 };
 
-export const handleCommitResource = async (groupId:number,val:boolean,type:'file' | 'link',data:{ value: any[] },originData: { value: any[] },selection:{ value: any[] },visible:{ value: boolean }) => {
-  console.log(selection.value,'selection')
-  const addIds = selection.value.map((item:any) => item.id)
+export const handleCommitResource = async (
+  groupId:number,
+  val:boolean,
+  type:'file' | 'link',
+  data:{value: any[] },
+  selection:  any[]  ,
+  visible:  { value: boolean }
+) => {
+  console.log(selection,'selection')
+  const addIds = selection.map((item:any) => item.id)
   let result:any
 
     if(type === 'link'){
@@ -86,9 +77,8 @@ export const handleCommitResource = async (groupId:number,val:boolean,type:'file
       message: result.code === 200 ? '添加成功' : result.msg,
       type: result.code === 200 ? 'success' : 'error'
     });
-    visible.value = val;
+    visible.value  = val;
     if (result.code !== 200) return;
-    data.value = [...data.value, ...selection.value];
-    originData.value = [...data.value, ...selection.value];
-  console.log(data.value,'1')
+    const result1:searchGroupResponseData = await searchGroup(groupId)
+    data.value = result1.data.fileInfoList
 }

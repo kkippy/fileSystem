@@ -44,6 +44,7 @@ export const useUserStore = defineStore('user', {
         this.token = (result.data.tokenValue as string)
         this.userRole = result.data.roleList[0]
         this.userId = parseInt(result.data.loginId)
+        this.userName = result.data.name
         SET_USER(this.userRole as string)
         SET_TOKEN(this.token as string)
         SET_PATH(this.path as string)
@@ -58,7 +59,7 @@ export const useUserStore = defineStore('user', {
       //存储用户信息
       const result:any = await getUserInfo()
       if (result.code === 200) {
-        this.userName = result.data.account
+        this.userName = result.data.name
         SET_USERNAME(result.data.account as string)
         return 'ok'
       } else {

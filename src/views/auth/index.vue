@@ -28,7 +28,6 @@
         style="width: 100%">
         <el-table-column align="center" type="selection" ></el-table-column>
         <el-table-column align="center" type="index" label="序号" width="80" />
-        <el-table-column align="center" show-overflow-tooltip prop="account" label="账号" />
         <el-table-column align="center" show-overflow-tooltip prop="name" label="姓名" />
         <el-table-column align="center" show-overflow-tooltip prop="number" label="工号" />
         <el-table-column align="center" show-overflow-tooltip prop="roleName" label="用户角色" width="100" />
@@ -51,7 +50,7 @@
         </el-table-column>
         <el-table-column align="center" label="操作" width="250">
           <template #default="{row}">
-            <el-button :disabled="userStore.userRole !== 'super_admin' && (row.roleName === '管理员' && (currentUser !== row.account && row.roleName !== '普通用户')) ||
+            <el-button :disabled="userStore.userRole !== 'super_admin' && (row.roleName === '管理员' && ( row.roleName !== '普通用户')) ||
               (row.roleName === '超级管理员' && userStore.userRole !== 'super_admin')"
                        :icon="Edit"
                        type="primary"
@@ -60,12 +59,12 @@
               编辑
             </el-button>
             <el-popconfirm
-              :title="`确认删除${row.account}?`"
+              :title="`确认删除${row.number}?`"
               width="200px"
               @confirm="handleDelUser(row.id)"
             >
               <template #reference>
-                <el-button :disabled="userStore.userRole !== 'super_admin' && (row.roleName === '管理员' || row.roleName === '超级管理员' || userStore.userName === row.account)  " type="danger" :icon="Delete">
+                <el-button :disabled="userStore.userRole !== 'super_admin' && (row.roleName === '管理员' || row.roleName === '超级管理员' )  " type="danger" :icon="Delete">
                   删除
                 </el-button>
               </template>
@@ -99,10 +98,6 @@
 
             <el-form-item label="姓名" prop="name" label-width="90px">
               <el-input placeholder="请输入姓名" v-model="userFrom.name" />
-            </el-form-item>
-
-            <el-form-item label="账号" prop="account" label-width="90px">
-              <el-input placeholder="请输入账号" v-model="userFrom.account" />
             </el-form-item>
 
             <el-form-item label="工号" prop="number" label-width="90px">
@@ -150,9 +145,6 @@
       <el-form ref="addUserFromRef" status-icon :model="userFrom" :rules="addRules">
         <el-form-item label="姓名"  prop="name" label-width="90px">
           <el-input placeholder="请输入姓名" v-model="userFrom.name" />
-        </el-form-item>
-        <el-form-item label="账号" prop="account" label-width="90px">
-          <el-input placeholder="请输入账号"  v-model="userFrom.account" />
         </el-form-item>
         <el-form-item label="工号" prop="number" label-width="90px">
           <el-input placeholder="请输入工号"  v-model="userFrom.number" />
@@ -212,7 +204,7 @@ let total = ref<number>(0)
 let drawer = ref<boolean>(false)
 let userFromRef = ref<FormInstance>()
 let addUserFromRef = ref<FormInstance>()
-let currentUserName = ref<string>('')
+let currentUserId = ref<string>('')
 const removeUserIdList = ref([])
 const userData = ref([])
 const userStore = useUserStore()
@@ -221,7 +213,6 @@ const currentPassword = ref('')
 const addUserVisible = ref<boolean>(false)
 export interface IUserForm {
   id?:number,
-  account:string,
   name:string,
   password:string,
   number:number | string,
@@ -242,7 +233,6 @@ const canChangeRole = computed(()=>{
 })
 
 const userFrom = reactive<IUserForm>({
-  account:"",
   name:"",
   password:"",
   number:"",
@@ -293,9 +283,6 @@ const validatorConfirmRole = (rule:any,value:any,callBack:any)=>{
 }
 
 const addRules = reactive({
-  account:[
-    {required:true,trigger:"blur",validator:validatorUserName}
-  ],
   name:[
     {required:true,trigger:"blur",validator:validatorUserName}
   ],
@@ -361,7 +348,6 @@ const handleSelectChange = (val:string) =>{
 const handleAddUser = () => {
   Object.assign(userFrom,JSON.parse(JSON.stringify(
     {
-      account:"",
       name:"",
       password:"",
       number:"",
@@ -394,7 +380,7 @@ const handleEditUser = (row:any) => {
   currentPassword.value = row.password
   row.password = ''
   Object.assign(userFrom,row)
-  currentUserName.value = row.account
+  currentUserId.value = row.id
   drawer.value = true
 }
 
@@ -439,7 +425,7 @@ const confirmClick = async () => {
     })
     if(result.code === 200){
       await getUser(userFrom.id ? currentPage.value : 1)
-      if(userStore.userName === currentUserName.value) {
+      if(userStore.userId === currentUserId.value) {
         //若修改的是当前登录的用户，则浏览器自动更新，引发重新登录
         window.location.reload()
       }

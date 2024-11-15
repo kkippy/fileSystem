@@ -282,7 +282,7 @@ import {searchUser} from "@/api/user"
 import {getLinks} from "@/api/link"
 import {searchFile} from "@/api/file"
 import type { linkResponseData } from '@/api/link/type'
-import {userColumns,fileColumns,linkColumns,resetIfEmpty,bucketTranslations,handleCommit,handleCommitResource } from '@/utils/groupTools'
+import {userColumns,fileColumns,linkColumns,resetIfEmpty,handleCommit,handleCommitResource } from '@/utils/groupTools'
 let currentPage = ref<number>(1)
 let groupUserCurrentPage = ref<number>(1)
 let groupLinkCurrentPage = ref<number>(1)
@@ -308,8 +308,6 @@ const searchLinkName = ref<string>('')
 const searchFileName = ref<string>('')
 const delUserIds = ref<any[]>([])
 const addUserIds = ref<any[]>([])
-const addFileIds = ref<any[]>([])
-const addLinkIds = ref<any[]>([])
 const groupFormRef = ref<FormInstance>()
 //存储已选择的用户
 const userSelection = ref([])
@@ -372,7 +370,10 @@ onMounted(() => {
 
 const getGroup = async (pager = 1) => {
   currentPage.value = pager
-  const {data}:groupResponseData = await getGroupList(currentPage.value,pageSize.value)
+  const {data,code}:groupResponseData = await getGroupList(currentPage.value,pageSize.value)
+  if(code !== 200){
+    return ElMessage.error('获取群组列表失败')
+  }
   groupListData.value = data.items
   total.value = data.counts
 }
@@ -556,12 +557,6 @@ const handleDelGroupUser = async () => {
 const handleFileCommand = async (command: string) =>{
   const result:any = await searchFile(command,groupFileCurrentPage.value,groupFilePageSize.value)
   fileVisible.value = true
-  // selectFileData.value = result.data.items.map((item:any) => {
-  //   if(bucketTranslations[item.bucket]){
-  //     item.bucket = bucketTranslations[item.bucket]
-  //   }
-  //   return item
-  // })
   selectFileData.value = result.data.items
   console.log(result.data.items,'result.data.items')
   fileTotal.value = result.data.counts
@@ -583,41 +578,39 @@ const handleDelGroupResource = async (val:string) => {
     !deleteSelection.some((deleteItem:any) => deleteItem.id === item.id)
   );
 
+  let result:any
+
   if (val === 'link') {
     const delLinkIds = deleteLinkSelection.value.map((item:any) => item.id);
-    const result:any = await deleteGroupLink(groupForm.id as number, delLinkIds);
-    ElMessage({
-      message: result.code === 200 ? '删除成功' : result.msg,
-      type: result.code === 200 ? 'success' : 'error'
-    });
+    result = await deleteGroupLink(groupForm.id as number, delLinkIds);
     linkData.value = filteredData as ILink[];
     deleteLinkSelection.value = [];
   } else {
     const delFileIds = deleteFileSelection.value.map((item:any) => item.id);
-    const result:any = await deleteGroupFile(groupForm.id as number, delFileIds);
-    ElMessage({
-      message: result.code === 200 ? '删除成功' : result.msg,
-      type: result.code === 200 ? 'success' : 'error'
-    });
+    result = await deleteGroupFile(groupForm.id as number, delFileIds);
     fileData.value = filteredData as IFile[];
     deleteFileSelection.value = [];
   }
+  ElMessage({
+    message: result.code === 200 ? '删除4成功' : result.msg,
+    type: result.code === 200 ? 'success' : 'error'
+  });
 }
 
 const handleCommitUser = (val:boolean) => {
   handleCommit(val, userData, userSelection, originUserData, addUserIds, userVisible);
 }
 
-const handleCommitLink = (val:boolean) => {
-   handleCommitResource(
+const handleCommitLink = async (val:boolean) => {
+   await handleCommitResource(
      groupForm.id as number, val,'link',
-     linkData, originLinkData,linkSelection,linkVisible)
+     linkData,linkSelection.value,linkVisible)
 }
 
 const handleCommitFile = async (val:boolean) => {
   await handleCommitResource(
     groupForm.id as number, val,'file',
-    fileData, originFileData, fileSelection,fileVisible)
+    fileData, fileSelection.value,fileVisible)
 }
 
 const getGroupUser = async (page = 1) => {
@@ -697,6 +690,9 @@ const handleSelectFileChange = (val:any) => {
     display: flex;
     justify-content: space-between;
     overflow: auto;
+    .leftTable,.centerTable,.rightTable{
+      flex:1
+    }
     .centerTable{
       margin: 0 10px;
     }
