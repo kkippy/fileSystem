@@ -11,7 +11,7 @@
               class="el-menu-vertical-demo"
               :default-active="route.path"
               background-color="#1e80ff"
-            :unique-opened="true"
+              :unique-opened="true"
           >
             <MenuComponent :menuList="menuRoutes" />
           </el-menu>
@@ -35,7 +35,7 @@ import MainComponent from "./component/Main/index.vue"
 import HeaderComponent from "./component/Header/index.vue"
 import {constantRoute,anyRoute} from "@/router/routers";
 import {useRoute} from "vue-router";
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 const menuRoutes = [...constantRoute,anyRoute]
 let route = useRoute();
 const defaultComponent = ref<string>('GridComponent')

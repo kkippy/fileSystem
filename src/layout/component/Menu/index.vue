@@ -13,6 +13,16 @@
         </el-menu-item>
       </template>
 
+      <!--只有一个子路由-->
+      <el-menu-item
+        v-if="item.children && item.children.length === 1"
+        :index="item.children[0].path"
+        @click="toView">
+        <template #title>
+          {{item.children[0].meta.title}}
+        </template>
+      </el-menu-item>
+
 <!--有多个子路由，使用递归进行多级菜单的渲染-->
       <el-sub-menu
           :index="item.path"

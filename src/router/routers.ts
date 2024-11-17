@@ -10,6 +10,28 @@ export const constantRoute = [
   },
   {
     path: '/',
+    name: 'layout',
+    component:  ()=> import('@/layout/index.vue'),
+    redirect: '/home',
+    meta: {
+      title: '首页',
+      hidden: false,//路由的标题在菜单中隐藏
+    },
+    children:[
+      {
+        path: '/home',
+        name: 'home',
+        component: ()=>import('@/views/home/index.vue'),
+        meta: {
+          title: '首页',
+          hidden: false,
+          icon:'home'
+        },
+      },
+    ]
+  },
+  {
+    path: '/section',
     name: 'Department',
     redirect: '/section1',
     component:  ()=> import('@/layout/index.vue'),
