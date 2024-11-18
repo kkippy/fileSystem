@@ -23,7 +23,9 @@
 <!--        <data-item v-bind="$attrs" :config="config" :dataset="dataset" :option="dataItemOptions1" />-->
 
         <li>
-          <h2>特殊盒子</h2>
+          <div class="pieChart" >
+            <ECharts width="22" height="22" :option="pieOption" />
+          </div>
         </li>
 
         <li v-for="(item) in dataItemOptions2"  :key="item.key">
@@ -54,15 +56,16 @@
 </template>
 
 <script setup lang="ts">
+import ECharts from "@/components/Echarts/index.vue";
 import uploadCount from '@/assets/images/uploadCount.svg'
 import downloadCount from '@/assets/images/downloadCount.svg'
 import viewCount from '@/assets/images/viewCount.svg'
 import groupCount from '@/assets/images/groupCount.svg'
-import dataItem from "./components/dataItem.vue"
-import { ref } from "vue";
+import { ref,onMounted,onBeforeUnmount } from "vue";
 import { VueDataUi, } from "vue-data-ui";
 import type {VueUiSparklineConfig,VueUiSparklineDatasetItem}  from "vue-data-ui";
 import "vue-data-ui/style.css";
+import {pieOption} from './config/option'
 
 interface DataItem {
   key: string;
@@ -70,6 +73,7 @@ interface DataItem {
   title: string;
   count: string;
 }
+
 
 const dataItemOptions1 = ref<DataItem[]>([
   {
@@ -90,7 +94,7 @@ const dataItemOptions2 = ref<DataItem[]>([
   {
     key:'group',
     icon: groupCount,
-    title: '分组数',
+    title: '群组数',
     count: '592',
   },
   {
@@ -167,6 +171,16 @@ const config = ref<VueUiSparklineConfig>({
   }
 });
 
+onMounted(()=>{
+  window.addEventListener('resize',handleResize)
+})
+onBeforeUnmount(()=>{
+  window.removeEventListener('resize',handleResize)
+})
+
+const handleResize = ()=>{
+  window.location.reload();
+}
 
 </script>
 
@@ -179,14 +193,15 @@ const config = ref<VueUiSparklineConfig>({
 
   .homeContainer {
     height: 100%;
-    border: 1px solid #13ce66;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    background-color: #f3f4fa;
+    box-sizing: border-box;
 
 
     .topContainer, .bottomContainer {
-      background-color: red;
+      //background-color: red;
     }
 
     .centerContainer {
@@ -197,11 +212,12 @@ const config = ref<VueUiSparklineConfig>({
     .topContainer {
       height: 20%;
       display: flex;
+      justify-content: center;
       flex-grow: 1;
 
 
       ul {
-        width: 100%;
+        width: 98%;
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
@@ -217,8 +233,21 @@ const config = ref<VueUiSparklineConfig>({
           align-items: self-end;
 
           &:nth-child(3) {
+            width: 100%;
             height: 100%;
-            background-color: orchid;
+            background-color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            .pieChart {
+              display: flex;
+              width: 16vw;
+              height: 16vh;
+              align-items: center;
+              justify-content: center;
+
+            }
           }
 
 
@@ -236,38 +265,30 @@ const config = ref<VueUiSparklineConfig>({
           .left,.right{
             display: flex;
             flex-direction: column;
-            //height: 60%;
-            //background-color: #34495e;
           }
 
           .left{
-            width: 28%;
             padding-left: 10px;
             p:nth-child(1){
-              font-size: 1.25rem;
+              font-size: 1.2vw;
             }
             p:nth-child(2){
-              font-size: 1.5rem;
+              font-size: 1.2vw;
               font-weight: bold;
             }
           }
 
           .right {
             width: 70%;
-
-            .chart{
-              width: 100%;
-            }
-
           }
 
           .icon {
-            width: 65px;
-            height: 65px;
+            width: 4vw;
+            height: 4vw;
             flex-grow: 1;
             position: absolute;
-            top: -30%;
-            left: 10%;
+            top: -2vw;
+            left: 1.2vw;
             display: flex;
             align-items: center;
             justify-content: center;

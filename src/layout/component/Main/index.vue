@@ -41,7 +41,7 @@ export default {
 .main{
   width: 100%;
   height: 100%;
-  background-color: #fff;
+  //background-color: #87ceed;
   border-radius: 10px;
 
 }
