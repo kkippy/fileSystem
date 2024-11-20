@@ -1,5 +1,7 @@
 import request from "@/utils/request"
-import  type {getViewInfo,getUploadInfo,getGroupInfo,getDownloadInfo,getViewInfoResponseData} from './type'
+import  type {getViewInfo,getUploadInfo,getGroupInfoResponseData,
+  getGroupInfo,getDownloadInfo,getViewInfoResponseData,
+  getUploadInfoResponseData,getDownloadInfoResponseData} from './type'
 
 enum DATA_API {
   // 访问量
@@ -42,7 +44,7 @@ export const getTotalUpload = ()=>request.get<any>(DATA_API.TOTAL_UPLOAD_URL)
 
 export const getTodayUploadInfo = (pageNo:number,pageSize:number,data?:getUploadInfo)=>{
   const url = `${DATA_API.GET_TODAY_UPLOAD_INFO_URL}?pageNo=${pageNo}&pageSize=${pageSize}`
-  return request.post<any>(url,data)
+  return request.post<any,getUploadInfoResponseData>(url,data)
 }
 
 export const getTodayGroup = ()=>request.get<any>(DATA_API.TODAY_GROUP_URL)
@@ -51,7 +53,7 @@ export const getTotalGroup = ()=>request.get<any>(DATA_API.TOTAL_GROUP_URL)
 
 export const getTodayGroupInfo = (pageNo:number,pageSize:number,data?:getGroupInfo)=>{
   const url = `${DATA_API.GET_TODAY_GROUP_INFO_URL}?pageNo=${pageNo}&pageSize=${pageSize}`
-  return request.post<any>(url,data)
+  return request.post<any,getGroupInfoResponseData>(url,data)
 }
 
 export const getTodayDownload = ()=>request.get<any>(DATA_API.TODAY_DOWNLOAD_URL)
@@ -60,7 +62,7 @@ export const getTotalDownload = ()=>request.get<any>(DATA_API.TOTAL_DOWNLOAD_URL
 
 export const getTodayDownloadInfo = (pageNo:number,pageSize:number,data?:getDownloadInfo)=>{
   const url = `${DATA_API.GET_TODAY_DOWNLOAD_INFO_URL}?pageNo=${pageNo}&pageSize=${pageSize}`
-  return request.post<any>(url,data)
+  return request.post<any,getDownloadInfoResponseData>(url,data)
 }
 
 export const getCapacity = ()=>request.get<any>(DATA_API.GET_CAPACITY_URL)
