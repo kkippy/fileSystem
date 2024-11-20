@@ -8,19 +8,13 @@
           </div>
           <div class="left">
             <p>{{ item.title }}</p>
-            <p>{{ item.count }}</p>
+            <p>{{ item.total }}</p>
           </div>
           <div class="right">
-            <div class="chart">
-              <VueDataUi
-                component="VueUiSparkline"
-                :dataset="dataset"
-                :config="config"
-              />
-            </div>
+            <p>{{ item.today }}</p>
+            <p>{{ item.todayCount }}</p>
           </div>
         </li>
-<!--        <data-item v-bind="$attrs" :config="config" :dataset="dataset" :option="dataItemOptions1" />-->
 
         <li>
           <div class="pieChart" >
@@ -34,16 +28,11 @@
           </div>
           <div class="left">
             <p>{{ item.title }}</p>
-            <p>{{ item.count }}</p>
+            <p>{{ item.total }}</p>
           </div>
           <div class="right">
-            <div class="chart">
-              <VueDataUi
-                component="VueUiSparkline"
-                :dataset="dataset"
-                :config="config"
-              />
-            </div>
+            <p>{{ item.today }}</p>
+            <p>{{ item.todayCount }}</p>
           </div>
         </li>
 
@@ -62,114 +51,55 @@ import downloadCount from '@/assets/images/downloadCount.svg'
 import viewCount from '@/assets/images/viewCount.svg'
 import groupCount from '@/assets/images/groupCount.svg'
 import { ref,onMounted,onBeforeUnmount } from "vue";
-import { VueDataUi, } from "vue-data-ui";
-import type {VueUiSparklineConfig,VueUiSparklineDatasetItem}  from "vue-data-ui";
-import "vue-data-ui/style.css";
 import {pieOption} from './config/option'
+import DataItem from '@/views/home/components/dataItem.vue'
 
-interface DataItem {
+interface Item {
   key: string;
   icon: any; // 根据实际情况调整类型
   title: string;
-  count: string;
+  total: number;
+  today: string;
+  todayCount: number;
 }
 
-
-const dataItemOptions1 = ref<DataItem[]>([
+const dataItemOptions1 = ref<Item[]>([
   {
     key:'upload',
     icon: uploadCount,
     title: '上传量',
-    count: '500',
+    total: 500,
+    today:'今日',
+    todayCount:321,
   },
   {
     key:'view',
     icon: viewCount,
     title: '浏览量',
-    count: '930',
+    total: 276,
+    today:'今日',
+    todayCount:373,
   },
 ])
 
-const dataItemOptions2 = ref<DataItem[]>([
+const dataItemOptions2 = ref<Item[]>([
   {
     key:'group',
     icon: groupCount,
     title: '群组数',
-    count: '592',
+    total: 276,
+    today:'今日',
+    todayCount:3,
   },
   {
     key:'download',
     icon: downloadCount,
     title: '下载量',
-    count: '400',
+    total: 987,
+    today:'今日',
+    todayCount:73,
   },
 ])
-
-const dataset = ref<VueUiSparklineDatasetItem[]>([
-  {
-    "period": "period 1",
-    "value": 8,
-  },
-  {
-    "period": "period 2",
-    "value": 12
-  },
-  {
-    "period": "period 3",
-    "value": 30
-  },
-  {
-    "period": "period 4",
-    "value": 22
-  },
-  {
-    "period": "period 5",
-    "value": 9
-  },
-  {
-    "period": "period 6",
-    "value": 12
-  },
-  {
-    "period": "period 6",
-    "value": 33
-  },
-
-]);
-const config = ref<VueUiSparklineConfig>({
-  responsive: true,
-  type: "line",
-  style: {
-    backgroundColor: "#FFFFFF",
-    animation: {
-      show: true,
-      animationFrames: 300
-    },
-    area: {
-      color: "#5f8bee",
-    },
-    line: {
-      smooth: true,
-      color: "#5f8bee"
-    },
-    dataLabel: {
-      show: true,
-      position:'left',
-      offsetX:80,
-      offsetY: -15,
-      bold: true,
-      valueType:'average',
-    },
-    title: {
-      show: true,
-      textAlign:'center',
-      bold:true
-    },
-    zeroLine: {
-      color: "#CCCCCC"
-    }
-  }
-});
 
 onMounted(()=>{
   window.addEventListener('resize',handleResize)
@@ -196,13 +126,7 @@ const handleResize = ()=>{
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    background-color: #f3f4fa;
     box-sizing: border-box;
-
-
-    .topContainer, .bottomContainer {
-      //background-color: red;
-    }
 
     .centerContainer {
       height: 55%;
@@ -215,7 +139,6 @@ const handleResize = ()=>{
       justify-content: center;
       flex-grow: 1;
 
-
       ul {
         width: 98%;
         display: flex;
@@ -227,7 +150,7 @@ const handleResize = ()=>{
           height: 60%;
           display: flex;
           border-radius: 8px;
-          background-color: #fff;
+          background-color: #f3f4fa;
           position: relative;
           justify-content: space-between;
           align-items: self-end;
@@ -265,9 +188,7 @@ const handleResize = ()=>{
           .left,.right{
             display: flex;
             flex-direction: column;
-          }
-
-          .left{
+            flex:0 0 48%;
             padding-left: 10px;
             p:nth-child(1){
               font-size: 1.2vw;
@@ -276,10 +197,6 @@ const handleResize = ()=>{
               font-size: 1.2vw;
               font-weight: bold;
             }
-          }
-
-          .right {
-            width: 70%;
           }
 
           .icon {
