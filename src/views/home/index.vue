@@ -50,58 +50,74 @@ import uploadCount from '@/assets/images/uploadCount.svg'
 import downloadCount from '@/assets/images/downloadCount.svg'
 import viewCount from '@/assets/images/viewCount.svg'
 import groupCount from '@/assets/images/groupCount.svg'
-import { ref,onMounted,onBeforeUnmount } from "vue";
+import { ref, onMounted, onBeforeUnmount, nextTick, computed } from 'vue'
 import {pieOption} from './config/option'
-import DataItem from '@/views/home/components/dataItem.vue'
+import {getTodayView,getTotalView,getTodayGroup,
+  getCapacity,getTotalDownload,getTotalGroup,
+  getTodayDownload,getTodayUpload,getTotalUpload
+} from '@/api/home/index'
 
-interface Item {
-  key: string;
-  icon: any; // 根据实际情况调整类型
-  title: string;
-  total: number;
-  today: string;
-  todayCount: number;
-}
 
-const dataItemOptions1 = ref<Item[]>([
+const todayViews = ref<number>()
+const totalViews = ref<number>()
+const todayDownloads = ref<number>()
+const totalDownloads = ref<number>()
+const todayUploads = ref<number>()
+const totalUploads = ref<number>()
+const todayGroups = ref<number>()
+const totalGroups = ref<number>()
+const totalCapacity = ref<number>()
+const usedCapacity = ref<number>()
+
+
+const dataItemOptions1 = computed(()=>[
   {
     key:'upload',
     icon: uploadCount,
     title: '上传量',
-    total: 500,
+    total: totalUploads.value,
     today:'今日',
-    todayCount:321,
+    todayCount:todayUploads.value,
   },
   {
     key:'view',
     icon: viewCount,
     title: '浏览量',
-    total: 276,
+    total: totalViews.value,
     today:'今日',
-    todayCount:373,
+    todayCount:todayViews.value,
   },
 ])
 
-const dataItemOptions2 = ref<Item[]>([
+const dataItemOptions2 = computed(()=>[
   {
     key:'group',
     icon: groupCount,
     title: '群组数',
-    total: 276,
+    total: totalGroups.value,
     today:'今日',
-    todayCount:3,
+    todayCount:todayGroups.value,
   },
   {
     key:'download',
     icon: downloadCount,
     title: '下载量',
-    total: 987,
+    total: totalDownloads.value,
     today:'今日',
-    todayCount:73,
+    todayCount:todayDownloads.value,
   },
 ])
 
 onMounted(()=>{
+  getView()
+  getTotalViewCount()
+  getDownload()
+  getTotalDownloadCount()
+  getUpload()
+  getTotalUploadCount()
+  getGroup()
+  getTotalGroupCount()
+  getCapacityRatio()
   window.addEventListener('resize',handleResize)
 })
 onBeforeUnmount(()=>{
@@ -110,6 +126,57 @@ onBeforeUnmount(()=>{
 
 const handleResize = ()=>{
   window.location.reload();
+}
+
+const getView = async ()=>{
+  const { data } = await getTodayView()
+  todayViews.value = data
+}
+
+const getTotalViewCount = async ()=>{
+  const { data } = await getTotalView()
+  totalViews.value = data
+}
+
+const getDownload = async ()=>{
+  const { data } = await getTodayDownload()
+  todayDownloads.value = data
+}
+
+const getTotalDownloadCount = async ()=>{
+  const { data } = await getTotalDownload()
+  totalDownloads.value = data
+}
+
+const getUpload = async ()=>{
+  const { data } = await getTodayUpload()
+  todayUploads.value = data
+}
+
+const getTotalUploadCount = async ()=>{
+  const { data } = await getTotalUpload()
+  totalUploads.value = data
+}
+
+const getGroup = async ()=>{
+  const { data } = await getTodayGroup()
+  todayGroups.value = data
+}
+
+const getTotalGroupCount = async ()=>{
+  const { data } = await getTotalGroup()
+  totalGroups.value = data
+}
+
+
+
+
+
+const getCapacityRatio = async ()=>{
+  const { data } = await getCapacity()
+  console.log(data,'data')
+  totalCapacity.value = data.totalCapacity
+  usedCapacity.value = data.usedCapacity
 }
 
 </script>
@@ -127,6 +194,7 @@ const handleResize = ()=>{
     flex-direction: column;
     justify-content: space-between;
     box-sizing: border-box;
+    background-color: #f3f4fa;
 
     .centerContainer {
       height: 55%;
@@ -150,7 +218,7 @@ const handleResize = ()=>{
           height: 60%;
           display: flex;
           border-radius: 8px;
-          background-color: #f3f4fa;
+          //background-color: #f3f4fa;
           position: relative;
           justify-content: space-between;
           align-items: self-end;
@@ -169,21 +237,22 @@ const handleResize = ()=>{
               height: 16vh;
               align-items: center;
               justify-content: center;
-
             }
           }
 
-
-          &:nth-child(1) .icon,
-          &:nth-child(5) .icon {
-            background-color: #73AEF1;
+          &:nth-child(1),&:nth-child(5){
+            background-color: #b2daf9;
+            .icon{
+              background-color: #73AEF1;
+            }
           }
 
-          &:nth-child(2) .icon,
-          &:nth-child(4) .icon {
-            background-color: #ffeaaf;
+          &:nth-child(2),&:nth-child(4){
+            background-color:#faf2db;
+            .icon{
+              background-color: #f2e3c2;
+            }
           }
-
 
           .left,.right{
             display: flex;

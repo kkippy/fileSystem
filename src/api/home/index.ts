@@ -1,7 +1,7 @@
 import request from "@/utils/request"
 import  type {getViewInfo,getUploadInfo,getGroupInfoResponseData,
   getGroupInfo,getDownloadInfo,getViewInfoResponseData,
-  getUploadInfoResponseData,getDownloadInfoResponseData} from './type'
+  getUploadInfoResponseData,getDownloadInfoResponseData,getCapacityResponseData} from './type'
 
 enum DATA_API {
   // 访问量
@@ -65,4 +65,4 @@ export const getTodayDownloadInfo = (pageNo:number,pageSize:number,data?:getDown
   return request.post<any,getDownloadInfoResponseData>(url,data)
 }
 
-export const getCapacity = ()=>request.get<any>(DATA_API.GET_CAPACITY_URL)
+export const getCapacity = ()=>request.get<any,getCapacityResponseData>(DATA_API.GET_CAPACITY_URL)

@@ -93,5 +93,12 @@ export interface getGroupInfoResponseData extends ResponseData {
   };
 }
 
+export interface getCapacityResponseData extends ResponseData {
+  data: {
+    totalCapacity: number;
+    usedCapacity: number;
+  };
+}
+
 
 
