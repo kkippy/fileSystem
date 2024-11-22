@@ -2,27 +2,7 @@
   <div class="homeContainer">
     <div class="topContainer">
       <ul>
-        <li v-for="(item) in dataItemOptions1"  :key="item.key">
-          <div class="icon">
-            <img :src="item.icon" alt="">
-          </div>
-          <div class="left">
-            <p>{{ item.title }}</p>
-            <p>{{ item.total }}</p>
-          </div>
-          <div class="right">
-            <p>{{ item.today }}</p>
-            <p>{{ item.todayCount }}</p>
-          </div>
-        </li>
-
-        <li>
-          <div class="pieChart" >
-            <ECharts width="22" height="22" :option="pieOption" />
-          </div>
-        </li>
-
-        <li v-for="(item) in dataItemOptions2"  :key="item.key">
+        <li v-for="(item) in dataItemOptions"  :key="item.key">
           <div class="icon">
             <img :src="item.icon" alt="">
           </div>
@@ -45,16 +25,15 @@
 </template>
 
 <script setup lang="ts">
-import ECharts from "@/components/Echarts/index.vue";
 import uploadCount from '@/assets/images/uploadCount.svg'
 import downloadCount from '@/assets/images/downloadCount.svg'
 import viewCount from '@/assets/images/viewCount.svg'
 import groupCount from '@/assets/images/groupCount.svg'
-import { ref, onMounted, onBeforeUnmount, nextTick, computed } from 'vue'
-import {pieOption} from './config/option'
-import {getTodayView,getTotalView,getTodayGroup,
-  getCapacity,getTotalDownload,getTotalGroup,
-  getTodayDownload,getTodayUpload,getTotalUpload
+import capacity from '@/assets/images/capacity.svg'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import {
+  getTodayView, getTotalView, getTodayGroup, getTotalDownload, getTotalGroup,
+  getTodayDownload, getTodayUpload, getTotalUpload, getCapacity
 } from '@/api/home/index'
 
 
@@ -66,11 +45,11 @@ const todayUploads = ref<number>()
 const totalUploads = ref<number>()
 const todayGroups = ref<number>()
 const totalGroups = ref<number>()
-const totalCapacity = ref<number>()
-const usedCapacity = ref<number>()
+const totalCapacity = ref<string>()
+const freeCapacity = ref<string>()
 
 
-const dataItemOptions1 = computed(()=>[
+const dataItemOptions = computed(()=>[
   {
     key:'upload',
     icon: uploadCount,
@@ -87,9 +66,14 @@ const dataItemOptions1 = computed(()=>[
     today:'今日',
     todayCount:todayViews.value,
   },
-])
-
-const dataItemOptions2 = computed(()=>[
+  {
+    key:'capacity',
+    icon: capacity,
+    title: '总容量',
+    total: totalCapacity.value,
+    today:'剩余',
+    todayCount:freeCapacity.value,
+  },
   {
     key:'group',
     icon: groupCount,
@@ -106,6 +90,7 @@ const dataItemOptions2 = computed(()=>[
     today:'今日',
     todayCount:todayDownloads.value,
   },
+
 ])
 
 onMounted(()=>{
@@ -174,9 +159,8 @@ const getTotalGroupCount = async ()=>{
 
 const getCapacityRatio = async ()=>{
   const { data } = await getCapacity()
-  console.log(data,'data')
   totalCapacity.value = data.totalCapacity
-  usedCapacity.value = data.usedCapacity
+  freeCapacity.value = data.freeCapacity
 }
 
 </script>
@@ -223,23 +207,6 @@ const getCapacityRatio = async ()=>{
           justify-content: space-between;
           align-items: self-end;
 
-          &:nth-child(3) {
-            width: 100%;
-            height: 100%;
-            background-color: transparent;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            .pieChart {
-              display: flex;
-              width: 16vw;
-              height: 16vh;
-              align-items: center;
-              justify-content: center;
-            }
-          }
-
           &:nth-child(1),&:nth-child(5){
             background-color: #b2daf9;
             .icon{
@@ -247,7 +214,7 @@ const getCapacityRatio = async ()=>{
             }
           }
 
-          &:nth-child(2),&:nth-child(4){
+          &:nth-child(2),&:nth-child(3),&:nth-child(4){
             background-color:#faf2db;
             .icon{
               background-color: #f2e3c2;
