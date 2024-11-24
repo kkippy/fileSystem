@@ -3,6 +3,15 @@ import {useHomeStore} from '@/stores/home'
 
 const homeStore = useHomeStore()
 
+export const createDataItem = (key: string, icon: any, title: string, total: any, todayCount: any) => ({
+  key,
+  icon,
+  title,
+  total,
+  today: title === '总容量' ? '剩余' : '今日',
+  todayCount,
+});
+
 export const  pieOption:ECOption = {
   tooltip: {
     trigger: 'item',
@@ -60,3 +69,62 @@ export const  pieOption:ECOption = {
     }
   ]
 }
+
+export const barOption:ECOption = {
+  legend: {},
+  tooltip: {
+    trigger: 'axis',
+    showContent: false
+  },
+
+  xAxis: { type: 'category',data:[] },
+  yAxis: { gridIndex: 0 },
+  grid: { top: '55%',type: 'value' },
+  series: [
+    // {
+    //   type: 'bar',
+    //   seriesLayoutBy: 'row',
+    //   emphasis: { focus: 'series' }
+    // },
+    // {
+    //   type: 'bar',
+    //   seriesLayoutBy: 'row',
+    //   emphasis: { focus: 'series' }
+    // },
+    // {
+    //   type: 'bar',
+    //   seriesLayoutBy: 'row',
+    //   emphasis: { focus: 'series' }
+    // },
+    // {
+    //   type: 'bar',
+    //   seriesLayoutBy: 'row',
+    //   emphasis: { focus: 'series' }
+    // },
+    {
+      type: 'pie',
+      id: 'pie',
+      radius: '30%',
+      center: ['50%', '25%'],
+      emphasis: {
+        focus: 'self'
+      },
+      label: {
+        formatter: '{b}: {@2012} ({d}%)'
+      },
+      // encode: {
+      //   itemName: 'product',
+      //   value: '2012',
+      //   tooltip: '2012'
+      // }
+    }
+  ]
+}
+
+export const departmentMap:Record<string, string> = {
+  "basic": "基础架构室",
+  "section1": "信息化一室",
+  "section2": "信息化二室",
+  "support": "开发支持室",
+  "manage": "综合管理室"
+};

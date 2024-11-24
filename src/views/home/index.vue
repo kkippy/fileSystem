@@ -15,11 +15,37 @@
             <p>{{ item.todayCount }}</p>
           </div>
         </li>
-
       </ul>
     </div>
-    <div class="centerContainer"></div>
-    <div class="bottomContainer"></div>
+    <div class="centerContainer">
+      <div class="lineChart" id="lineChart">
+      </div>
+      <div class="barChart" id="barChart"></div>
+    </div>
+    <div class="bottomContainer" v-loading="scrollTableLoading">
+      <el-table
+        style="width: 100%"
+        class="top"
+        height="25"
+        :row-class-name="tableRowClassName"
+        :header-cell-style="{background:'#fff',color:'#909399',padding: '0'}"
+        :header-row-style="{height: '13'}"
+      >
+        <el-table-column prop="department" label="科室"  align="center" />
+        <el-table-column prop="fileCount" label="文件数量" min-width="150" align="center" />
+        <el-table-column prop="linkCount" label="链接数量" min-width="105"  align="center" />
+        <el-table-column prop="usedCapacity" label="使用容量" min-width="105"  align="center" />
+      </el-table>
+      <vue3-seamless-scroll
+        :list="list"
+        :hover="true"
+        style="width:auto;"
+        :step="0.3"
+        :singleWaitTime="30"
+      >
+        <scroll-table class="bottom" :list="list" />
+      </vue3-seamless-scroll>
+    </div>
   </div>
 
 </template>
@@ -33,9 +59,16 @@ import capacity from '@/assets/images/capacity.svg'
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import {
   getTodayView, getTotalView, getTodayGroup, getTotalDownload, getTotalGroup,
-  getTodayDownload, getTodayUpload, getTotalUpload, getCapacity
-} from '@/api/home/index'
-
+  getTodayDownload, getTodayUpload, getTotalUpload, getCapacity, getScrollList, getLineChart, getBarChart
+} from '@/api/home'
+import  {createDataItem,departmentMap,barOption} from "./config/option"
+import ECharts from "@/components/Echarts/index.vue"
+import type {ECOption} from '@/components/Echarts/config'
+import { Vue3SeamlessScroll  } from 'vue3-seamless-scroll'
+import  type {getScrollItem} from "@/api/home/type"
+import * as echarts from 'echarts';
+type EChartsOption = echarts.EChartsOption;
+import scrollTable from "./components/scrollTable.vue"
 
 const todayViews = ref<number>()
 const totalViews = ref<number>()
@@ -47,50 +80,21 @@ const todayGroups = ref<number>()
 const totalGroups = ref<number>()
 const totalCapacity = ref<string>()
 const freeCapacity = ref<string>()
+const list = ref<getScrollItem[]>([])
+const scrollTableLoading = ref<boolean>(false)
 
+const tableRowClassName = computed(()=>{
+  return (rowIndex:number) => {
+    return rowIndex % 2 === 0 ? 'yellow' : 'orange'
+  }
+})
 
 const dataItemOptions = computed(()=>[
-  {
-    key:'upload',
-    icon: uploadCount,
-    title: '上传量',
-    total: totalUploads.value,
-    today:'今日',
-    todayCount:todayUploads.value,
-  },
-  {
-    key:'view',
-    icon: viewCount,
-    title: '浏览量',
-    total: totalViews.value,
-    today:'今日',
-    todayCount:todayViews.value,
-  },
-  {
-    key:'capacity',
-    icon: capacity,
-    title: '总容量',
-    total: totalCapacity.value,
-    today:'剩余',
-    todayCount:freeCapacity.value,
-  },
-  {
-    key:'group',
-    icon: groupCount,
-    title: '群组数',
-    total: totalGroups.value,
-    today:'今日',
-    todayCount:todayGroups.value,
-  },
-  {
-    key:'download',
-    icon: downloadCount,
-    title: '下载量',
-    total: totalDownloads.value,
-    today:'今日',
-    todayCount:todayDownloads.value,
-  },
-
+  createDataItem('upload', uploadCount, '上传量', totalUploads.value, todayUploads.value),
+  createDataItem('view', viewCount, '浏览量', totalViews.value, todayViews.value),
+  createDataItem('capacity', capacity, '总容量', totalCapacity.value, freeCapacity.value),
+  createDataItem('group', groupCount, '群组数', totalGroups.value, todayGroups.value),
+  createDataItem('download', downloadCount, '下载量', totalDownloads.value, todayDownloads.value),
 ])
 
 onMounted(()=>{
@@ -103,11 +107,174 @@ onMounted(()=>{
   getGroup()
   getTotalGroupCount()
   getCapacityRatio()
+  initBarChart()
+  initLineChart()
+  getScrollListInfo()
+  getLineChartInfo()
+  getBarChartInfo()
   window.addEventListener('resize',handleResize)
+
 })
 onBeforeUnmount(()=>{
   window.removeEventListener('resize',handleResize)
 })
+
+const initBarChart = async () => {
+  let chartDom = document.getElementById('barChart');
+  let myChart = echarts.init(chartDom);
+
+  // Define the initial option
+  let option: EChartsOption = {
+    legend: {},
+    tooltip: {
+      trigger: 'axis',
+      showContent: false
+    },
+    dataset: {
+      source: []
+    },
+
+    xAxis: {
+      type: 'category',
+    },
+    yAxis: { gridIndex: 0 },
+    series: [
+      {
+        type: 'bar',
+        seriesLayoutBy: 'row',
+        emphasis: { focus: 'series' }
+      },
+      {
+        type: 'pie',
+        id: 'pie',
+        radius: '30%',
+        center: ['50%', '25%'],
+        emphasis: {
+          focus: 'self'
+        },
+        label: {
+          formatter: '{b}: {@2012} ({d}%)'
+        },
+        encode: {
+          itemName: 'product',
+          value: '2012',
+          tooltip: '2012'
+        }
+      }
+    ] // 初始为空，稍后填充
+  };
+
+  try {
+    // Fetch data
+    const { data } = await getBarChart();
+    if (data) {
+      const newDataset = [
+        ['type', 'Image', 'Video', 'PDF', 'Word', 'Excel', 'PPT', 'Other'],
+        ['Image', data.imageCount],
+        ['Video', data.videoCount],
+        ['PDF', data.pdfCount],
+        ['Word', data.wordCount],
+        ['Excel', data.excelCount],
+        ['PPT', data.pptCount],
+        ['Other', data.otherCount]
+      ];
+
+      // Update option with fetched data
+      option.source = newDataset;
+    }
+  } catch (e) {
+    console.log(e);
+  } finally {
+    myChart.on('updateAxisPointer', function (event: any) {
+      const xAxisInfo = event.axesInfo[0];
+      if (xAxisInfo) {
+        const dimension = xAxisInfo.value + 1;
+        myChart.setOption<echarts.EChartsOption>({
+          series: {
+            id: 'pie',
+            label: {
+              formatter: '{b}: {@[' + dimension + ']} ({d}%)'
+            },
+            encode: {
+              value: dimension,
+              tooltip: dimension
+            }
+          }
+        });
+      }
+    });
+    myChart.setOption<echarts.EChartsOption>(option);
+  }
+};
+
+const initLineChart = ()=>{
+  let chartDom = document.getElementById('lineChart');
+  let myChart = echarts.init(chartDom);
+  let option: EChartsOption;
+  option = {
+    title: {
+      text: 'Stacked Line'
+    },
+    tooltip: {
+      trigger: 'axis'
+    },
+    legend: {
+      data: ['Email', 'Union Ads', 'Video Ads', 'Direct', 'Search Engine']
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      containLabel: true
+    },
+    toolbox: {
+      feature: {
+        saveAsImage: {}
+      }
+    },
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    },
+    yAxis: {
+      type: 'value'
+    },
+    series: [
+      {
+        name: 'Email',
+        type: 'line',
+        stack: 'Total',
+        data: [120, 132, 101, 134, 90, 230, 210]
+      },
+      {
+        name: 'Union Ads',
+        type: 'line',
+        stack: 'Total',
+        data: [220, 182, 191, 234, 290, 330, 310]
+      },
+      {
+        name: 'Video Ads',
+        type: 'line',
+        stack: 'Total',
+        data: [150, 232, 201, 154, 190, 330, 410]
+      },
+      {
+        name: 'Direct',
+        type: 'line',
+        stack: 'Total',
+        data: [320, 332, 301, 334, 390, 330, 320]
+      },
+      {
+        name: 'Search Engine',
+        type: 'line',
+        stack: 'Total',
+        data: [820, 932, 901, 934, 1290, 1330, 1320]
+      }
+    ]
+  };
+  option && myChart.setOption(option);
+}
 
 const handleResize = ()=>{
   window.location.reload();
@@ -155,7 +322,46 @@ const getTotalGroupCount = async ()=>{
 
 
 
+const getScrollListInfo = async ()=>{
+  scrollTableLoading.value = true
+  const {data} =  await getScrollList()
+  list.value = data.map(item => ({
+    ...item,
+    department: departmentMap[item.department] || item.department
+  }))
+  scrollTableLoading.value = false
+}
 
+const getLineChartInfo = async ()=>{
+  const {data} = await getLineChart()
+}
+
+const getBarChartInfo = async ()=>{
+  const {data} = await getBarChart()
+  if(data) {
+    const categories = ['Image', 'Video', 'PDF', 'Word', 'Excel', 'PPT', 'Other'];
+    const values = [
+      data.imageCount,
+      data.videoCount,
+      data.pdfCount,
+      data.wordCount,
+      data.excelCount,
+      data.pptCount,
+      data.otherCount
+    ];
+    barOption.xAxis = {
+      type: 'category',
+      data: categories
+    };
+    barOption.series = [{
+      name: 'Count',
+      type: 'bar',
+      seriesLayoutBy: 'row',
+      emphasis: { focus: 'series' },
+      data: values
+    }];
+  }
+}
 
 const getCapacityRatio = async ()=>{
   const { data } = await getCapacity()
@@ -182,7 +388,15 @@ const getCapacityRatio = async ()=>{
 
     .centerContainer {
       height: 55%;
-      background-color: skyblue;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .lineChart,.barChart {
+        flex: 0 0 49%;
+        height: 100%;
+        background-color: #fff;
+      }
     }
 
     .topContainer {
@@ -190,6 +404,7 @@ const getCapacityRatio = async ()=>{
       display: flex;
       justify-content: center;
       flex-grow: 1;
+      padding-bottom: 10px;
 
       ul {
         width: 98%;
@@ -202,7 +417,6 @@ const getCapacityRatio = async ()=>{
           height: 60%;
           display: flex;
           border-radius: 8px;
-          //background-color: #f3f4fa;
           position: relative;
           justify-content: space-between;
           align-items: self-end;
@@ -226,6 +440,7 @@ const getCapacityRatio = async ()=>{
             flex-direction: column;
             flex:0 0 48%;
             padding-left: 10px;
+            color:#333;
             p:nth-child(1){
               font-size: 1.2vw;
             }
@@ -260,6 +475,27 @@ const getCapacityRatio = async ()=>{
 
     .bottomContainer {
       height: 20%;
+      overflow: hidden;
+
+      .scroll{
+        height: 80%;
+        .top {
+          z-index: 2;
+          overflow: hidden;
+          background-color: #302c5e!important;
+        }
+        .bottom .el-table__body  {
+          margin: 0!important;
+          box-sizing: border-box;
+          width: 100%;
+        }
+        .item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 3px 0;
+        }
+      }
     }
   }
 }

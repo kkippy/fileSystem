@@ -1,7 +1,11 @@
 import request from "@/utils/request"
-import  type {getViewInfo,getUploadInfo,getGroupInfoResponseData,
-  getGroupInfo,getDownloadInfo,getViewInfoResponseData,
-  getUploadInfoResponseData,getDownloadInfoResponseData,getCapacityResponseData} from './type'
+import type {
+  getViewInfo, getUploadInfo, getGroupInfoResponseData,
+  getGroupInfo, getDownloadInfo, getViewInfoResponseData,
+  getUploadInfoResponseData, getDownloadInfoResponseData,
+  getCapacityResponseData, getScrollListResponseData,
+  getLineChartResponseData, getBarChartResponseData
+} from './type'
 
 enum DATA_API {
   // 访问量
@@ -27,6 +31,16 @@ enum DATA_API {
 
   //容量
   GET_CAPACITY_URL = '/home/capacity',
+
+  //滚动列表
+  GET_SCROLL_LIST_URL = '/home/scrolledList',
+
+  //折线图
+  GET_LINE_CHART_URL = '/home/lineChart',
+
+  //柱状图
+  GET_BAR_CHART_URL = '/home/barChart'
+
 }
 
 export const getTodayView = ()=>request.get<any>(DATA_API.TODAY_VIEW_URL)
@@ -66,3 +80,9 @@ export const getTodayDownloadInfo = (pageNo:number,pageSize:number,data?:getDown
 }
 
 export const getCapacity = ()=>request.get<any,getCapacityResponseData>(DATA_API.GET_CAPACITY_URL)
+
+export const getScrollList = ()=>request.get<any,getScrollListResponseData>(DATA_API.GET_SCROLL_LIST_URL)
+
+export const getLineChart = ()=>request.get<any,getLineChartResponseData>(DATA_API.GET_LINE_CHART_URL)
+
+export const getBarChart = ()=>request.get<any,getBarChartResponseData>(DATA_API.GET_BAR_CHART_URL)

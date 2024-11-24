@@ -44,7 +44,6 @@ export const useUserStore = defineStore('user', {
         this.token = (result.data.tokenValue as string)
         this.userRole = result.data.roleList[0]
         this.userId = parseInt(result.data.loginId)
-        this.userName = result.data.name
         SET_USER(this.userRole as string)
         SET_TOKEN(this.token as string)
         SET_PATH(this.path as string)
@@ -52,7 +51,6 @@ export const useUserStore = defineStore('user', {
       } else {
         return Promise.reject(new Error(result.data))
       }
-
     },
 
     async getInfo() {

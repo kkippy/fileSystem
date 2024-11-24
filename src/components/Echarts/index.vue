@@ -87,7 +87,8 @@ onBeforeUnmount(() => {
 defineExpose({
   getInstance: () => chartInstance.value,
   resize,
-  draw
+  draw,
+  // chartRef
 });
 
 

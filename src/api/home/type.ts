@@ -101,5 +101,39 @@ export interface getCapacityResponseData extends ResponseData {
   };
 }
 
+export interface getScrollItem {
+  department:string,
+  fileCount:number,
+  linkCount:number,
+  usedCapacity:string
+}
+
+ type getScrollList = getScrollItem[]
+
+export interface getScrollListResponseData extends ResponseData {
+  data: getScrollList
+}
+
+export interface getLineChartResponseData extends ResponseData {
+  data: {
+    downloadList:number[],
+    uploadList:number[],
+    loginList:number[],
+    dateList:string[]
+  }
+}
+
+export interface getBarChartResponseData extends ResponseData {
+  data: {
+    imageCount:number,
+    videoCount:number,
+    pdfCount:number,
+    wordCount:number,
+    excelCount:number,
+    pptCount:number,
+    otherCount:number
+  }
+}
+
 
 

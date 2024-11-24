@@ -2,7 +2,7 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import {useUserStore} from '@/stores/user';
-import { REMOVE_TOKEN, REMOVE_USER, REMOVE_USER_NAME } from '@/utils/token'
+import { GET_USERNAME, REMOVE_TOKEN, REMOVE_USER, REMOVE_USER_NAME } from '@/utils/token'
 const request = axios.create({
     baseURL:import.meta.env.VITE_APP_BASE_API, //基础路径上会携带/api
     timeout:50000
