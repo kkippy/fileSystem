@@ -71,15 +71,6 @@ export const  pieOption:ECOption = {
 }
 
 export const barOption:ECOption = {
-  legend: {},
-  tooltip: {
-    trigger: 'axis',
-    showContent: false
-  },
-
-  xAxis: { type: 'category',data:[] },
-  yAxis: { gridIndex: 0 },
-  grid: { top: '55%',type: 'value' },
   series: [
     // {
     //   type: 'bar',

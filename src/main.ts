@@ -16,7 +16,7 @@ import ContextMenu from '@imengyu/vue3-context-menu'
 import './assets/iconfont/iconfont.css'
 
 // 引入鉴权文件
-import './permission'
+// import './permission'
 
 // 自定义指令
 import {hasPermission} from '@/directive/hasPermission'

@@ -91,27 +91,26 @@ const tableRowClassName = computed(()=>{
 
 const dataItemOptions = computed(()=>[
   createDataItem('upload', uploadCount, '上传量', totalUploads.value, todayUploads.value),
-  createDataItem('view', viewCount, '浏览量', totalViews.value, todayViews.value),
+  createDataItem('view', viewCount, '访问量', totalViews.value, todayViews.value),
   createDataItem('capacity', capacity, '总容量', totalCapacity.value, freeCapacity.value),
   createDataItem('group', groupCount, '群组数', totalGroups.value, todayGroups.value),
   createDataItem('download', downloadCount, '下载量', totalDownloads.value, todayDownloads.value),
 ])
 
 onMounted(()=>{
-  getView()
-  getTotalViewCount()
-  getDownload()
-  getTotalDownloadCount()
-  getUpload()
-  getTotalUploadCount()
-  getGroup()
-  getTotalGroupCount()
-  getCapacityRatio()
+  // getView()
+  // getTotalViewCount()
+  // getDownload()
+  // getTotalDownloadCount()
+  // getUpload()
+  // getTotalUploadCount()
+  // getGroup()
+  // getTotalGroupCount()
+  // getCapacityRatio()
   initBarChart()
-  initLineChart()
-  getScrollListInfo()
-  getLineChartInfo()
-  getBarChartInfo()
+  // initLineChart()
+  // getScrollListInfo()
+  // getBarChartInfo()
   window.addEventListener('resize',handleResize)
 
 })
@@ -119,73 +118,35 @@ onBeforeUnmount(()=>{
   window.removeEventListener('resize',handleResize)
 })
 
-const initBarChart = async () => {
+const initBarChart =  () => {
   let chartDom = document.getElementById('barChart');
   let myChart = echarts.init(chartDom);
-
-  // Define the initial option
-  let option: EChartsOption = {
-    legend: {},
-    tooltip: {
-      trigger: 'axis',
-      showContent: false
+  let option = {
+    title:{
+      text:'文件占比'
     },
-    dataset: {
-      source: []
-    },
-
-    xAxis: {
-      type: 'category',
-    },
-    yAxis: { gridIndex: 0 },
-    series: [
-      {
-        type: 'bar',
-        seriesLayoutBy: 'row',
-        emphasis: { focus: 'series' }
+      xAxis:{
+        type: 'category',
+        axisLabel: { interval: 0 },
+        splitLine: { show: false },
+        data: ['Image', 'Video', 'PDF', 'Word', 'Excel', 'PPT', 'Other'],
       },
-      {
-        type: 'pie',
-        id: 'pie',
-        radius: '30%',
-        center: ['50%', '25%'],
-        emphasis: {
-          focus: 'self'
-        },
-        label: {
-          formatter: '{b}: {@2012} ({d}%)'
-        },
-        encode: {
-          itemName: 'product',
-          value: '2012',
-          tooltip: '2012'
+      yAxis: [
+        { type: 'value'}
+      ],
+      series:[
+        {type: 'bar',data:[100,123,210,230,340,360,870] },
+        {
+          name: '各文件占比',
+          type: 'pie',
+          center: ['75%', '35%'],
+          radius: '28%',
+          z: 100
         }
-      }
-    ] // 初始为空，稍后填充
+      ]
   };
-
-  try {
-    // Fetch data
-    const { data } = await getBarChart();
-    if (data) {
-      const newDataset = [
-        ['type', 'Image', 'Video', 'PDF', 'Word', 'Excel', 'PPT', 'Other'],
-        ['Image', data.imageCount],
-        ['Video', data.videoCount],
-        ['PDF', data.pdfCount],
-        ['Word', data.wordCount],
-        ['Excel', data.excelCount],
-        ['PPT', data.pptCount],
-        ['Other', data.otherCount]
-      ];
-
-      // Update option with fetched data
-      option.source = newDataset;
-    }
-  } catch (e) {
-    console.log(e);
-  } finally {
     myChart.on('updateAxisPointer', function (event: any) {
+      console.log(event,'event')
       const xAxisInfo = event.axesInfo[0];
       if (xAxisInfo) {
         const dimension = xAxisInfo.value + 1;
@@ -203,76 +164,89 @@ const initBarChart = async () => {
         });
       }
     });
-    myChart.setOption<echarts.EChartsOption>(option);
-  }
+  myChart.setOption(option);
+  // try {
+  //   // Fetch data
+  //   const { data } = await getBarChart();
+  //   if (data) {
+  //   }
+  // } catch (e) {
+  //   console.log(e);
+  // } finally {
+  //   myChart.on('updateAxisPointer', function (event: any) {
+  //     const xAxisInfo = event.axesInfo[0];
+  //     if (xAxisInfo) {
+  //       const dimension = xAxisInfo.value + 1;
+  //       myChart.setOption<echarts.EChartsOption>({
+  //         series: {
+  //           id: 'pie',
+  //           label: {
+  //             formatter: '{b}: {@[' + dimension + ']} ({d}%)'
+  //           },
+  //           encode: {
+  //             value: dimension,
+  //             tooltip: dimension
+  //           }
+  //         }
+  //       });
+  //     }
+  //   });
+  //   myChart.setOption<echarts.EChartsOption>(option);
+  // }
 };
 
-const initLineChart = ()=>{
+const initLineChart = async ()=>{
   let chartDom = document.getElementById('lineChart');
   let myChart = echarts.init(chartDom);
   let option: EChartsOption;
   option = {
-    title: {
-      text: 'Stacked Line'
-    },
     tooltip: {
       trigger: 'axis'
     },
     legend: {
-      data: ['Email', 'Union Ads', 'Video Ads', 'Direct', 'Search Engine']
+      left: 'left',
+      data: ['下载量', '上传量', '访问量']
     },
     grid: {
-      left: '3%',
+      left: '7%',
       right: '4%',
-      bottom: '3%',
+      bottom: '0%',
       containLabel: true
-    },
-    toolbox: {
-      feature: {
-        saveAsImage: {}
-      }
-    },
-    xAxis: {
-      type: 'category',
-      boundaryGap: false,
-      data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
     },
     yAxis: {
       type: 'value'
     },
-    series: [
-      {
-        name: 'Email',
-        type: 'line',
-        stack: 'Total',
-        data: [120, 132, 101, 134, 90, 230, 210]
-      },
-      {
-        name: 'Union Ads',
-        type: 'line',
-        stack: 'Total',
-        data: [220, 182, 191, 234, 290, 330, 310]
-      },
-      {
-        name: 'Video Ads',
-        type: 'line',
-        stack: 'Total',
-        data: [150, 232, 201, 154, 190, 330, 410]
-      },
-      {
-        name: 'Direct',
-        type: 'line',
-        stack: 'Total',
-        data: [320, 332, 301, 334, 390, 330, 320]
-      },
-      {
-        name: 'Search Engine',
-        type: 'line',
-        stack: 'Total',
-        data: [820, 932, 901, 934, 1290, 1330, 1320]
-      }
-    ]
   };
+  const {data} = await getLineChart()
+  option.xAxis = {
+    type: 'category',
+    axisLabel: {
+      rotate: 30
+    },
+    boundaryGap: false,
+    data: data.dateList
+  }
+  option.series = [
+    {
+      name: '下载量',
+      type: 'line',
+      smooth:true,
+      data: data.downloadList
+    },
+    {
+      name: '上传量',
+      type: 'line',
+      smooth:true,
+      data: data.uploadList
+    },
+    {
+      name: '访问量',
+      type: 'line',
+      smooth:true,
+      data: data.loginList
+    }
+  ]
+  console.log(data,'lineData')
   option && myChart.setOption(option);
 }
 
@@ -332,10 +306,6 @@ const getScrollListInfo = async ()=>{
   scrollTableLoading.value = false
 }
 
-const getLineChartInfo = async ()=>{
-  const {data} = await getLineChart()
-}
-
 const getBarChartInfo = async ()=>{
   const {data} = await getBarChart()
   if(data) {
@@ -384,7 +354,8 @@ const getCapacityRatio = async ()=>{
     flex-direction: column;
     justify-content: space-between;
     box-sizing: border-box;
-    background-color: #f3f4fa;
+    //background-color: #f3f4fa;
+    background-color: transparent;
 
     .centerContainer {
       height: 55%;
@@ -395,7 +366,7 @@ const getCapacityRatio = async ()=>{
       .lineChart,.barChart {
         flex: 0 0 49%;
         height: 100%;
-        background-color: #fff;
+        background-color: transparent;
       }
     }
 
@@ -482,7 +453,7 @@ const getCapacityRatio = async ()=>{
         .top {
           z-index: 2;
           overflow: hidden;
-          background-color: #302c5e!important;
+          background-color: transparent;
         }
         .bottom .el-table__body  {
           margin: 0!important;
