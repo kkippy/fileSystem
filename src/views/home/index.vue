@@ -121,45 +121,71 @@ onBeforeUnmount(()=>{
 const initBarChart =  () => {
   let chartDom = document.getElementById('barChart');
   let myChart = echarts.init(chartDom);
-  let option = {
+  let option:EChartsOption = {
     title:{
-      text:'文件占比'
+      text:'各类文件数量'
+    },
+    tooltip: {
+      trigger: 'axis',
     },
       xAxis:{
         type: 'category',
-        axisLabel: { interval: 0 },
-        splitLine: { show: false },
-        data: ['Image', 'Video', 'PDF', 'Word', 'Excel', 'PPT', 'Other'],
       },
-      yAxis: [
-        { type: 'value'}
-      ],
+    yAxis: { gridIndex: 0 },
+    dataset: {
+      source: [
+        ['type', 'value',],
+        ['Image', 56.5 ],
+        ['Video', 51.1 ],
+        ['PDF', 40.1 ],
+        ['Word', 25.2 ],
+        ['Excel', 25.2 ],
+        ['PPT', 25.2 ],
+        ['Other', 25.2]
+      ]
+    },
       series:[
-        {type: 'bar',data:[100,123,210,230,340,360,870] },
+        {
+          type: 'bar',
+          emphasis: { focus: 'series' },
+        },
         {
           name: '各文件占比',
+          id: 'pie',
           type: 'pie',
-          center: ['75%', '35%'],
-          radius: '28%',
-          z: 100
+          center: ['75%', '21%'],
+          radius: ['15%', '40%'],
+          emphasis: {
+            focus: 'self',
+            label: {
+              show: true,
+              fontSize: 16,
+              fontWeight: 'bold'
+            }
+          },
+          label: {
+            show: false,
+            position: 'center',
+            formatter: '{c} ({d}%)'
+          },
         }
       ]
   };
     myChart.on('updateAxisPointer', function (event: any) {
-      console.log(event,'event')
       const xAxisInfo = event.axesInfo[0];
+      console.log('xAxisInfo', xAxisInfo)
       if (xAxisInfo) {
-        const dimension = xAxisInfo.value + 1;
+        const dimension = 1;
         myChart.setOption<echarts.EChartsOption>({
           series: {
             id: 'pie',
             label: {
-              formatter: '{b}: {@[' + dimension + ']} ({d}%)'
+              formatter: '{b}({d}%)'
             },
-            encode: {
-              value: dimension,
-              tooltip: dimension
-            }
+            // encode: {
+            //   value: dimension,
+            //   tooltip: dimension
+            // }
           }
         });
       }
