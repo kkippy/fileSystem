@@ -62,8 +62,6 @@ import {
   getTodayDownload, getTodayUpload, getTotalUpload, getCapacity, getScrollList, getLineChart, getBarChart
 } from '@/api/home'
 import  {createDataItem,departmentMap,barOption} from "./config/option"
-import ECharts from "@/components/Echarts/index.vue"
-import type {ECOption} from '@/components/Echarts/config'
 import { Vue3SeamlessScroll  } from 'vue3-seamless-scroll'
 import  type {getScrollItem} from "@/api/home/type"
 import * as echarts from 'echarts';
@@ -98,19 +96,19 @@ const dataItemOptions = computed(()=>[
 ])
 
 onMounted(()=>{
-  // getView()
-  // getTotalViewCount()
-  // getDownload()
-  // getTotalDownloadCount()
-  // getUpload()
-  // getTotalUploadCount()
-  // getGroup()
-  // getTotalGroupCount()
-  // getCapacityRatio()
+  getView()
+  getTotalViewCount()
+  getDownload()
+  getTotalDownloadCount()
+  getUpload()
+  getTotalUploadCount()
+  getGroup()
+  getTotalGroupCount()
+  getCapacityRatio()
   initBarChart()
-  // initLineChart()
-  // getScrollListInfo()
-  // getBarChartInfo()
+  initLineChart()
+  getScrollListInfo()
+  getBarChartInfo()
   window.addEventListener('resize',handleResize)
 
 })
@@ -127,33 +125,63 @@ const initBarChart =  () => {
     },
     tooltip: {
       trigger: 'axis',
+      axisPointer: {
+        type: 'none'
+      }
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '7%',
+      containLabel: true
     },
       xAxis:{
         type: 'category',
+        splitLine:{//去除网格线
+          show:false
+        },
+        data:['PDF', 'Word', 'Excel', 'Image', 'Video', 'PPT', 'Other','','','','']
       },
-    yAxis: { gridIndex: 0 },
+    yAxis: {
+      gridIndex: 0,
+
+    },
     dataset: {
       source: [
-        ['type', 'value',],
-        ['Image', 56.5 ],
-        ['Video', 51.1 ],
+        ['type', '',],
         ['PDF', 40.1 ],
         ['Word', 25.2 ],
         ['Excel', 25.2 ],
+        ['Image', 56.5 ],
+        ['Video', 51.1 ],
         ['PPT', 25.2 ],
-        ['Other', 25.2]
+        ['Other', 25.2],
+        ['',0],
+        ['',0],
+        ['',0],
+        ['',0],
+        ['',0],
       ]
     },
       series:[
         {
           type: 'bar',
-          emphasis: { focus: 'series' },
+          barGap:'80%',/*多个并排柱子设置柱子之间的间距*/
+          barCategoryGap:'50%',/*多个并排柱子设置柱子之间的间距*/
+          emphasis: {
+            focus: 'series',
+            itemStyle: {
+              shadowBlur: 10,
+              shadowColor: 'rgba(0,0,0,0.3)'
+            }
+          },
+          barWidth:30
         },
         {
           name: '各文件占比',
           id: 'pie',
           type: 'pie',
-          center: ['75%', '21%'],
+          center: ['75%', '23%'],
           radius: ['15%', '40%'],
           emphasis: {
             focus: 'self',
@@ -164,61 +192,17 @@ const initBarChart =  () => {
             }
           },
           label: {
-            show: false,
-            position: 'center',
-            formatter: '{c} ({d}%)'
+            show: true,
+            // position: 'center',
+            // formatter: '{c} ({d}%)'
           },
+          z: 100,
         }
       ]
   };
-    myChart.on('updateAxisPointer', function (event: any) {
-      const xAxisInfo = event.axesInfo[0];
-      console.log('xAxisInfo', xAxisInfo)
-      if (xAxisInfo) {
-        const dimension = 1;
-        myChart.setOption<echarts.EChartsOption>({
-          series: {
-            id: 'pie',
-            label: {
-              formatter: '{b}({d}%)'
-            },
-            // encode: {
-            //   value: dimension,
-            //   tooltip: dimension
-            // }
-          }
-        });
-      }
-    });
   myChart.setOption(option);
-  // try {
-  //   // Fetch data
   //   const { data } = await getBarChart();
-  //   if (data) {
-  //   }
-  // } catch (e) {
-  //   console.log(e);
-  // } finally {
-  //   myChart.on('updateAxisPointer', function (event: any) {
-  //     const xAxisInfo = event.axesInfo[0];
-  //     if (xAxisInfo) {
-  //       const dimension = xAxisInfo.value + 1;
-  //       myChart.setOption<echarts.EChartsOption>({
-  //         series: {
-  //           id: 'pie',
-  //           label: {
-  //             formatter: '{b}: {@[' + dimension + ']} ({d}%)'
-  //           },
-  //           encode: {
-  //             value: dimension,
-  //             tooltip: dimension
-  //           }
-  //         }
-  //       });
-  //     }
-  //   });
-  //   myChart.setOption<echarts.EChartsOption>(option);
-  // }
+
 };
 
 const initLineChart = async ()=>{
@@ -230,7 +214,7 @@ const initLineChart = async ()=>{
       trigger: 'axis'
     },
     legend: {
-      left: 'left',
+      left: 'center',
       data: ['下载量', '上传量', '访问量']
     },
     grid: {
@@ -374,20 +358,34 @@ const getCapacityRatio = async ()=>{
     padding: 0;
   }
 
+
   .homeContainer {
     height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     box-sizing: border-box;
-    //background-color: #f3f4fa;
     background-color: transparent;
+
+    .carStyle{
+      border: 1px solid #e4e7ed;
+      background-color: #fff;
+      overflow: hidden;
+      color: #303133;
+      transition: .3s;
+      margin: 10px;
+    }
 
     .centerContainer {
       height: 55%;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      z-index: 2;
+      border-radius:4px;
+      border: 1px solid #e4e7ed;
+      box-shadow:  0.1em 0.1em .5em rgba(0, 0, 0, 0.3);
+      margin: 10px 0;
 
       .lineChart,.barChart {
         flex: 0 0 49%;
@@ -396,12 +394,15 @@ const getCapacityRatio = async ()=>{
       }
     }
 
-    .topContainer {
-      height: 20%;
+    .topContainer{
       display: flex;
       justify-content: center;
       flex-grow: 1;
-      padding-bottom: 10px;
+      padding-bottom: 5px;
+      border-radius:4px;
+      margin-bottom: 10px;
+      //border: 1px solid #e4e7ed;
+      box-shadow:  0.1em 0.1em .5em rgba(0, 0, 0, 0.3);
 
       ul {
         width: 98%;
@@ -411,7 +412,7 @@ const getCapacityRatio = async ()=>{
 
         li {
           flex: 0 0 19%;
-          height: 60%;
+          height: 65%;
           display: flex;
           border-radius: 8px;
           position: relative;
@@ -452,7 +453,7 @@ const getCapacityRatio = async ()=>{
             height: 4vw;
             flex-grow: 1;
             position: absolute;
-            top: -2vw;
+            top: -2.5vw;
             left: 1.2vw;
             display: flex;
             align-items: center;
@@ -471,8 +472,12 @@ const getCapacityRatio = async ()=>{
     }
 
     .bottomContainer {
-      height: 20%;
+      height: 22%;
       overflow: hidden;
+      border-radius:4px;
+      border: 1px solid #e4e7ed;
+      box-shadow:  0.1em 0.1em .5em rgba(0, 0, 0, 0.3);
+      margin-top: 10px;
 
       .scroll{
         height: 80%;
