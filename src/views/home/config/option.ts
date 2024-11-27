@@ -1,7 +1,6 @@
-import type { ECOption } from "@/components/Echarts/config";
-import {useHomeStore} from '@/stores/home'
-
-const homeStore = useHomeStore()
+import { getBarChart, getLineChart } from '@/api/home'
+import * as echarts from 'echarts'
+type EChartsOption = echarts.EChartsOption;
 
 export const createDataItem = (key: string, icon: any, title: string, total: any, todayCount: any) => ({
   key,
@@ -12,106 +11,159 @@ export const createDataItem = (key: string, icon: any, title: string, total: any
   todayCount,
 });
 
-export const  pieOption:ECOption = {
+
+const {data:data1 } = await getBarChart();
+const {
+  imageCount, videoCount, pdfCount,
+  wordCount, excelCount, pptCount,
+  otherCount } = data1;
+const barData = [
+  { value: pdfCount, itemStyle: { color: '#5470c6' } },
+  { value: wordCount, itemStyle: { color: '#91cc75' } },
+  { value: excelCount, itemStyle: { color: '#fac858' } },
+  { value: imageCount, itemStyle: { color: '#ee6666' } },
+  { value: videoCount, itemStyle: { color: '#73c0de' } },
+  { value: pptCount, itemStyle: { color: '#3ba272' } },
+  { value: otherCount, itemStyle: { color: '#fc8452' } },
+];
+const pieData = [
+  { value: pdfCount, name: 'PDF' },
+  { value: wordCount, name: 'Word' },
+  { value: excelCount, name: 'Excel' },
+  { value: imageCount, name: 'Image' },
+  { value: videoCount, name: 'Video' },
+  { value: pptCount, name: 'PPT' },
+  { value: otherCount, name: 'Other' },
+];
+
+
+export const barOption:EChartsOption = {
+  title:{
+  },
   tooltip: {
-    trigger: 'item',
-    formatter: (params:any) => {
-      const value = params.value;
-      console.log(params,'par')
-      const usedType = homeStore.usedType
-      return `${params.seriesName} <br/> ${params.name} : ${value} ${usedType} (${params.percent}%)`;
+    trigger: 'axis',
+    axisPointer: {
+      type: 'none'
     }
   },
-  series: [
+  legend:{},
+  grid: {
+    left: '3%',
+    right: '4%',
+    bottom: '7%',
+    containLabel: true
+  },
+  xAxis:{
+    type: 'category',
+    splitLine:{//去除网格线
+      show:false
+    },
+    axisTick: {
+      alignWithLabel: true
+    },
+    data:['PDF', 'Word', 'Excel', 'Image', 'Video', 'PPT', 'Other','','','','']
+  },
+  yAxis: {
+    gridIndex: 0,
+  },
+  series:[
     {
-      type: 'pie',
-      name: '容量使用情况',
-      radius: ['0', '50%'],
-      selectedMode: 'single',
-      data: [
-        { value: homeStore.totalCapacity, name: '总容量',itemStyle:{
-          color: '#87ceeb'
-          }},
-      ],
-      label: {
-        fontSize: 18,
-        position: 'center'
+      type: 'bar',
+      barGap:'80%',/*多个并排柱子设置柱子之间的间距*/
+      barCategoryGap:'50%',/*多个并排柱子设置柱子之间的间距*/
+      emphasis: {
+        focus: 'series',
+        itemStyle: {
+          shadowBlur: 10,
+          shadowColor: 'rgba(0,0,0,0.3)'
+        }
       },
-      labelLine: {
-        show: false
+      itemStyle:{
+        color:'#4EB5F7',
+        borderRadius:[10,10,0,0]
       },
+      barWidth:30,
+      data: barData
     },
     {
-      name: '容量使用情况',
+      name: '各文件占比',
       type: 'pie',
-      radius: ['70%', '100%'],
       avoidLabelOverlap: false,
-      padAngle: 5,
+      center: ['80%', '40%'],
+      radius: ['25%', '50%'],
       itemStyle: {
-        borderRadius: 10
+        borderRadius: 5,
+        borderColor: '#fff',
+        borderWidth: 2
+      },
+      emphasis: {
+        focus: 'self',
+        label: {
+          show: true,
+          fontSize: 16,
+          fontWeight: 'bold',
+          formatter: '{b}({d}%)'
+        }
       },
       label: {
         show: false,
         position: 'center'
       },
-      emphasis: {
-        label: {
-          show: false,
-          fontSize: 40,
-          fontWeight: 'bold'
-        }
-      },
-
-      data: [
-        { value: homeStore.usedCapacity , name: '已使用',itemStyle:{color:'#ee6666'}},
-        { value: homeStore.freeCapacity , name: '未使用' , itemStyle: {color:'#91cc75'}},
-      ]
+      data: pieData,
+      z: 100,
     }
   ]
 }
 
-export const barOption:ECOption = {
-  series: [
-    // {
-    //   type: 'bar',
-    //   seriesLayoutBy: 'row',
-    //   emphasis: { focus: 'series' }
-    // },
-    // {
-    //   type: 'bar',
-    //   seriesLayoutBy: 'row',
-    //   emphasis: { focus: 'series' }
-    // },
-    // {
-    //   type: 'bar',
-    //   seriesLayoutBy: 'row',
-    //   emphasis: { focus: 'series' }
-    // },
-    // {
-    //   type: 'bar',
-    //   seriesLayoutBy: 'row',
-    //   emphasis: { focus: 'series' }
-    // },
+const {data:data2} = await getLineChart()
+const  {downloadList, uploadList,loginList,dateList} = data2
+export const lineOption:EChartsOption = {
+  tooltip: {
+    trigger: 'axis'
+  },
+  legend: {
+    left: 'center',
+    data: ['下载量', '上传量', '访问量']
+  },
+  xAxis: {
+    type: 'category',
+    axisLabel: {
+      rotate: 30,
+      fontSize: 10,
+    },
+    boundaryGap: false,
+    data: dateList
+  },
+  grid: {
+    left: '7%',
+    right: '4%',
+    bottom: '0%',
+    containLabel: true
+  },
+  yAxis: {
+    type: 'value'
+  },
+  series:[
     {
-      type: 'pie',
-      id: 'pie',
-      radius: '30%',
-      center: ['50%', '25%'],
-      emphasis: {
-        focus: 'self'
-      },
-      label: {
-        formatter: '{b}: {@2012} ({d}%)'
-      },
-      // encode: {
-      //   itemName: 'product',
-      //   value: '2012',
-      //   tooltip: '2012'
-      // }
+      name: '下载量',
+      type: 'line',
+      smooth: true,
+      data: downloadList,
+    },
+    {
+      name: '上传量',
+      type: 'line',
+      smooth: true,
+      data: uploadList,
+    },
+    {
+      name: '访问量',
+      type: 'line',
+      smooth: true,
+      data: loginList,
     }
   ]
 }
-
 export const departmentMap:Record<string, string> = {
   "basic": "基础架构室",
   "section1": "信息化一室",

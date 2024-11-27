@@ -27,7 +27,6 @@
         style="width: 100%"
         class="top"
         height="25"
-        :row-class-name="tableRowClassName"
         :header-cell-style="{background:'#fff',color:'#909399',padding: '0'}"
         :header-row-style="{height: '13'}"
       >
@@ -59,13 +58,12 @@ import capacity from '@/assets/images/capacity.svg'
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import {
   getTodayView, getTotalView, getTodayGroup, getTotalDownload, getTotalGroup,
-  getTodayDownload, getTodayUpload, getTotalUpload, getCapacity, getScrollList, getLineChart, getBarChart
+  getTodayDownload, getTodayUpload, getTotalUpload, getCapacity, getScrollList,
 } from '@/api/home'
-import  {createDataItem,departmentMap,barOption} from "./config/option"
+import  {createDataItem,departmentMap,barOption,lineOption} from "./config/option"
 import { Vue3SeamlessScroll  } from 'vue3-seamless-scroll'
 import  type {getScrollItem} from "@/api/home/type"
 import * as echarts from 'echarts';
-type EChartsOption = echarts.EChartsOption;
 import scrollTable from "./components/scrollTable.vue"
 
 const todayViews = ref<number>()
@@ -80,12 +78,6 @@ const totalCapacity = ref<string>()
 const freeCapacity = ref<string>()
 const list = ref<getScrollItem[]>([])
 const scrollTableLoading = ref<boolean>(false)
-
-const tableRowClassName = computed(()=>{
-  return (rowIndex:number) => {
-    return rowIndex % 2 === 0 ? 'yellow' : 'orange'
-  }
-})
 
 const dataItemOptions = computed(()=>[
   createDataItem('upload', uploadCount, '上传量', totalUploads.value, todayUploads.value),
@@ -108,156 +100,22 @@ onMounted(()=>{
   initBarChart()
   initLineChart()
   getScrollListInfo()
-  getBarChartInfo()
   window.addEventListener('resize',handleResize)
-
 })
 onBeforeUnmount(()=>{
   window.removeEventListener('resize',handleResize)
 })
 
-const initBarChart =  () => {
+const initBarChart = () => {
   let chartDom = document.getElementById('barChart');
   let myChart = echarts.init(chartDom);
-  let option:EChartsOption = {
-    title:{
-      text:'各类文件数量'
-    },
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: {
-        type: 'none'
-      }
-    },
-    grid: {
-      left: '3%',
-      right: '4%',
-      bottom: '7%',
-      containLabel: true
-    },
-      xAxis:{
-        type: 'category',
-        splitLine:{//去除网格线
-          show:false
-        },
-        data:['PDF', 'Word', 'Excel', 'Image', 'Video', 'PPT', 'Other','','','','']
-      },
-    yAxis: {
-      gridIndex: 0,
-
-    },
-    dataset: {
-      source: [
-        ['type', '',],
-        ['PDF', 40.1 ],
-        ['Word', 25.2 ],
-        ['Excel', 25.2 ],
-        ['Image', 56.5 ],
-        ['Video', 51.1 ],
-        ['PPT', 25.2 ],
-        ['Other', 25.2],
-        ['',0],
-        ['',0],
-        ['',0],
-        ['',0],
-        ['',0],
-      ]
-    },
-      series:[
-        {
-          type: 'bar',
-          barGap:'80%',/*多个并排柱子设置柱子之间的间距*/
-          barCategoryGap:'50%',/*多个并排柱子设置柱子之间的间距*/
-          emphasis: {
-            focus: 'series',
-            itemStyle: {
-              shadowBlur: 10,
-              shadowColor: 'rgba(0,0,0,0.3)'
-            }
-          },
-          barWidth:30
-        },
-        {
-          name: '各文件占比',
-          id: 'pie',
-          type: 'pie',
-          center: ['75%', '23%'],
-          radius: ['15%', '40%'],
-          emphasis: {
-            focus: 'self',
-            label: {
-              show: true,
-              fontSize: 16,
-              fontWeight: 'bold'
-            }
-          },
-          label: {
-            show: true,
-            // position: 'center',
-            // formatter: '{c} ({d}%)'
-          },
-          z: 100,
-        }
-      ]
-  };
-  myChart.setOption(option);
-  //   const { data } = await getBarChart();
-
+  myChart.setOption(barOption);
 };
 
-const initLineChart = async ()=>{
+const initLineChart = ()=>{
   let chartDom = document.getElementById('lineChart');
   let myChart = echarts.init(chartDom);
-  let option: EChartsOption;
-  option = {
-    tooltip: {
-      trigger: 'axis'
-    },
-    legend: {
-      left: 'center',
-      data: ['下载量', '上传量', '访问量']
-    },
-    grid: {
-      left: '7%',
-      right: '4%',
-      bottom: '0%',
-      containLabel: true
-    },
-    yAxis: {
-      type: 'value'
-    },
-  };
-  const {data} = await getLineChart()
-  option.xAxis = {
-    type: 'category',
-    axisLabel: {
-      rotate: 30
-    },
-    boundaryGap: false,
-    data: data.dateList
-  }
-  option.series = [
-    {
-      name: '下载量',
-      type: 'line',
-      smooth:true,
-      data: data.downloadList
-    },
-    {
-      name: '上传量',
-      type: 'line',
-      smooth:true,
-      data: data.uploadList
-    },
-    {
-      name: '访问量',
-      type: 'line',
-      smooth:true,
-      data: data.loginList
-    }
-  ]
-  console.log(data,'lineData')
-  option && myChart.setOption(option);
+  myChart.setOption(lineOption);
 }
 
 const handleResize = ()=>{
@@ -304,8 +162,6 @@ const getTotalGroupCount = async ()=>{
   totalGroups.value = data
 }
 
-
-
 const getScrollListInfo = async ()=>{
   scrollTableLoading.value = true
   const {data} =  await getScrollList()
@@ -314,33 +170,6 @@ const getScrollListInfo = async ()=>{
     department: departmentMap[item.department] || item.department
   }))
   scrollTableLoading.value = false
-}
-
-const getBarChartInfo = async ()=>{
-  const {data} = await getBarChart()
-  if(data) {
-    const categories = ['Image', 'Video', 'PDF', 'Word', 'Excel', 'PPT', 'Other'];
-    const values = [
-      data.imageCount,
-      data.videoCount,
-      data.pdfCount,
-      data.wordCount,
-      data.excelCount,
-      data.pptCount,
-      data.otherCount
-    ];
-    barOption.xAxis = {
-      type: 'category',
-      data: categories
-    };
-    barOption.series = [{
-      name: 'Count',
-      type: 'bar',
-      seriesLayoutBy: 'row',
-      emphasis: { focus: 'series' },
-      data: values
-    }];
-  }
 }
 
 const getCapacityRatio = async ()=>{
@@ -357,7 +186,6 @@ const getCapacityRatio = async ()=>{
     margin: 0;
     padding: 0;
   }
-
 
   .homeContainer {
     height: 100%;
@@ -377,14 +205,14 @@ const getCapacityRatio = async ()=>{
     }
 
     .centerContainer {
-      height: 55%;
+      height: 50%;
       display: flex;
       justify-content: space-between;
       align-items: center;
       z-index: 2;
       border-radius:4px;
-      border: 1px solid #e4e7ed;
-      box-shadow:  0.1em 0.1em .5em rgba(0, 0, 0, 0.3);
+      border: 1px solid #e1e1de;
+      box-shadow:  0.1em 0.1em .5em rgba(0, 0, 0, 0.1);
       margin: 10px 0;
 
       .lineChart,.barChart {
@@ -398,11 +226,12 @@ const getCapacityRatio = async ()=>{
       display: flex;
       justify-content: center;
       flex-grow: 1;
+      height: 20%;
       padding-bottom: 5px;
       border-radius:4px;
       margin-bottom: 10px;
-      //border: 1px solid #e4e7ed;
-      box-shadow:  0.1em 0.1em .5em rgba(0, 0, 0, 0.3);
+      border: 1px solid #e1e1de;
+      box-shadow:  0.1em 0.1em .5em rgba(0, 0, 0, 0.1);
 
       ul {
         width: 98%;
@@ -475,8 +304,8 @@ const getCapacityRatio = async ()=>{
       height: 22%;
       overflow: hidden;
       border-radius:4px;
-      border: 1px solid #e4e7ed;
-      box-shadow:  0.1em 0.1em .5em rgba(0, 0, 0, 0.3);
+      border: 1px solid #e1e1de;
+      box-shadow:  0.1em 0.1em .5em rgba(0, 0, 0, 0.1);
       margin-top: 10px;
 
       .scroll{
