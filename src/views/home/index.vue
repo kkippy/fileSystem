@@ -46,7 +46,29 @@
       </vue3-seamless-scroll>
     </div>
 
-    <el-dialog v-model="dialogVisible" width="60%" >
+    <el-dialog v-model="dialogVisible" width="65%" :title="`今日新增${addType}详情`">
+        <el-table stripe :data="dialogData" height="50vh">
+          <el-input size="small" placeholder="Type to search" />
+          <el-table-column
+            align="center"
+            v-for="item in propList"
+            :key="item.index"
+            :prop="item.prop"
+            :label="item.label"
+            :width="item.label === '文件名' ? '350' : ''"
+             />
+        </el-table>
+      <el-pagination
+        style="margin-top: 20px;"
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
+        :page-sizes="[20, 50, 100]"
+        :background="true"
+        layout="prev, pager, next, jumper, ->, sizes, total"
+        :total="total"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+      />
 
     </el-dialog>
   </div>
@@ -65,11 +87,17 @@ import {
   getTodayDownload, getTodayUpload, getTotalUpload, getCapacity, getScrollList,
   getTodayUploadInfo, getTodayViewInfo,getTodayGroupInfo,getTodayDownloadInfo
 } from '@/api/home'
-import  {createDataItem,departmentMap,barOption,lineOption} from "./config/option"
+import  {createDataItem,departmentMap,barOption,lineOption,uploadPropList,downloadPropList,viewPropList,groupPropList} from "./config/option"
 import { Vue3SeamlessScroll  } from 'vue3-seamless-scroll'
 import  type {getScrollItem} from "@/api/home/type"
 import * as echarts from 'echarts';
 import scrollTable from "./components/scrollTable.vue"
+
+interface propItem {
+  index:number,
+  label:string,
+  prop:string
+}
 
 const todayViews = ref<number>()
 const totalViews = ref<number>()
@@ -85,6 +113,12 @@ const list = ref<getScrollItem[]>([])
 const scrollTableLoading = ref<boolean>(false)
 const dialogData = ref<any[]>([])
 const dialogVisible = ref<boolean>(false)
+const propList = ref<propItem[]>([])
+const addType = ref<string>('上传')
+let currentPage = ref<number>(1)
+let pageSize = ref<number>(10)
+let total = ref<number>(0)
+const currentDataType = ref<string>('')
 
 const dataItemOptions = computed(()=>[
   createDataItem('upload', uploadCount, '上传量', totalUploads.value, todayUploads.value),
@@ -130,28 +164,80 @@ const handleResize = ()=>{
 }
 
 const handleCheckInfo = async (item:any) =>{
-  let { data:uploadData } = await getTodayUploadInfo(1,10)
-  let { data:downloadData } = await getTodayDownloadInfo(1,10)
-  let { data:groupData } = await getTodayGroupInfo(1,10)
-  let { data:viewData } = await getTodayViewInfo(1,10)
+  let { data:uploadData } = await getTodayUploadInfo(currentPage.value,pageSize.value)
+  let { data:downloadData } = await getTodayDownloadInfo(currentPage.value,pageSize.value)
+  let { data:groupData } = await getTodayGroupInfo(currentPage.value,pageSize.value)
+  let { data:viewData } = await getTodayViewInfo(currentPage.value,pageSize.value)
   switch (item.key) {
     case 'upload':
+      addType.value = '上传'
       dialogVisible.value = true
       dialogData.value = uploadData.items
+      propList.value = uploadPropList
+      total.value = uploadData.counts
+      currentDataType.value = 'upload'
       break;
     case 'view':
+      addType.value = '访问'
       dialogVisible.value = true
       dialogData.value = viewData.items
+      propList.value = viewPropList
+      total.value = viewData.counts
+      currentDataType.value = 'view'
       break;
     case 'capacity':
       break;
     case 'group':
+      addType.value = '群组'
       dialogVisible.value = true
       dialogData.value = groupData.items
+      propList.value = groupPropList
+      total.value = groupData.counts
+      currentDataType.value = 'group'
       break;
     case 'download':
+      addType.value = '下载'
       dialogVisible.value = true
       dialogData.value = downloadData.items
+      total.value = downloadData.counts
+      propList.value = downloadPropList
+      currentDataType.value = 'download'
+      break;
+  }
+}
+
+const handleSizeChange = () => {
+  currentPage.value = 1
+  fetchData()
+}
+
+const handleCurrentChange = () => {
+  fetchData()
+}
+
+const fetchData = async(pager = 1) => {
+  currentPage.value = pager
+  let data:any
+  switch (currentDataType.value) {
+    case 'upload':
+      data = await getTodayUploadInfo(currentPage.value,pageSize.value)
+      dialogData.value = data.items;
+      total.value = data.counts;
+      break;
+    case 'view':
+      data = await getTodayViewInfo(currentPage.value,pageSize.value)
+      dialogData.value = data.items;
+      total.value = data.counts;
+      break;
+    case 'group':
+      data = await getTodayGroupInfo(currentPage.value,pageSize.value)
+      dialogData.value = data.items;
+      total.value = data.counts;
+      break;
+    case 'download':
+      data = await getTodayDownloadInfo(currentPage.value,pageSize.value)
+      dialogData.value = data.items;
+      total.value = data.counts;
       break;
   }
 }
@@ -301,6 +387,10 @@ const getCapacityRatio = async ()=>{
 
           &:nth-child(3){
 
+            &:hover{
+              cursor: default;
+            }
+
             .right {
               flex:0 0 60%;
               padding: 0;
@@ -321,7 +411,7 @@ const getCapacityRatio = async ()=>{
             flex-direction: column;
             flex:0 0 35%;
             padding-left: 10px;
-            color:#333;
+            color:#383c3c;
             p:nth-child(1){
               font-size: 1.4rem;
             }

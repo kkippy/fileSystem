@@ -36,7 +36,6 @@ const pieData = [
   { value: otherCount, name: 'Other' },
 ];
 
-
 export const barOption:EChartsOption = {
   title:{
   },
@@ -175,3 +174,85 @@ export const departmentMap:Record<string, string> = {
   "support": "开发支持室",
   "manage": "综合管理室"
 };
+
+export const uploadPropList = [
+  {
+    index:1,
+    label: '文件名',
+    prop: 'uploadName'
+  },
+  {
+    index:2,
+    label: '上传类型',
+    prop: 'uploadType'
+  },
+  {
+    index:3,
+    label: '上传时间',
+    prop: 'uploadTime'
+  },
+  {
+    index:4,
+    label: '上传人',
+    prop: 'userName'
+  },
+]
+
+export const downloadPropList = [
+  {
+    index:1,
+    label: '文件名',
+    prop: 'fileName'
+  },
+  {
+    index:2,
+    label: '文件大小',
+    prop: 'fileSize'
+  },
+  {
+    index:3,
+    label: '下载时间',
+    prop: 'downloadTime'
+  },
+  {
+    index:4,
+    label: '下载人',
+    prop: 'userName'
+  },
+]
+
+export const viewPropList = [
+  {
+    index:1,
+    label: '工号',
+    prop: 'userNumber'
+  },
+  {
+    index:2,
+    label: '姓名',
+    prop: 'userName'
+  },
+  {
+    index:3 ,
+    label: '登录时间',
+    prop: 'loginTime'
+  },
+]
+
+export const groupPropList = [
+  {
+    index:1,
+    label: '群族名',
+    prop: 'groupName'
+  },
+  {
+    index:2,
+    label: '创建人',
+    prop: 'userName'
+  },
+  {
+    index:3 ,
+    label: '创建时间',
+    prop: 'createTime'
+  },
+]
