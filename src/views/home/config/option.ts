@@ -7,7 +7,7 @@ export const createDataItem = (key: string, icon: any, title: string, total: any
   icon,
   title,
   total,
-  today: title === '总容量' ? '剩余' : '今日',
+  today: title === '总容量' ? '已用' : '今日',
   todayCount,
 });
 
@@ -103,6 +103,10 @@ export const barOption:EChartsOption = {
           fontSize: 16,
           fontWeight: 'bold',
           formatter: '{b}({d}%)'
+        },
+        itemStyle: {
+          shadowBlur: 10,
+          shadowColor: 'rgba(0,0,0,0.3)'
         }
       },
       label: {

@@ -46,7 +46,9 @@
       </vue3-seamless-scroll>
     </div>
 
-    <el-dialog v-model="dialogVisible" width="60%"></el-dialog>
+    <el-dialog v-model="dialogVisible" width="60%" >
+
+    </el-dialog>
   </div>
 
 </template>
@@ -78,7 +80,7 @@ const totalUploads = ref<number>()
 const todayGroups = ref<number>()
 const totalGroups = ref<number>()
 const totalCapacity = ref<string>()
-const freeCapacity = ref<string>()
+const usedCapacity = ref<string>()
 const list = ref<getScrollItem[]>([])
 const scrollTableLoading = ref<boolean>(false)
 const dialogData = ref<any[]>([])
@@ -87,7 +89,7 @@ const dialogVisible = ref<boolean>(false)
 const dataItemOptions = computed(()=>[
   createDataItem('upload', uploadCount, '上传量', totalUploads.value, todayUploads.value),
   createDataItem('view', viewCount, '访问量', totalViews.value, todayViews.value),
-  createDataItem('capacity', capacity, '总容量', totalCapacity.value, freeCapacity.value),
+  createDataItem('capacity', capacity, '总容量', totalCapacity.value, usedCapacity.value),
   createDataItem('group', groupCount, '群组数', totalGroups.value, todayGroups.value),
   createDataItem('download', downloadCount, '下载量', totalDownloads.value, todayDownloads.value),
 ])
@@ -207,7 +209,7 @@ const getScrollListInfo = async ()=>{
 const getCapacityRatio = async ()=>{
   const { data } = await getCapacity()
   totalCapacity.value = data.totalCapacity
-  freeCapacity.value = data.freeCapacity
+  usedCapacity.value = data.usedCapacity
 }
 
 </script>
@@ -269,11 +271,11 @@ const getCapacityRatio = async ()=>{
         width: 98%;
         display: flex;
         justify-content: space-between;
-        align-items: flex-end;
+        align-items: center;
 
         li {
           flex: 0 0 19%;
-          height: 65%;
+          height: 90%;
           display: flex;
           border-radius: 8px;
           position: relative;
@@ -297,28 +299,51 @@ const getCapacityRatio = async ()=>{
             }
           }
 
+          &:nth-child(3){
+
+            .right {
+              flex:0 0 60%;
+              padding: 0;
+              p:nth-child(1){
+                font-size: 1.6vw;
+                margin: 16px 0 0 0;
+              }
+              p:nth-child(2){
+                font-size: 2.4rem;
+                font-weight: bold;
+                margin: 30px 0 0 0;
+              }
+            }
+          }
+
           .left,.right{
             display: flex;
             flex-direction: column;
-            flex:0 0 48%;
+            flex:0 0 35%;
             padding-left: 10px;
             color:#333;
             p:nth-child(1){
-              font-size: 1.2vw;
+              font-size: 1.4rem;
             }
             p:nth-child(2){
-              font-size: 1.2vw;
+              font-size: 1.4rem;
               font-weight: bold;
             }
           }
 
           .right {
+            height: 100%;
+            flex:0 0 60%;
+            padding-left:0;
+            justify-content: start;
             p:nth-child(1){
               font-size: 1.6vw;
+              margin: 16px 0 0 10px;
             }
             p:nth-child(2){
-              font-size: 1.3vw;
+              font-size: 3rem;
               font-weight: bold;
+              margin: 30px 0 0 30px;
             }
           }
 
@@ -327,7 +352,7 @@ const getCapacityRatio = async ()=>{
             height: 4vw;
             flex-grow: 1;
             position: absolute;
-            top: -2.5vw;
+            top: 1.5vh;
             left: 1.2vw;
             display: flex;
             align-items: center;
