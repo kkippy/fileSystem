@@ -2,7 +2,7 @@
   <div class="homeContainer">
     <div class="topContainer">
       <ul>
-        <li v-for="(item) in dataItemOptions"  :key="item.key">
+        <li @click="handleCheckInfo(item)" v-for="(item) in dataItemOptions"  :key="item.key">
           <div class="icon">
             <img :src="item.icon" alt="">
           </div>
@@ -45,6 +45,8 @@
         <scroll-table class="bottom" :list="list" />
       </vue3-seamless-scroll>
     </div>
+
+    <el-dialog v-model="dialogVisible" width="60%"></el-dialog>
   </div>
 
 </template>
@@ -59,6 +61,7 @@ import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import {
   getTodayView, getTotalView, getTodayGroup, getTotalDownload, getTotalGroup,
   getTodayDownload, getTodayUpload, getTotalUpload, getCapacity, getScrollList,
+  getTodayUploadInfo, getTodayViewInfo,getTodayGroupInfo,getTodayDownloadInfo
 } from '@/api/home'
 import  {createDataItem,departmentMap,barOption,lineOption} from "./config/option"
 import { Vue3SeamlessScroll  } from 'vue3-seamless-scroll'
@@ -78,6 +81,8 @@ const totalCapacity = ref<string>()
 const freeCapacity = ref<string>()
 const list = ref<getScrollItem[]>([])
 const scrollTableLoading = ref<boolean>(false)
+const dialogData = ref<any[]>([])
+const dialogVisible = ref<boolean>(false)
 
 const dataItemOptions = computed(()=>[
   createDataItem('upload', uploadCount, '上传量', totalUploads.value, todayUploads.value),
@@ -120,6 +125,33 @@ const initLineChart = ()=>{
 
 const handleResize = ()=>{
   window.location.reload();
+}
+
+const handleCheckInfo = async (item:any) =>{
+  let { data:uploadData } = await getTodayUploadInfo(1,10)
+  let { data:downloadData } = await getTodayDownloadInfo(1,10)
+  let { data:groupData } = await getTodayGroupInfo(1,10)
+  let { data:viewData } = await getTodayViewInfo(1,10)
+  switch (item.key) {
+    case 'upload':
+      dialogVisible.value = true
+      dialogData.value = uploadData.items
+      break;
+    case 'view':
+      dialogVisible.value = true
+      dialogData.value = viewData.items
+      break;
+    case 'capacity':
+      break;
+    case 'group':
+      dialogVisible.value = true
+      dialogData.value = groupData.items
+      break;
+    case 'download':
+      dialogVisible.value = true
+      dialogData.value = downloadData.items
+      break;
+  }
 }
 
 const getView = async ()=>{
@@ -247,6 +279,9 @@ const getCapacityRatio = async ()=>{
           position: relative;
           justify-content: space-between;
           align-items: self-end;
+          &:hover{
+            cursor: pointer;
+          }
 
           &:nth-child(1),&:nth-child(5){
             background-color: #b2daf9;
@@ -273,6 +308,16 @@ const getCapacityRatio = async ()=>{
             }
             p:nth-child(2){
               font-size: 1.2vw;
+              font-weight: bold;
+            }
+          }
+
+          .right {
+            p:nth-child(1){
+              font-size: 1.6vw;
+            }
+            p:nth-child(2){
+              font-size: 1.3vw;
               font-weight: bold;
             }
           }
