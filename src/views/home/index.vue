@@ -65,7 +65,7 @@
         :page-sizes="[20, 50, 100]"
         :background="true"
         layout="prev, pager, next, jumper, ->, sizes, total"
-        :total="total"
+        :total="totalNum"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
       />
@@ -81,7 +81,7 @@ import downloadCount from '@/assets/images/downloadCount.svg'
 import viewCount from '@/assets/images/viewCount.svg'
 import groupCount from '@/assets/images/groupCount.svg'
 import capacity from '@/assets/images/capacity.svg'
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed,watch } from 'vue'
 import {
   getTodayView, getTotalView, getTodayGroup, getTotalDownload, getTotalGroup,
   getTodayDownload, getTodayUpload, getTotalUpload, getCapacity, getScrollList,
@@ -115,10 +115,11 @@ const dialogData = ref<any[]>([])
 const dialogVisible = ref<boolean>(false)
 const propList = ref<propItem[]>([])
 const addType = ref<string>('上传')
-let currentPage = ref<number>(1)
-let pageSize = ref<number>(10)
-let total = ref<number>(0)
+const currentPage = ref<number>(1)
+const pageSize = ref<number>(10)
+const totalNum = ref<number>(0)
 const currentDataType = ref<string>('')
+const liItem = ref([])
 
 const dataItemOptions = computed(()=>[
   createDataItem('upload', uploadCount, '上传量', totalUploads.value, todayUploads.value),
@@ -163,7 +164,9 @@ const handleResize = ()=>{
   window.location.reload();
 }
 
-const handleCheckInfo = async (item:any) =>{
+const handleCheckInfo = async (item:any,pager = 1) =>{
+  currentPage.value = pager
+  Object.assign(liItem,item)
   let { data:uploadData } = await getTodayUploadInfo(currentPage.value,pageSize.value)
   let { data:downloadData } = await getTodayDownloadInfo(currentPage.value,pageSize.value)
   let { data:groupData } = await getTodayGroupInfo(currentPage.value,pageSize.value)
@@ -172,17 +175,17 @@ const handleCheckInfo = async (item:any) =>{
     case 'upload':
       addType.value = '上传'
       dialogVisible.value = true
-      dialogData.value = uploadData.items
+      dialogData.value = uploadData.items || []
       propList.value = uploadPropList
-      total.value = uploadData.counts
+      totalNum.value = uploadData.counts
       currentDataType.value = 'upload'
       break;
     case 'view':
       addType.value = '访问'
       dialogVisible.value = true
-      dialogData.value = viewData.items
+      dialogData.value = viewData.items || []
       propList.value = viewPropList
-      total.value = viewData.counts
+      totalNum.value = viewData.counts
       currentDataType.value = 'view'
       break;
     case 'capacity':
@@ -190,56 +193,29 @@ const handleCheckInfo = async (item:any) =>{
     case 'group':
       addType.value = '群组'
       dialogVisible.value = true
-      dialogData.value = groupData.items
+      dialogData.value = groupData.items || []
       propList.value = groupPropList
-      total.value = groupData.counts
+      totalNum.value = groupData.counts
       currentDataType.value = 'group'
       break;
     case 'download':
       addType.value = '下载'
       dialogVisible.value = true
-      dialogData.value = downloadData.items
-      total.value = downloadData.counts
+      dialogData.value = downloadData.items || []
+      totalNum.value = downloadData.counts
       propList.value = downloadPropList
       currentDataType.value = 'download'
       break;
   }
 }
 
-const handleSizeChange = () => {
+const handleSizeChange = (e:any) => {
   currentPage.value = 1
-  fetchData()
+  handleCheckInfo(liItem)
 }
 
-const handleCurrentChange = () => {
-  fetchData()
-}
-
-const fetchData = async(pager = 1) => {
-  currentPage.value = pager
-  let data:any
-  switch (currentDataType.value) {
-    case 'upload':
-      data = await getTodayUploadInfo(currentPage.value,pageSize.value)
-      dialogData.value = data.items;
-      total.value = data.counts;
-      break;
-    case 'view':
-      data = await getTodayViewInfo(currentPage.value,pageSize.value)
-      dialogData.value = data.items;
-      total.value = data.counts;
-      break;
-    case 'group':
-      data = await getTodayGroupInfo(currentPage.value,pageSize.value)
-      dialogData.value = data.items;
-      total.value = data.counts;
-      break;
-    case 'download':
-      data = await getTodayDownloadInfo(currentPage.value,pageSize.value)
-      dialogData.value = data.items;
-      total.value = data.counts;
-      break;
-  }
+const handleCurrentChange = (e:number) => {
+  handleCheckInfo(liItem,e)
 }
 
 const getView = async ()=>{
