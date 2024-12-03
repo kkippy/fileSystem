@@ -47,6 +47,17 @@
     </div>
 
     <el-dialog v-model="dialogVisible" width="65%" :title="`今日新增${addType}详情`">
+      <div class="searchHeader">
+        <el-form>
+          <el-form-item style="margin-top: 18px;margin-left: 10px">
+            <el-input clearable id="inputGroupField" v-model="searchValue" @keyup.enter="onSearch(searchValue)" :placeholder="`请输入${searchType}`" />
+          </el-form-item>
+        </el-form>
+        <div style="margin-left: 10px">
+          <el-button type="primary" :icon="Search" @click="onSearch" :disabled="!searchValue">搜索</el-button>
+          <el-button @click="reset" :icon="Refresh" >重置</el-button>
+        </div>
+      </div>
         <el-table stripe :data="dialogData" height="50vh">
           <el-input size="small" placeholder="Type to search" />
           <el-table-column
@@ -92,6 +103,7 @@ import { Vue3SeamlessScroll  } from 'vue3-seamless-scroll'
 import  type {getScrollItem} from "@/api/home/type"
 import * as echarts from 'echarts';
 import scrollTable from "./components/scrollTable.vue"
+import { Refresh, Search } from '@element-plus/icons-vue'
 
 interface propItem {
   index:number,
@@ -115,11 +127,12 @@ const dialogData = ref<any[]>([])
 const dialogVisible = ref<boolean>(false)
 const propList = ref<propItem[]>([])
 const addType = ref<string>('上传')
+const searchType = ref<string>('')
 const currentPage = ref<number>(1)
 const pageSize = ref<number>(10)
 const totalNum = ref<number>(0)
-const currentDataType = ref<string>('')
 const liItem = ref([])
+const searchValue = ref('')
 
 const dataItemOptions = computed(()=>[
   createDataItem('upload', uploadCount, '上传量', totalUploads.value, todayUploads.value),
@@ -128,6 +141,19 @@ const dataItemOptions = computed(()=>[
   createDataItem('group', groupCount, '群组数', totalGroups.value, todayGroups.value),
   createDataItem('download', downloadCount, '下载量', totalDownloads.value, todayDownloads.value),
 ])
+
+const groupField = document.getElementById('inputGroupField');
+groupField?.addEventListener('keyup', function(event) {
+  if (event.key === 'Enter') {
+    onSearch(searchValue.value)
+  }
+});
+
+watch(()=>searchValue.value, ()=>{
+  if(searchValue.value === '') {
+    reset()
+  }
+})
 
 onMounted(()=>{
   getView()
@@ -164,52 +190,83 @@ const handleResize = ()=>{
   window.location.reload();
 }
 
+const fetchData = async (apiFunction:any, params = {}) => {
+  try {
+    const { data } = await apiFunction(currentPage.value, pageSize.value, params);
+    dialogData.value = data.items || [];
+    totalNum.value = data.counts;
+  } catch (error) {
+    console.error('请求失败:', error);
+  }
+};
+
+const apiMap:any = {
+  '上传文件名': { api: getTodayUploadInfo, propList: uploadPropList },
+  '工号': { api: getTodayViewInfo, propList: viewPropList },
+  '群组名': { api: getTodayGroupInfo, propList: groupPropList },
+  '下载文件名': { api: getTodayDownloadInfo, propList: downloadPropList }
+};
+
+const onSearch = async (searchValue:string) =>{
+  const { api, propList } = apiMap[searchType.value];
+  await fetchData(api,
+    { [searchType.value === '上传文件名'
+        ? 'uploadName' : searchType.value === '工号'
+          ? 'userNumber' : searchType.value === '群组名'
+            ? 'groupName' : 'fileName']: searchValue });
+  propList.value = propList;
+}
+
+const reset = async () => {
+  const { api, propList } = apiMap[searchType.value];
+  await fetchData(api);
+  propList.value = propList;
+}
+
 const handleCheckInfo = async (item:any,pager = 1) =>{
   currentPage.value = pager
+  searchValue.value = ''
+  if (item.key === 'capacity') return;
   Object.assign(liItem,item)
+
   let { data:uploadData } = await getTodayUploadInfo(currentPage.value,pageSize.value)
   let { data:downloadData } = await getTodayDownloadInfo(currentPage.value,pageSize.value)
   let { data:groupData } = await getTodayGroupInfo(currentPage.value,pageSize.value)
   let { data:viewData } = await getTodayViewInfo(currentPage.value,pageSize.value)
+
+  const setData = (type: string, search: string, data: any[], prop: any[], counts: number) => {
+    addType.value = type;
+    searchType.value = search;
+    dialogVisible.value = true;
+    dialogData.value = data.map(item => {
+      if(item.uploadType === 'file') {
+        item.uploadType = '文件'
+      }
+      if(item.uploadType === 'link') {
+        item.uploadType = '链接'
+      }
+      return item
+    }) || [];
+    propList.value = prop;
+    totalNum.value = counts;
+  };
   switch (item.key) {
     case 'upload':
-      addType.value = '上传'
-      dialogVisible.value = true
-      dialogData.value = uploadData.items || []
-      propList.value = uploadPropList
-      totalNum.value = uploadData.counts
-      currentDataType.value = 'upload'
+      setData('上传', '上传文件名', uploadData.items, uploadPropList, uploadData.counts);
       break;
     case 'view':
-      addType.value = '访问'
-      dialogVisible.value = true
-      dialogData.value = viewData.items || []
-      propList.value = viewPropList
-      totalNum.value = viewData.counts
-      currentDataType.value = 'view'
-      break;
-    case 'capacity':
+      setData('访问', '工号', viewData.items, viewPropList, viewData.counts);
       break;
     case 'group':
-      addType.value = '群组'
-      dialogVisible.value = true
-      dialogData.value = groupData.items || []
-      propList.value = groupPropList
-      totalNum.value = groupData.counts
-      currentDataType.value = 'group'
+      setData('群组', '群组名', groupData.items, groupPropList, groupData.counts);
       break;
     case 'download':
-      addType.value = '下载'
-      dialogVisible.value = true
-      dialogData.value = downloadData.items || []
-      totalNum.value = downloadData.counts
-      propList.value = downloadPropList
-      currentDataType.value = 'download'
+      setData('下载', '下载文件名', downloadData.items, downloadPropList, downloadData.counts);
       break;
   }
 }
 
-const handleSizeChange = (e:any) => {
+const handleSizeChange = () => {
   currentPage.value = 1
   handleCheckInfo(liItem)
 }
@@ -463,6 +520,13 @@ const getCapacityRatio = async ()=>{
           padding: 3px 0;
         }
       }
+    }
+
+    .searchHeader {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      flex-direction: row;
     }
   }
 }

@@ -4,23 +4,23 @@ interface ResponseData {
 }
 
 export interface getViewInfo {
-  userName: string;
-  userNumber: string;
+  userName?: string;
+  userNumber?: string;
 }
 
 export interface getUploadInfo {
-  uploadName: string;
-  uploadType: 'file' | 'link';
+  uploadName?: string;
+  uploadType?: 'file' | 'link';
 }
 
 export interface getGroupInfo {
-  userName: string;
-  groupName: string;
+  userName?: string;
+  groupName?: string;
 }
 
 export interface getDownloadInfo {
-  userName: string;
-  fileName: string;
+  userName?: string;
+  fileName?: string;
 }
 
 interface getViewInfoItem {
@@ -133,6 +133,10 @@ export interface getBarChartResponseData extends ResponseData {
     pptCount:number,
     otherCount:number
   }
+}
+
+export interface propListItem {
+
 }
 
 

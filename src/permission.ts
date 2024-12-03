@@ -28,6 +28,7 @@ router.beforeEach(async (to:any, from:any, next:any) => {
       next({path:'/'})
     } else {
       if(username !== 'undefined' ){ //有用户信息则放行
+        console.log(username,'username')
         next()
       } else {
         //如果没有用户信息则在此发请求获取到用户信息后再放行,以实现用户信息的变相持久化

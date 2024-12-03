@@ -14,7 +14,6 @@ export const userColumns  = [
 
 export const fileColumns = [
   { label: '文件名', prop: 'fileName' },
-  { label: '科室', prop: 'bucket' },
   { label: '文件路径', prop: 'path' },
 ]
 
