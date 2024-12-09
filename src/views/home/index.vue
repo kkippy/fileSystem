@@ -92,15 +92,16 @@ import downloadCount from '@/assets/images/downloadCount.svg'
 import viewCount from '@/assets/images/viewCount.svg'
 import groupCount from '@/assets/images/groupCount.svg'
 import capacity from '@/assets/images/capacity.svg'
-import { ref, onMounted, onBeforeUnmount, computed,watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
 import {
   getTodayView, getTotalView, getTodayGroup, getTotalDownload, getTotalGroup,
   getTodayDownload, getTodayUpload, getTotalUpload, getCapacity, getScrollList,
-  getTodayUploadInfo, getTodayViewInfo,getTodayGroupInfo,getTodayDownloadInfo
+  getTodayUploadInfo, getTodayViewInfo, getTodayGroupInfo, getTodayDownloadInfo,
+  getLineChart
 } from '@/api/home'
 import  {createDataItem,departmentMap,barOption,lineOption,uploadPropList,downloadPropList,viewPropList,groupPropList} from "./config/option"
 import { Vue3SeamlessScroll  } from 'vue3-seamless-scroll'
-import  type {getScrollItem} from "@/api/home/type"
+import type { getLineChartResponseData, getScrollItem } from '@/api/home/type'
 import * as echarts from 'echarts';
 import scrollTable from "./components/scrollTable.vue"
 import { Refresh, Search } from '@element-plus/icons-vue'
@@ -133,6 +134,13 @@ const pageSize = ref<number>(10)
 const totalNum = ref<number>(0)
 const liItem = ref([])
 const searchValue = ref('')
+let lineChartInstance:any
+
+watch(()=> todayUploads.value,(oldValue,newValue)=>{
+  if(oldValue !== newValue){
+    updateLineChart()
+  }
+})
 
 const dataItemOptions = computed(()=>[
   createDataItem('upload', uploadCount, '上传量', totalUploads.value, todayUploads.value),
@@ -181,9 +189,25 @@ const initBarChart = () => {
 };
 
 const initLineChart = ()=>{
-  let chartDom = document.getElementById('lineChart');
-  let myChart = echarts.init(chartDom);
-  myChart.setOption(lineOption);
+  lineChartInstance = echarts.init(document.getElementById('lineChart'));
+  lineChartInstance.setOption(lineOption);
+}
+
+const updateLineChart = async ()=>{
+  const response: getLineChartResponseData = await getLineChart();
+  const data = response.data;
+
+  const { downloadList, uploadList, loginList } = data;
+  if (lineOption.series && Array.isArray(lineOption.series)) {
+    (lineOption.series)[0].data = downloadList
+    lineOption.series[1].data = uploadList
+    lineOption.series[2].data = loginList
+  }
+
+  if (lineChartInstance) {
+    lineChartInstance.setOption(lineOption);
+  }
+
 }
 
 const handleResize = ()=>{
@@ -333,201 +357,9 @@ const getCapacityRatio = async ()=>{
 
 </script>
 
-<style scoped lang="scss">
-@media  (min-width: 1366px) {
-  p{
-    margin: 0;
-    padding: 0;
-  }
+<style lang="scss" scoped>
+@import "./style";
 
-  .homeContainer {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    box-sizing: border-box;
-    background-color: transparent;
-
-    .carStyle{
-      border: 1px solid #e4e7ed;
-      background-color: #fff;
-      overflow: hidden;
-      color: #303133;
-      transition: .3s;
-      margin: 10px;
-    }
-
-    .centerContainer {
-      height: 50%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 2;
-      border-radius:4px;
-      border: 1px solid #e1e1de;
-      box-shadow:  0.1em 0.1em .5em rgba(0, 0, 0, 0.1);
-      margin: 10px 0;
-
-      .lineChart,.barChart {
-        flex: 0 0 49%;
-        height: 100%;
-        background-color: transparent;
-      }
-    }
-
-    .topContainer{
-      display: flex;
-      justify-content: center;
-      flex-grow: 1;
-      height: 20%;
-      padding-bottom: 5px;
-      border-radius:4px;
-      margin-bottom: 10px;
-      border: 1px solid #e1e1de;
-      box-shadow:  0.1em 0.1em .5em rgba(0, 0, 0, 0.1);
-
-      ul {
-        width: 98%;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-
-        li {
-          flex: 0 0 19%;
-          height: 90%;
-          display: flex;
-          border-radius: 8px;
-          position: relative;
-          justify-content: space-between;
-          align-items: self-end;
-          &:hover{
-            cursor: pointer;
-          }
-
-          &:nth-child(1),&:nth-child(5){
-            background-color: #b2daf9;
-            .icon{
-              background-color: #73AEF1;
-            }
-          }
-
-          &:nth-child(2),&:nth-child(3),&:nth-child(4){
-            background-color:#faf2db;
-            .icon{
-              background-color: #f2e3c2;
-            }
-          }
-
-          &:nth-child(3){
-
-            &:hover{
-              cursor: default;
-            }
-
-            .right {
-              flex:0 0 60%;
-              padding: 0;
-              p:nth-child(1){
-                font-size: 1.6vw;
-                margin: 16px 0 0 0;
-              }
-              p:nth-child(2){
-                font-size: 2.4rem;
-                font-weight: bold;
-                margin: 30px 0 0 0;
-              }
-            }
-          }
-
-          .left,.right{
-            display: flex;
-            flex-direction: column;
-            flex:0 0 35%;
-            padding-left: 10px;
-            color:#383c3c;
-            p:nth-child(1){
-              font-size: 1.4rem;
-            }
-            p:nth-child(2){
-              font-size: 1.4rem;
-              font-weight: bold;
-            }
-          }
-
-          .right {
-            height: 100%;
-            flex:0 0 60%;
-            padding-left:0;
-            justify-content: start;
-            p:nth-child(1){
-              font-size: 1.6vw;
-              margin: 16px 0 0 10px;
-            }
-            p:nth-child(2){
-              font-size: 3rem;
-              font-weight: bold;
-              margin: 30px 0 0 30px;
-            }
-          }
-
-          .icon {
-            width: 4vw;
-            height: 4vw;
-            flex-grow: 1;
-            position: absolute;
-            top: 1.5vh;
-            left: 1.2vw;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-
-            img {
-              margin: 0 auto;
-              height: 92%;
-              object-fit: cover;
-            }
-
-          }
-        }
-      }
-    }
-
-    .bottomContainer {
-      height: 22%;
-      overflow: hidden;
-      border-radius:4px;
-      border: 1px solid #e1e1de;
-      box-shadow:  0.1em 0.1em .5em rgba(0, 0, 0, 0.1);
-      margin-top: 10px;
-
-      .scroll{
-        height: 80%;
-        .top {
-          z-index: 2;
-          overflow: hidden;
-          background-color: transparent;
-        }
-        .bottom .el-table__body  {
-          margin: 0!important;
-          box-sizing: border-box;
-          width: 100%;
-        }
-        .item {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 3px 0;
-        }
-      }
-    }
-
-    .searchHeader {
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      flex-direction: row;
-    }
-  }
-}
 </style>
+
+

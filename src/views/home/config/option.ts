@@ -128,6 +128,12 @@ export const lineOption:EChartsOption = {
     left: 'center',
     data: ['下载量', '上传量', '访问量']
   },
+  grid: {
+    left: '7%',
+    right: '4%',
+    bottom: '0%',
+    containLabel: true
+  },
   xAxis: {
     type: 'category',
     axisLabel: {
@@ -135,14 +141,9 @@ export const lineOption:EChartsOption = {
       fontSize: 10,
     },
     boundaryGap: false,
-    data: dateList
+    data: dateList,
   },
-  grid: {
-    left: '7%',
-    right: '4%',
-    bottom: '0%',
-    containLabel: true
-  },
+
   yAxis: {
     type: 'value'
   },
@@ -151,19 +152,46 @@ export const lineOption:EChartsOption = {
       name: '下载量',
       type: 'line',
       smooth: true,
+      stack: 'Total',
       data: downloadList,
+      lineStyle: {
+        width: 0
+      },
+      showSymbol: false,
+      emphasis: {
+        focus: 'series'
+      },
+      areaStyle: {}
     },
     {
       name: '上传量',
       type: 'line',
       smooth: true,
+      stack: 'Total',
       data: uploadList,
+      lineStyle: {
+        width: 0
+      },
+      showSymbol: false,
+      emphasis: {
+        focus: 'series'
+      },
+      areaStyle: {}
     },
     {
       name: '访问量',
       type: 'line',
       smooth: true,
+      stack: 'Total',
       data: loginList,
+      lineStyle: {
+        width: 0
+      },
+      showSymbol: false,
+      emphasis: {
+        focus: 'series'
+      },
+      areaStyle: {}
     }
   ]
 }
