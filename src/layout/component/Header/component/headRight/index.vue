@@ -1,11 +1,19 @@
 <template>
   <span>{{userStore.userName}}</span>
+  <el-tooltip
+    effect="dark"
+    content="请在科室文件页面下使用该引导提示"
+    placement="bottom"
+  >
   <SvgIcon class="help"  :width="35" :height="35" name="help" @click="getHelp"/>
-  <SvgIcon class="fullScreen"
-           :width="isFullScreen ? 40 : 35"
-           :height="isFullScreen ? 39 : 23"
-           :name="isFullScreen ? 'normalScreen' : 'fullScreen' "
-           @click="handleFullscreen" />
+  </el-tooltip>
+
+    <SvgIcon class="fullScreen"
+             :disabled="useHelp"
+             :width="isFullScreen ? 40 : 35"
+             :height="isFullScreen ? 39 : 23"
+             :name="isFullScreen ? 'normalScreen' : 'fullScreen' "
+             @click="handleFullscreen" />
   <el-dropdown trigger="click" style="margin-left: 12px" @command="handleCommand">
     <div class="avatar" >
       <img :src=userImg alt="" />
@@ -22,13 +30,19 @@
 import {useUserStore} from "@/stores/user";
 import {useRouter,useRoute} from "vue-router";
 import {ElMessage} from "element-plus";
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import userImg from "@/assets/images/user.png"
 
 const userStore = useUserStore()
 let router = useRouter()
 let route = useRoute()
 let isFullScreen = ref<boolean>(false)
+
+console.log(route,'route')
+const useHelp = computed(() =>{
+  const partPath = ['/section1','/section2','/basic','/manage','/support']
+  return partPath.includes(route.path);
+})
 
 const handleFullscreen = () => {
   let full = document.fullscreenElement
