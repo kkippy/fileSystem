@@ -19,6 +19,7 @@ import { GET_PATH, SET_PATH } from '@/utils/path'
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+const isHome = ref<boolean>(true)
 let filePathList = ref<string[]>([])
 filePathList.value = userStore.path.split("/").filter(item => item !== "");
 
@@ -44,6 +45,8 @@ const goRoot = ()=>{
 
 const goHome = ()=>{
   router.push({path: '/'})
+  filePathList.value = []
+  SET_PATH('/')
 }
 
 
