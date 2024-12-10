@@ -3,7 +3,6 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
 
 const  updateTheme = () => {
   if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -12,9 +11,14 @@ const  updateTheme = () => {
     document.body.style.color = 'black'; // 浅色模式
   }
 }
-onMounted(()=>{
-  console.log(window.matchMedia("(prefers-color-scheme: dark)").matches)
-})
+window.addEventListener('wheel', function(event:any){
+  console.log(event,'event')
+  if (event.ctrlKey === true || event.metaKey) {
+    event.preventDefault();
+  }
+},{ passive: false});
+
+
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateTheme);
 </script>
 
@@ -29,8 +33,8 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', upd
   body {color: #000; }
 }
 body{
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   padding: 0;
   margin: 0;
 }
