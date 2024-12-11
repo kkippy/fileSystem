@@ -38,7 +38,6 @@ let router = useRouter()
 let route = useRoute()
 let isFullScreen = ref<boolean>(false)
 
-console.log(route,'route')
 const useHelp = computed(() =>{
   const partPath = ['/section1','/section2','/basic','/manage','/support']
   return partPath.includes(route.path);

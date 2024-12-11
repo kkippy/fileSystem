@@ -99,7 +99,8 @@ import {
   getTodayUploadInfo, getTodayViewInfo, getTodayGroupInfo, getTodayDownloadInfo,
   getLineChart
 } from '@/api/home'
-import  {createDataItem,departmentMap,barOption,lineOption,uploadPropList,downloadPropList,viewPropList,groupPropList} from "./config/option"
+import  {createDataItem, getLineChartData, departmentMap,barOption,
+  lineOption,uploadPropList,downloadPropList,viewPropList,groupPropList} from "./config/option"
 import { Vue3SeamlessScroll  } from 'vue3-seamless-scroll'
 import type { getLineChartResponseData, getScrollItem } from '@/api/home/type'
 import * as echarts from 'echarts';
@@ -182,26 +183,29 @@ onBeforeUnmount(()=>{
   window.removeEventListener('resize',handleResize)
 })
 
-const initBarChart = () => {
+const initBarChart = async () => {
   let chartDom = document.getElementById('barChart');
   let myChart = echarts.init(chartDom);
-  myChart.setOption(barOption);
+  myChart.setOption(await barOption);
 };
 
-const initLineChart = ()=>{
+const initLineChart = async ()=>{
   lineChartInstance = echarts.init(document.getElementById('lineChart'));
-  lineChartInstance.setOption(lineOption);
+  lineChartInstance.setOption(await lineOption);
 }
 
 const updateLineChart = async ()=>{
   const response: getLineChartResponseData = await getLineChart();
-  const data = response.data;
+  const data:any = response.data;
 
   const { downloadList, uploadList, loginList } = data;
+
+  const lineOption = await getLineChartData();
+
   if (lineOption.series && Array.isArray(lineOption.series)) {
-    (lineOption.series)[0].data = downloadList
-    lineOption.series[1].data = uploadList
-    lineOption.series[2].data = loginList
+    lineOption.series[0].data = downloadList;
+    lineOption.series[1].data = uploadList;
+    lineOption.series[2].data = loginList;
   }
 
   if (lineChartInstance) {
